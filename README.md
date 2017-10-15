@@ -5,11 +5,14 @@ A simple plugin that displays information regarding your Tesla vehicle in the Ma
 
 Supports OS X Dark Mode 
 
-![](https://imgur.com/KxLU7tL)
+
+![Imgur](https://i.imgur.com/KxLU7tL.png)
+
 
 Allows you to locate your car in Google Maps and remotely enable / disable your Vehicle Airco.
 
-![](https://imgur.com/14mCiGp)
+
+![Imgur](https://i.imgur.com/14mCiGp.png)
 
 
 ## Credits: 
