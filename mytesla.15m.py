@@ -435,6 +435,14 @@ def main(argv):
         print ('%sVehicle commands| color=%s' % (prefix,color))
         print ('%s--Flash lights | refresh=true terminal=false bash="%s" param1=%s param2=flash_lights color=%s' % (prefix, sys.argv[0], str(i), color))
         print ('%s--Honk horn | refresh=true terminal=false bash="%s" param1=%s param2=honk_horn color=%s' % (prefix, sys.argv[0], str(i), color))
+        if bool(vehicle_state['sun_roof_installed']):
+           print ('%s-----' % prefix)
+           print ('%s--Sun roof open: %s%% | color=%s' % (prefix, vehicle_state['sun_roof_percent_open'], color))
+           print ('%s---- 0%% (Closed)| refresh=true terminal=false bash="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:0", color))
+           print ('%s---- 15%% (Vent)| refresh=true terminal=false bash="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:15", color))
+           print ('%s---- 80%% (Comfort)| refresh=true terminal=false bash="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:80", color))
+           print ('%s---- 100%% (Open)| refresh=true terminal=false bash="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:100", color))
+        
 
 
 if __name__ == '__main__':
