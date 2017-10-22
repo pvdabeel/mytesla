@@ -350,6 +350,10 @@ def main(argv):
         print ('%sBattery Level:				%s%% | color=%s' % (prefix, charge_state['battery_level'],color))
         print ('%sCharging State:				%s   | color=%s' % (prefix, charge_state['charging_state'],color))
         print ('%sVehicle State:				%s   | color=%s' % (prefix, lock_state(vehicle_state['locked']),color))
+        if bool(vehicle_state['locked']):
+            print ('%s--Unlock | refresh=true terminal=false bash="%s" param1=%s param2=door_unlock color=%s' % (prefix, sys.argv[0], str(i), color))
+        else:
+            print ('%s--Lock | refresh=true terminal=false bash="%s" param1=%s param2=door_lock color=%s' % (prefix, sys.argv[0], str(i), color))
         print ('%s---' % prefix)
         
         try:
@@ -416,6 +420,11 @@ def main(argv):
         print ('%s---' % prefix)
 
         print ('%sView Location | href="https://maps.google.com?q=%s,%s" color=%s' % (prefix, drive_state['latitude'], drive_state['longitude'],color))
+        print ('%s---' % prefix)
+        print ('%sVehicle commands| color=%s' % (prefix,color))
+        print ('%s--Flash lights | refresh=true terminal=false bash="%s" param1=%s param2=flash_lights color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s--Honk horn | refresh=true terminal=false bash="%s" param1=%s param2=honk_horn color=%s' % (prefix, sys.argv[0], str(i), color))
+
 
 if __name__ == '__main__':
     main(sys.argv)
