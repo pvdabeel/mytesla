@@ -348,7 +348,18 @@ def main(argv):
 
         # print the data for the vehicle
         print ('%sBattery Level:				%s%% | color=%s' % (prefix, charge_state['battery_level'],color))
+        print ('%s--Charge Level set to: %s%% | color=%s' % (prefix, charge_state['charge_limit_soc'], color))
+        print ('%s---- 80%% | refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:80", color))
+        print ('%s---- 85%% | refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:85", color))
+        print ('%s---- 90%% | refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:90", color))
+        print ('%s---- 95%% | refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:95", color))
+        print ('%s---- 100%% | refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:100", color))
         print ('%sCharging State:				%s   | color=%s' % (prefix, charge_state['charging_state'],color))
+        if (charge_state['charging_state']=="Charging"):
+            print ('%s--Stop charging | refresh=true terminal=false bash="%s" param1=%s param2=charge_stop color=%s' % (prefix, sys.argv[0], str(i), color))
+        if (charge_state['battery_level'] < charge_state['charge_limit_soc']) and (charge_state['charging_state']!='Starting') and (charge_state['charging_state']!='Charging'):
+            print ('%s--Start charging | refresh=true terminal=false bash="%s" param1=%s param2=charge_start color=%s' % (prefix, sys.argv[0], str(i), color))
+ 
         print ('%sVehicle State:				%s   | color=%s' % (prefix, lock_state(vehicle_state['locked']),color))
         if bool(vehicle_state['locked']):
             print ('%s--Unlock | refresh=true terminal=false bash="%s" param1=%s param2=door_unlock color=%s' % (prefix, sys.argv[0], str(i), color))
