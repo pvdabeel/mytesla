@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # <bitbar.title>MyTesla</bitbar.title>
-# <bitbar.version>v2.0</bitbar.version>
+# <bitbar.version>v3.0</bitbar.version>
 # <bitbar.author>pvdabeel@mac.com</bitbar.author>
 # <bitbar.author.github>pvdabeel</bitbar.author.github>
 # <bitbar.desc>Control your Tesla vehicle from the Mac OS X menubar</bitbar.desc>
@@ -302,14 +302,19 @@ def main(argv):
 
 
     # CASE 4: all ok, specific command for a specific vehicle received
-
     if len(sys.argv) > 1:
         v = vehicles[int(sys.argv[1])]
         v.wake_up()
         if sys.argv[2] != "wakeup":
-            if len(sys.argv) == 2:
+            if (len(sys.argv) == 2) and (sys.argv[2] != 'remote_start_drive'):
                 # argv is of the form: CMD + vehicleid + command 
                 v.command(sys.argv[2])
+            elif sys.argv[2] == 'remote_start_drive':
+                # ask for password
+                print ('Enter your tesla.com password:')
+                password = getpass.getpass()
+                # v.command(sys.argv[2],password)
+                password = ''
             else:
                 # argv is of the form: CMD + vehicleid + command + key:value pairs 
                 v.command(sys.argv[2],dict(map(lambda x: x.split(':'),sys.argv[3:])))
@@ -317,7 +322,6 @@ def main(argv):
 
 
     # CASE 5: all ok, all other cases
-
     print_logo()
     prefix = ''
     if len(vehicles) > 1:
@@ -442,6 +446,8 @@ def main(argv):
            print ('%s---- 15%% (Vent)| refresh=true terminal=false bash="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:15", color))
            print ('%s---- 80%% (Comfort)| refresh=true terminal=false bash="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:80", color))
            print ('%s---- 100%% (Open)| refresh=true terminal=false bash="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:100", color))
+        print ('%s-----' % prefix)
+        print ('%s--Remote start | refresh=true terminal=true bash="%s" param1=%s param2=remote_start_drive color=%s' % (prefix, sys.argv[0], str(i), color))
         
 
 
