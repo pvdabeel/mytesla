@@ -43,6 +43,14 @@ import getpass
 import time
 import os
 
+# Nice ANSI colors
+
+CEND    = '\33[0m'
+CRED    = '\33[31m'
+CGREEN  = '\33[32m'
+CYELLOW = '\33[33m'
+CBLUE   = '\33[34m'
+
 # Support for OS X Dark Mode
 DARK_MODE=os.getenv('BitBarDarkMode',0)
 
@@ -219,15 +227,15 @@ def convert_distance(distance_unit,distance):
 
 def door_state(dooropen):
     if bool(dooropen):
-        return 'Open'
+        return CRED + 'Open' + CEND
     else:
-        return 'Closed'
+        return CGREEN + 'Closed' + CEND
 
 def lock_state(locked):
     if bool(locked):
-        return 'Locked'
+        return CGREEN + 'Locked' + CEND
     else:
-        return 'Unlocked'
+        return CRED + 'Unlocked' + CEND
 
 # Logo for both dark mode and regular mode
 
