@@ -31,6 +31,7 @@ except: # Python 2 dependencies
     from urllib2 import Request, urlopen, build_opener
     from urllib2 import ProxyHandler, HTTPBasicAuthHandler, HTTPHandler, HTTPError, URLError
 
+import ast
 import json
 import sys
 import datetime
@@ -279,13 +280,12 @@ def main(argv):
     else:
         color = 'black' 
 
-    print_logo()
-
     USERNAME = keyring.get_password("mytesla-bitbar","username")
     ACCESS_TOKEN = keyring.get_password("mytesla-bitbar","access_token")
     
     if not USERNAME:   
        # restart in terminal calling init 
+       print_logo()
        print ('Login to tesla.com | refresh=true terminal=true bash="\'%s\'" param1="%s" color=%s' % (sys.argv[0], 'init', color))
        return
 
@@ -296,21 +296,29 @@ def main(argv):
        c = Connection(access_token = ACCESS_TOKEN)
        vehicles = c.vehicles()
     except: 
+       print_logo()
        print ('Login to tesla.com | refresh=true terminal=true bash="\'%s\'" param1="%s" color=%s' % (sys.argv[0], 'init', color))
        return
 
 
     # CASE 4: all ok, specific command for a specific vehicle received
+
     if len(sys.argv) > 1:
         v = vehicles[int(sys.argv[1])]
         v.wake_up()
         if sys.argv[2] != "wakeup":
-            v.command(sys.argv[2])
+            if len(sys.argv) == 2:
+                # argv is of the form: CMD + vehicleid + command 
+                v.command(sys.argv[2])
+            else:
+                # argv is of the form: CMD + vehicleid + command + key:value pairs 
+                v.command(sys.argv[2],dict(map(lambda x: x.split(':'),sys.argv[3:])))
         return
 
 
     # CASE 5: all ok, all other cases
 
+    print_logo()
     prefix = ''
     if len(vehicles) > 1:
         # Create a submenu for every vehicle
@@ -332,7 +340,7 @@ def main(argv):
         drive_state   = vehicle.data_request('drive_state')
         vehicle_state = vehicle.data_request('vehicle_state')
 
-        temp_unit = gui_settings['gui_temperature_units']
+        temp_unit = gui_settings['gui_temperature_units'].encode('utf-8')
         distance_unit='km'  
 
         if gui_settings['gui_distance_units'] == 'mi/hr':
@@ -345,7 +353,7 @@ def main(argv):
         print ('%s---' % prefix)
         
         try:
-            print ('%sInside Temp:					%.1f° C| color=%s' % (prefix, convert_temp(temp_unit,climate_state['inside_temp']),color))
+            print ('%sInside Temp:					%.1f° %s| color=%s' % (prefix, convert_temp(temp_unit,climate_state['inside_temp']),temp_unit,color))
         except:
             print ('%sInside Temp:					Unavailable| color=%s' % (prefix,color))
         
@@ -353,8 +361,17 @@ def main(argv):
             print ('%s--Turn off airco | refresh=true terminal=false bash="%s" param1=%s param2=auto_conditioning_stop color=%s' % (prefix, sys.argv[0], str(i), color))
         else:
             print ('%s--Turn on airco | refresh=true terminal=false bash="%s" param1=%s param2=auto_conditioning_start color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s--Airco set to:	%.1f° %s | color=%s' % (prefix, convert_temp(temp_unit,climate_state['driver_temp_setting']), temp_unit, color))
+        print ('%s---- 18° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:18","passenger_temp:18", color))
+        print ('%s---- 19° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:19","passenger_temp:19", color))
+        print ('%s---- 20° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:20","passenger_temp:20", color))
+        print ('%s---- 21° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:21","passenger_temp:21", color))
+        print ('%s---- 22° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:22","passenger_temp:22", color))
+        print ('%s---- 23° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:23","passenger_temp:23", color))
+        print ('%s---- 24° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:24","passenger_temp:24", color))
+        print ('%s---- 25° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:25","passenger_temp:25", color))
         try:
-            print ('%sOutside Temp:				%.1f° C| color=%s' % (prefix, convert_temp(temp_unit,climate_state['outside_temp']),color))
+            print ('%sOutside Temp:				%.1f° %s| color=%s' % (prefix, convert_temp(temp_unit,climate_state['outside_temp']),temp_unit,color))
         except:
             print ('%sOutside Temp:				Unavailable| color=%s' % (prefix, color))
         print ('%s---' % prefix)
