@@ -16,21 +16,17 @@ Supports OS X Dark Mode
 - [X] Flash lights and honk horn
 
 
-Fancy colors:
-
-![Imgur](https://i.imgur.com/fACd18q.png)
-
 Remotely start charging your Tesla:
 
-![Imgur](https://i.imgur.com/FZ6DB18.jpg)
+![Imgur](https://i.imgur.com/X035ZoW.png)
 
 Remotely control the temperature of your Tesla:
 
-![Imgur](https://i.imgur.com/qPHZtQo.jpg)
+![Imgur](https://i.imgur.com/rhPoEUo.png)
 
 Remotely start keyless driving, flash lights and honk horn of your Tesla:
 
-![Imgur](https://i.imgur.com/GTliktQ.png)
+![Imgur](https://i.imgur.com/olexbfV.png)
 
 Remotely unlock & lock your Tesla:
 
