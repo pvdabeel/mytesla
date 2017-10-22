@@ -5,12 +5,32 @@ A simple plugin that displays information regarding your Tesla vehicle in the Ma
 
 Supports OS X Dark Mode 
 
+**Update 2017.10.22:** 
+-[X]Added support for remotely starting keyless driving.
+-[X]Added support for setting charge levels and starting/stopping charging.
+-[X]Added support for unlocking and locking the vehicle.
+-[X]Added support for controlling airco temperature.
+-[X]Added support for opening and closing the sunroof.
+-[X]Added support for flashing lights and honking horn.
 
-![Imgur](https://i.imgur.com/KxLU7tL.png)
+Remotely start charging your Tesla:
+
+![Imgur](https://i.imgur.com/FZ6DB18.jpg)
+
+Remotely control the temperature of your Tesla:
+
+[Imgur](https://i.imgur.com/qPHZtQo.jpg)
+
+Remotely start keyless driving, flash lights and honk horn of your Tesla:
+
+[Imgur](https://i.imgur.com/GTliktQ.png)
+
+Remotely unlock & lock your Tesla:
+
+[Imgur](https://i.imgur.com/IYiatlI.png)
 
 
 Allows you to locate your car in Google Maps and remotely enable / disable your Vehicle Airco.
-
 
 ![Imgur](https://i.imgur.com/14mCiGp.png)
 
