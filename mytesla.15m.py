@@ -284,9 +284,11 @@ def main(argv):
 
     # CASE 2: init was not called, keyring not initialized
     if DARK_MODE:
-        color = 'white'
+        color = '#FFDEDEDE'
+        info_color = '#808080'
     else:
         color = 'black' 
+        info_color = '#808080'
 
     USERNAME = keyring.get_password("mytesla-bitbar","username")
     ACCESS_TOKEN = keyring.get_password("mytesla-bitbar","access_token")
@@ -361,11 +363,11 @@ def main(argv):
         # print the data for the vehicle
         print ('%sBattery Level:				%s%% | color=%s' % (prefix, charge_state['battery_level'],color))
         print ('%s--Charge Level set to: %s%% | color=%s' % (prefix, charge_state['charge_limit_soc'], color))
-        print ('%s---- 80%% | refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:80", color))
-        print ('%s---- 85%% | refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:85", color))
+        print ('%s---- 80%% | refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:80", info_color))
+        print ('%s---- 85%% | refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:85", info_color))
         print ('%s---- 90%% (Default)| refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:90", color))
-        print ('%s---- 95%% | refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:95", color))
-        print ('%s---- 100%% (Trip only)| refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:100", color))
+        print ('%s---- 95%% | refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:95", info_color))
+        print ('%s---- 100%% (Trip only)| refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:100", info_color))
         print ('%sCharging State:				%s   | color=%s' % (prefix, charge_state['charging_state'],color))
         if (charge_state['charging_state']=="Charging"):
             print ('%s--Stop charging | refresh=true terminal=false bash="%s" param1=%s param2=charge_stop color=%s' % (prefix, sys.argv[0], str(i), color))
@@ -407,14 +409,14 @@ def main(argv):
             print ('%sVehicle Speed:				%s %s/h| color=%s' % (prefix, convert_distance(distance_unit,drive_state['speed']),distance_unit,color))
         else:
             print ('%sVehicle Speed:				Parked| color=%s' % (prefix,color))
-        print ('%sVehicle Lat:					%s| color=%s' % (prefix, drive_state['latitude'],color))
-        print ('%sVehicle Lon:					%s| color=%s' % (prefix, drive_state['longitude'],color))
-        print ('%sVehicle Heading: 			%s°| color=%s' % (prefix, drive_state['heading'],color))
+        print ('%sVehicle Lat:					%s| color=%s' % (prefix, drive_state['latitude'],info_color))
+        print ('%sVehicle Lon:					%s| color=%s' % (prefix, drive_state['longitude'],info_color))
+        print ('%sVehicle Heading: 			%s°| color=%s' % (prefix, drive_state['heading'],info_color))
         print ('%s---' % prefix)
         
         print ('%sFirmware Version:			%s| color=%s' % (prefix, vehicle_state['car_version'],color))
         print ('%s---' % prefix)
-
+        
         print ('%sDriver front door:				%s| color=%s' % (prefix, door_state(vehicle_state['df']),color))
         print ('%sDriver rear door:				%s| color=%s' % (prefix, door_state(vehicle_state['dr']),color))
         print ('%sPassenger front door:			%s| color=%s' % (prefix, door_state(vehicle_state['pf']),color))
@@ -425,20 +427,20 @@ def main(argv):
         print ('%s---' % prefix)
 
         print ('%sRated battery range:			%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['battery_range']),distance_unit,color))
-        print ('%sIdeal battery range:			%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['ideal_battery_range']),distance_unit,color))
-        print ('%sEstimated battery range:		%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['est_battery_range']),distance_unit,color))
+        print ('%sIdeal battery range:			%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['ideal_battery_range']),distance_unit,info_color))
+        print ('%sEstimated battery range:		%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['est_battery_range']),distance_unit,info_color))
         print ('%s---' % prefix)
 
         if bool(charge_state['charger_pilot_current']):
-            print ('%sMaximum charger current:	%s A| color=%s' % (prefix, charge_state['charger_pilot_current'],color))
+            print ('%sMaximum charger current:	%s A| color=%s' % (prefix, charge_state['charger_pilot_current'],info_color))
         else:
-            print ('%sMaximum charger current:	Not connected| color=%s' % (prefix,color))
+            print ('%sMaximum charger current:	Not connected| color=%s' % (prefix,info_color))
 
-        print ('%sActual charger current:		%s A| color=%s' % (prefix, charge_state['charger_actual_current'],color))
-        print ('%sCharger power:				%s Kw| color=%s' % (prefix, charge_state['charger_power'],color))
-        print ('%sCharger voltage:				%s V| color=%s' % (prefix, charge_state['charger_voltage'],color))
-        print ('%sSupercharging:				%s| color=%s' % (prefix, charge_state['fast_charger_present'],color))
-        print ('%sCharger speed:				%s %s/h| color=%s' % (prefix, convert_distance(distance_unit,charge_state['charge_rate']),distance_unit,color))
+        print ('%sActual charger current:		%s A| color=%s' % (prefix, charge_state['charger_actual_current'],info_color))
+        print ('%sCharger power:				%s Kw| color=%s' % (prefix, charge_state['charger_power'],info_color))
+        print ('%sCharger voltage:				%s V| color=%s' % (prefix, charge_state['charger_voltage'],info_color))
+        print ('%sSupercharging:				%s| color=%s' % (prefix, charge_state['fast_charger_present'],info_color))
+        print ('%sCharger speed:				%s %s/h| color=%s' % (prefix, convert_distance(distance_unit,charge_state['charge_rate']),distance_unit,info_color))
         print ('%sTime to full charge:			%s hours| color=%s' % (prefix, charge_state['time_to_full_charge'],color))
         print ('%s---' % prefix)
 
