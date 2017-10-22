@@ -426,8 +426,13 @@ def main(argv):
         print ('%sCharge port:					%s| color=%s' % (prefix, door_state(charge_state['charge_port_door_open']),color))
         print ('%s---' % prefix)
 
-        print ('%sRated battery range:			%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['battery_range']),distance_unit,color))
-        print ('%sIdeal battery range:			%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['ideal_battery_range']),distance_unit,info_color))
+        if (gui_settings['gui_range_display'] == 'Rated'):
+            print ('%sRated battery range:			%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['battery_range']),distance_unit,color))
+            print ('%sIdeal battery range:			%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['ideal_battery_range']),distance_unit,info_color))
+        else: 
+            print ('%sRated battery range:			%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['battery_range']),distance_unit,info_color))
+            print ('%sIdeal battery range:			%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['ideal_battery_range']),distance_unit,color))
+
         print ('%sEstimated battery range:		%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['est_battery_range']),distance_unit,info_color))
         print ('%s---' % prefix)
 
