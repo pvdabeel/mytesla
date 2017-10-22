@@ -5,6 +5,8 @@ A simple plugin that displays information regarding your Tesla vehicle in the Ma
 
 Supports OS X Dark Mode 
 
+**Update 2017.10.23:** Added color support
+
 **Update 2017.10.22:** Added support for remotely: 
 - [X] Start keyless driving
 - [X] Set charge levels and control charging
@@ -12,6 +14,11 @@ Supports OS X Dark Mode
 - [X] Control airco temperature
 - [X] Open and close the sunroof
 - [X] Flash lights and honk horn
+
+
+Fancy colors:
+
+![Imgur](https://i.imgur.com/fACd18q.png)
 
 Remotely start charging your Tesla:
 

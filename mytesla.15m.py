@@ -231,6 +231,16 @@ def door_state(dooropen):
     else:
         return CGREEN + 'Closed' + CEND
 
+def port_state(portopen,engaged):
+    if bool(portopen):
+        if (engaged == 'Engaged'):
+           return CYELLOW + 'In use' + CEND
+        else:
+           return CRED + 'Open' + CEND
+    else:
+        return CGREEN + 'Closed' + CEND
+        
+
 def lock_state(locked):
     if bool(locked):
         return CGREEN + 'Locked' + CEND
@@ -417,13 +427,13 @@ def main(argv):
         print ('%sFirmware Version:			%s| color=%s' % (prefix, vehicle_state['car_version'],color))
         print ('%s---' % prefix)
         
-        print ('%sDriver front door:				%s| color=%s' % (prefix, door_state(vehicle_state['df']),color))
-        print ('%sDriver rear door:				%s| color=%s' % (prefix, door_state(vehicle_state['dr']),color))
-        print ('%sPassenger front door:			%s| color=%s' % (prefix, door_state(vehicle_state['pf']),color))
-        print ('%sPassenger rear door:			%s| color=%s' % (prefix, door_state(vehicle_state['pr']),color))
-        print ('%sFront trunk:					%s| color=%s' % (prefix, door_state(vehicle_state['ft']),color))
-        print ('%sRear trunk:					%s| color=%s' % (prefix, door_state(vehicle_state['rt']),color))
-        print ('%sCharge port:					%s| color=%s' % (prefix, door_state(charge_state['charge_port_door_open']),color))
+        print ('%sDriver front door:				%s| color=%s' % (prefix, door_state(vehicle_state['df']),info_color))
+        print ('%sDriver rear door:				%s| color=%s' % (prefix, door_state(vehicle_state['dr']),info_color))
+        print ('%sPassenger front door:			%s| color=%s' % (prefix, door_state(vehicle_state['pf']),info_color))
+        print ('%sPassenger rear door:			%s| color=%s' % (prefix, door_state(vehicle_state['pr']),info_color))
+        print ('%sFront trunk:					%s| color=%s' % (prefix, door_state(vehicle_state['ft']),info_color))
+        print ('%sRear trunk:					%s| color=%s' % (prefix, door_state(vehicle_state['rt']),info_color))
+        print ('%sCharge port:					%s| color=%s' % (prefix, port_state(charge_state['charge_port_door_open'],charge_state['charge_port_latch']),info_color))
         print ('%s---' % prefix)
 
         if (gui_settings['gui_range_display'] == 'Rated'):
