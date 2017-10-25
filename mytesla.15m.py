@@ -460,7 +460,7 @@ def main(argv):
 
 	mins_dec = charge_state['time_to_full_charge'] * 60
         remaining_hours = mins_dec // 60
-	remaining_minutes = mins_dec % remaining_hours
+	remaining_minutes = int(mins_dec % remaining_hours)
 
 	if (remaining_hours == 0):
            print ('%sTime to full charge:			%s minutes | color=%s' % (prefix, remaining_minutes,color))
@@ -468,6 +468,8 @@ def main(argv):
            print ('%sTime to full charge:			%d hour %d mins | color=%s' % (prefix, remaining_hours, remaining_minutes, color))
         elif (remaining_minutes == 0):
            print ('%sTime to full charge:			%d hours | color=%s' % (prefix, remaining_hours, color))
+        elif (remaining_minutes == 1):
+           print ('%sTime to full charge:			%d hours 1 min | color=%s' % (prefix, remaining_hours, color))
         else:
            print ('%sTime to full charge:			%d hours %d mins | color=%s' % (prefix, remaining_hours, remaining_minutes, color))
         print ('%s---' % prefix)
