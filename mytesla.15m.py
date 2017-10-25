@@ -458,9 +458,11 @@ def main(argv):
         print ('%sSupercharging:				%s| color=%s' % (prefix, charge_state['fast_charger_present'],info_color))
         print ('%sCharger speed:				%s %s/h| color=%s' % (prefix, convert_distance(distance_unit,charge_state['charge_rate']),distance_unit,info_color))
 
-	mins_dec = charge_state['time_to_full_charge'] * 60
-        remaining_hours = mins_dec // 60
-	remaining_minutes = int(mins_dec % remaining_hours)
+	hours_to_full_charge = charge_state['time_to_full_charge']
+        mins_to_full_charge = hours_to_full_charge * 60
+
+        remaining_hours = int(mins_to_full_charge // 60)
+	remaining_minutes = mins_to_full_charge - (remaining_hours * 60)
 
 	if (remaining_hours == 0):
            print ('%sTime to full charge:			%s minutes | color=%s' % (prefix, remaining_minutes,color))
@@ -472,6 +474,7 @@ def main(argv):
            print ('%sTime to full charge:			%d hours 1 min | color=%s' % (prefix, remaining_hours, color))
         else:
            print ('%sTime to full charge:			%d hours %d mins | color=%s' % (prefix, remaining_hours, remaining_minutes, color))
+        print ('%sTime to full charge:			%s hours | alternate=true color=%s' % (prefix, charge_state['time_to_full_charge'], color))
         print ('%s---' % prefix)
 
         print ('%sView Location | href="https://maps.google.com?q=%s,%s" color=%s' % (prefix, drive_state['latitude'], drive_state['longitude'],color))
