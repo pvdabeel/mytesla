@@ -42,6 +42,7 @@ import keyring # Access token is stored in OS X keychain
 import getpass
 import time
 import os
+import subprocess
 
 # Nice ANSI colors
 
@@ -475,6 +476,13 @@ def main(argv):
         print ('%s--Remote start | refresh=true terminal=true bash="%s" param1=%s param2=remote_start_drive color=%s' % (prefix, sys.argv[0], str(i), color))
         
 
+def run_script(script):
+    return subprocess.Popen([script], stdout=subprocess.PIPE, shell=True).communicate()[0].strip()
+
+def password_dialog():
+    cmd = "osascript -e 'set my_password to display dialog \"Please enter your Tesla password:\" with title \"Tesla password\" with icon file \"Users:pvdabeel:Documents:Bitbar-plugins:icons:tesla.icns\" default answer \"\" buttons {\"Cancel\",\"Login\"} default button 2 giving up after 180 with hidden answer'"
+    print run_script(cmd)
 
 if __name__ == '__main__':
+    #password_dialog()
     main(sys.argv)
