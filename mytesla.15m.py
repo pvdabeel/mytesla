@@ -229,6 +229,7 @@ class Icloud(dict):
 
     def __init__(self):
         """Initialize"""
+        self.api=None
         return
 
     def init(self):    
@@ -238,8 +239,8 @@ class Icloud(dict):
         print ('Enter your iCloud password:')
         icloud_password = getpass.getpass()
         try: 
-           self.api = PyiCloudService(icloud_username,cloud_password)
-        except PyiCloudFailedLoginException as e:
+           self.api = PyiCloudService(icloud_username,icloud_password)
+        except Exception as e:
            print('Error: Failed to authenticate to iCloud')
            print e
            return
@@ -251,9 +252,11 @@ class Icloud(dict):
         """Get iCloud credentials and store them in keyring"""
         icloud_username = keyring.get_password("mytesla-bitbar","icloud_username")
         icloud_password = keyring.get_password("mytesla-bitbar","icloud_password")
-    
-        if not icloud_username or not icloud_password: 
-           authenticate()
+        try: 
+           self.api = PyiCloudService(icloud_username,icloud_password)
+        except Exception as e:
+           self.init()
+           return
         return       
 
     def devices(self):
@@ -351,6 +354,13 @@ def main(argv):
     if 'init' in argv:
        init()
        return
+  
+    if 'icloud' in argv:
+       ic = Icloud()
+       ic.authenticate()
+       print ic.devices()
+       return
+
 
     # CASE 2: init was not called, keyring not initialized
     if DARK_MODE:
