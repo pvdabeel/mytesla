@@ -7,7 +7,7 @@ Supports OS X Dark Mode
 
 **Update 2017.11.01:** (beta) Schedule vehicle charging and heating using OS X Calendar or OS X reminders
 
-![Schedule heating and charging of your Tesla using Mac OS X reminders](https://i.imgur.com/IhOCHpL.png)
+![Imgur](https://i.imgur.com/IhOCHpL.png)
 
 **Update 2017.10.23:** Added color support
 
