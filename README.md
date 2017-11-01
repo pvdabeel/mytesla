@@ -5,7 +5,7 @@ A simple plugin that displays information regarding your Tesla vehicle in the Ma
 
 Supports OS X Dark Mode 
 
-**Update 2017.11.01:** Schedule vehicle charging and heating using iCalendar
+**Update 2017.11.01:** Schedule vehicle charging and heating using OS X Calendar or OS X reminders
 
 **Update 2017.10.23:** Added color support
 
