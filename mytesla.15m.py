@@ -120,22 +120,18 @@ class TeslaConnection(object):
         return [TeslaVehicle(v, self) for v in self.get('vehicles')['response']]
 
     def get_token(self):
-
         # Case 1 : access token known and not expired
         if self.access_token and self.expiration > time.time():
             return self.access_token
 
         # Case 2 : access token unknown or expired
-
         auth = self.__open("/oauth/token", data=self.oauth)
- 
         if 'access_token' in auth and auth['access_token']:
             self.access_token = auth['access_token']
             self.expiration = int(time.time()) + auth['expires_in'] - 86400
             return self.access_token
 
         # Case 3 : could not get access_token, force init
-
         return None
 
  
@@ -227,6 +223,49 @@ class TeslaVehicle(dict):
         return self.connection.post('vehicles/%i/%s' % (self['id'], command), data)
 
 
+# Class that represents a Tesla Calendar
+class Icloud(dict):
+    """iCloud class, subclassed from dictionary."""
+
+    def __init__(self):
+        """Initialize"""
+        return
+
+    def init(self):    
+        """Get iCloud credentials and store them in keyring"""
+        print ('Enter your iCloud username:')
+        icloud_username = raw_input()
+        print ('Enter your iCloud password:')
+        icloud_password = getpass.getpass()
+        try: 
+           self.api = PyiCloudService(icloud_username,cloud_password)
+        except PyiCloudFailedLoginException as e:
+           print('Error: Failed to authenticate to iCloud')
+           print e
+           return
+        keyring.set_password("mytesla-bitbar","icloud_username",icloud_username)
+        keyring.set_password("mytesla-bitbar","icloud_password",icloud_password)
+        return
+
+    def authenticate(self):
+        """Get iCloud credentials and store them in keyring"""
+        icloud_username = keyring.get_password("mytesla-bitbar","icloud_username")
+        icloud_password = keyring.get_password("mytesla-bitbar","icloud_password")
+    
+        if not icloud_username or not icloud_password: 
+           authenticate()
+        return       
+
+    def devices(self):
+        """Get iCloud devices"""
+        return self.api.trusted_devices
+
+
+    def events(self):
+        """Get iCloud calendar events"""
+        return self.api.calendar.events()
+
+
 # Convertors
 def convert_temp(temp_unit,temp):
     if temp_unit == 'F':
@@ -272,7 +311,7 @@ def app_print_logo():
     print('---')
 
 
-# Called to store your username and access_code in OS X Keychain on first launch
+# The init function: Called to store your username and access_code in OS X Keychain on first launch
 
 def init():
     # Here we do the setup
