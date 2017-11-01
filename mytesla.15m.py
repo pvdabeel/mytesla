@@ -15,7 +15,10 @@
 
 # Installation instructions: 
 # -------------------------- 
-# Execute in terminal.app before running : sudo easy_install keyring
+# Execute in terminal.app before running : 
+#    sudo easy_install keyring
+#    sudo easy_install pyicloud
+#
 # Ensure you have bitbar installed https://github.com/matryer/bitbar/releases/latest
 # Ensure your bitbar plugins directory does not have a space in the path (known bitbar bug)
 # Copy this file to your bitbar plugins folder and chmod +x the file from your terminal in that folder
@@ -38,14 +41,17 @@ import datetime
 import calendar
 import base64
 import math
-import keyring # Access token is stored in OS X keychain
-import getpass
+import keyring      # Access token is stored in OS X keychain
+import getpass      # Getting password without showing chars in terminal.app
 import time
 import os
 import subprocess
+import pyicloud     # Icloud integration - retrieving calendar info 
+
+
+from pyicloud import PyiCloudService
 
 # Nice ANSI colors
-
 CEND    = '\33[0m'
 CRED    = '\33[31m'
 CGREEN  = '\33[32m'
@@ -56,19 +62,17 @@ CBLUE   = '\33[34m'
 DARK_MODE=os.getenv('BitBarDarkMode',0)
 
 # Class that represents the connection to Tesla 
-class Connection(object):
+class TeslaConnection(object):
     """Connection to Tesla Motors API"""
     def __init__(self,
             email='',
             password='',
-            access_token='',
+            access_token=None,
             proxy_url = '',
             proxy_user = '',
             proxy_password = ''):
         """Initialize connection object
         
-        Sets the vehicles field, a list of Vehicle objects
-        associated with your account
         Required parameters:
         email: your login for teslamotors.com
         password: your password for teslamotors.com
@@ -82,6 +86,7 @@ class Connection(object):
         self.proxy_url = proxy_url
         self.proxy_user = proxy_user
         self.proxy_password = proxy_password
+
         tesla_client = {
             'v1': {
                 'id': 'e4a9949fcfa04068f59abb5a658f2bac0a3428e4652315490b659d5ab3f35a9e', 
@@ -93,31 +98,43 @@ class Connection(object):
         current_client = tesla_client['v1']
         self.baseurl = current_client['baseurl']
         self.api = current_client['api']
+
+
+
         if access_token:
+            # Case 1: TeslaConnection instantiation using access_token
+            self.access_token = access_token 
             self.__sethead(access_token)
         else:
+            # Case 2: TeslaConnection instantiation using email and password
+            self.access_token = None
+            self.expiration = 0 
             self.oauth = {
                 "grant_type" : "password",
                 "client_id" : current_client['id'],
                 "client_secret" : current_client['secret'],
                 "email" : email,
                 "password" : password }
-            self.expiration = 0 # force refresh
-        #self.vehicles = [Vehicle(v, self) for v in self.get('vehicles')['response']]
    
     def vehicles(self):
-        return [Vehicle(v, self) for v in self.get('vehicles')['response']]
+        return [TeslaVehicle(v, self) for v in self.get('vehicles')['response']]
 
     def get_token(self):
-        if self.access_token and self.expiration < time.time():
+
+        # Case 1 : access token known and not expired
+        if self.access_token and self.expiration > time.time():
             return self.access_token
 
-        auth = self.__open("/oauth/token", data=self.oauth)
+        # Case 2 : access token unknown or expired
 
+        auth = self.__open("/oauth/token", data=self.oauth)
+ 
         if 'access_token' in auth and auth['access_token']:
             self.access_token = auth['access_token']
             self.expiration = int(time.time()) + auth['expires_in'] - 86400
             return self.access_token
+
+        # Case 3 : could not get access_token, force init
 
         return None
 
@@ -172,9 +189,9 @@ class Connection(object):
         return json.loads(resp.read().decode(charset))
         
 
-# Class that represents a vehicle
-class Vehicle(dict):
-    """Vehicle class, subclassed from dictionary.
+# Class that represents a Tesla vehicle
+class TeslaVehicle(dict):
+    """TeslaVehicle class, subclassed from dictionary.
     
     There are 3 primary methods: wake_up, data_request and command.
     data_request and command both require a name to specify the data
@@ -183,9 +200,9 @@ class Vehicle(dict):
     def __init__(self, data, connection):
         """Initialize vehicle class
         
-        Called automatically by the Connection class
+        Called automatically by the TeslaConnection class
         """
-        super(Vehicle, self).__init__(data)
+        super(TeslaVehicle, self).__init__(data)
         self.connection = connection
     
     def data_request(self, name):
@@ -211,7 +228,6 @@ class Vehicle(dict):
 
 
 # Convertors
-
 def convert_temp(temp_unit,temp):
     if temp_unit == 'F':
         return (temp * 1.8) + 32
@@ -225,7 +241,6 @@ def convert_distance(distance_unit,distance):
         return distance
 
 # Pretty print
-
 def door_state(dooropen):
     if bool(dooropen):
         return CRED + 'Open' + CEND
@@ -249,8 +264,7 @@ def lock_state(locked):
         return CRED + 'Unlocked' + CEND
 
 # Logo for both dark mode and regular mode
-
-def print_logo():
+def app_print_logo():
     if bool(DARK_MODE):
         print ('|image=iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAAXNSR0IArs4c6QAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAFU2lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNS40LjAiPgogICA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAgICAgICB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iCiAgICAgICAgICAgIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIgogICAgICAgICAgICB4bWxuczpzdFJlZj0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlUmVmIyIKICAgICAgICAgICAgeG1sbnM6dGlmZj0iaHR0cDovL25zLmFkb2JlLmNvbS90aWZmLzEuMC8iCiAgICAgICAgICAgIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyI+CiAgICAgICAgIDxkYzp0aXRsZT4KICAgICAgICAgICAgPHJkZjpBbHQ+CiAgICAgICAgICAgICAgIDxyZGY6bGkgeG1sOmxhbmc9IngtZGVmYXVsdCI+dGVzbGFfVF9CVzwvcmRmOmxpPgogICAgICAgICAgICA8L3JkZjpBbHQ+CiAgICAgICAgIDwvZGM6dGl0bGU+CiAgICAgICAgIDx4bXBNTTpEZXJpdmVkRnJvbSByZGY6cGFyc2VUeXBlPSJSZXNvdXJjZSI+CiAgICAgICAgICAgIDxzdFJlZjppbnN0YW5jZUlEPnhtcC5paWQ6NjFlOGM3OTktZDk2Mi00Y2JlLWFiNDItY2FmYjlmOTYxY2VlPC9zdFJlZjppbnN0YW5jZUlEPgogICAgICAgICAgICA8c3RSZWY6ZG9jdW1lbnRJRD54bXAuZGlkOjYxZThjNzk5LWQ5NjItNGNiZS1hYjQyLWNhZmI5Zjk2MWNlZTwvc3RSZWY6ZG9jdW1lbnRJRD4KICAgICAgICAgPC94bXBNTTpEZXJpdmVkRnJvbT4KICAgICAgICAgPHhtcE1NOkRvY3VtZW50SUQ+eG1wLmRpZDpCNkM1NEUzNDlERTAxMUU3QTRFNEExMTMwMUY5QkJBNTwveG1wTU06RG9jdW1lbnRJRD4KICAgICAgICAgPHhtcE1NOkluc3RhbmNlSUQ+eG1wLmlpZDpCNkM1NEUzMzlERTAxMUU3QTRFNEExMTMwMUY5QkJBNTwveG1wTU06SW5zdGFuY2VJRD4KICAgICAgICAgPHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD51dWlkOjI3MzY3NDg0MTg2QkRGMTE5NjZBQjM5RDc2MkZFOTlGPC94bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ+CiAgICAgICAgIDx0aWZmOk9yaWVudGF0aW9uPjE8L3RpZmY6T3JpZW50YXRpb24+CiAgICAgICAgIDx4bXA6Q3JlYXRvclRvb2w+QWRvYmUgSWxsdXN0cmF0b3IgQ0MgMjAxNSAoTWFjaW50b3NoKTwveG1wOkNyZWF0b3JUb29sPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4KI5WHQwAAANVJREFUOBHtU8ENwjAMTBADdJRuACMwUjdgBEaAEcoEgQlSJmCEcJYS6VzlYVfiV0snn6/na5SqIez17xuIvReUUi7QT8AInIFezRBfwDPG+OgZlIbQL5BrT7Xf0YcK4eJpz7LMKqQ3wDSJEViXBArWJd6pl6U0mORkVyADchUBXVXVRogZuAGDCrEOWExAq2TZO1hM8CzkY06yptbgN60xJ1lTa/BMa8xJ1tQavNAac5I30vblrOtHqxG+2eENnmD5fc3lCf6YU2H0BLtO7DnE7t12Az8xb74dVbfynwAAAABJRU5ErkJggg==')
     else:
@@ -270,15 +284,21 @@ def init():
     init_access_token = None
 
     try:
-        c = Connection(init_username,init_password)
+        c = TeslaConnection(init_username,init_password)
         init_password = ''
         init_access_token = c.get_token()
     except HTTPError as e:
-        print ('Error contacting Tesla servers. Try again later. Error code: %s' % e)
+        print ('Error contacting Tesla servers. Try again later.')
+        print e
         time.sleep(0.5)
         return
     except URLError as e:
         print ('Error: Unable to connect. Check your connection settings.')
+        print e
+        return
+    except AttributeError as e:
+        print ('Error: Could not get an access token from Tesla. Try again later.')
+        print e
         return
     keyring.set_password("mytesla-bitbar","username",init_username)
     keyring.set_password("mytesla-bitbar","access_token",init_access_token)
@@ -306,7 +326,7 @@ def main(argv):
     
     if not USERNAME:   
        # restart in terminal calling init 
-       print_logo()
+       app_print_logo()
        print ('Login to tesla.com | refresh=true terminal=true bash="\'%s\'" param1="%s" color=%s' % (sys.argv[0], 'init', color))
        return
 
@@ -314,10 +334,10 @@ def main(argv):
     # CASE 3: init was not called, keyring initialized, no connection (access code not valid)
     try:
        # create connection to tesla account
-       c = Connection(access_token = ACCESS_TOKEN)
+       c = TeslaConnection(access_token = ACCESS_TOKEN)
        vehicles = c.vehicles()
     except: 
-       print_logo()
+       app_print_logo()
        print ('Login to tesla.com | refresh=true terminal=true bash="\'%s\'" param1="%s" color=%s' % (sys.argv[0], 'init', color))
        return
 
@@ -343,7 +363,7 @@ def main(argv):
 
 
     # CASE 5: all ok, all other cases
-    print_logo()
+    app_print_logo()
     prefix = ''
     if len(vehicles) > 1:
         # Create a submenu for every vehicle
