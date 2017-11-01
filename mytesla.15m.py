@@ -50,6 +50,7 @@ import pyicloud     # Icloud integration - retrieving calendar info
 
 
 from pyicloud import PyiCloudService
+from datetime import date
 
 # Nice ANSI colors
 CEND    = '\33[0m'
@@ -248,7 +249,8 @@ class Icloud(dict):
         keyring.set_password("mytesla-bitbar","icloud_password",icloud_password)
         return
 
-    def authenticate(self):
+    def authenticate(self): # TODO: add 2fa auth support
+        # https://pypi.python.org/pypi/pyicloud/0.9.1
         """Get iCloud credentials and store them in keyring"""
         icloud_username = keyring.get_password("mytesla-bitbar","icloud_username")
         icloud_password = keyring.get_password("mytesla-bitbar","icloud_password")
@@ -261,12 +263,16 @@ class Icloud(dict):
 
     def devices(self):
         """Get iCloud devices"""
-        return self.api.trusted_devices
+        return self.api.devices
 
-
-    def events(self):
+    def calendarevents(self):
         """Get iCloud calendar events"""
-        return self.api.calendar.events()
+        return self.api.calendar.events(date.today(),date.today())
+
+    def reminders(self):
+        """Get iCloud reminders"""
+        self.api.reminders.refresh()
+        return self.api.reminders.lists
 
 
 # Convertors
@@ -358,7 +364,7 @@ def main(argv):
     if 'icloud' in argv:
        ic = Icloud()
        ic.authenticate()
-       print ic.devices()
+       print ic.reminders()
        return
 
 
