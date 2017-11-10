@@ -455,7 +455,7 @@ def main(argv):
         print ('%s---- 95%% | refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:95", info_color))
         print ('%s---- 100%% (Trip only)| refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:100", info_color))
         print ('%sCharging State:				%s   | color=%s' % (prefix, charge_state['charging_state'],color))
-        if (charge_state['charging_state']=="Charging"):
+        if (charge_state['charging_state']=="Charging") or (charge_state['charging_state']=='Starting'):
             print ('%s--Stop charging | refresh=true terminal=false bash="%s" param1=%s param2=charge_stop color=%s' % (prefix, sys.argv[0], str(i), color))
         if (charge_state['battery_level'] < charge_state['charge_limit_soc']) and (charge_state['charging_state']!='Starting') and (charge_state['charging_state']!='Charging') and (charge_state['charging_state']!='Disconnected'):
             print ('%s--Start charging | refresh=true terminal=false bash="%s" param1=%s param2=charge_start color=%s' % (prefix, sys.argv[0], str(i), color))
