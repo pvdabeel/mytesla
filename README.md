@@ -51,7 +51,7 @@ Greg Glockner teslajson API [code](https://github.com/gglockner/teslajson/).
 
 ## Installation instructions: 
 
-1. Execute in terminal.app before running : sudo easy_install keyring
+1. Execute in terminal.app before running : sudo easy_install keyring pyicloud
 2. Ensure you have [bitbar](https://github.com/matryer/bitbar/releases/latest) installed.
 3. Ensure your bitbar plugins directory does not have a space in the path (A known bitbar bug)
 4. Copy [mytesla.15m.py](tesla.15m.py) to your bitbar plugins folder and chmod +x the file from your terminal in that folder
