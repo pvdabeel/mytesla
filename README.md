@@ -6,7 +6,6 @@ Displays information regarding your Tesla vehicle in the Mac OS X menubar. Allow
 
 **Update 2017.11.01:** (beta) Schedule vehicle charging and heating using OS X Calendar or OS X reminders
 
-![Imgur](https://i.imgur.com/IhOCHpL.png)
 
 **Update 2017.10.23:** Added color support
 
@@ -41,6 +40,10 @@ Allows you to locate your car in Google Maps and remotely enable / disable your 
 
 ![Imgur](https://i.imgur.com/14mCiGp.png)
 
+
+Icloud integration: plugin can read from your iCloud calendar or Reminder list and execute specific commands scheduled as specific times. (Plugin has to be running for the execution to happen)
+
+![Imgur](https://i.imgur.com/IhOCHpL.png)
 
 ## Credits: 
 
