@@ -1,9 +1,8 @@
 
 # Mytesla - bitbar plugin
 
-A simple plugin that displays information regarding your Tesla vehicle in the Mac OS X menubar. 
+Displays information regarding your Tesla vehicle in the Mac OS X menubar. Allows you to remotely control your Tesla vehicle as well.
 
-Supports OS X Dark Mode 
 
 **Update 2017.11.01:** (beta) Schedule vehicle charging and heating using OS X Calendar or OS X reminders
 
@@ -19,6 +18,7 @@ Supports OS X Dark Mode
 - [X] Open and close the sunroof
 - [X] Flash lights and honk horn
 
+Supports OS X Dark Mode 
 
 Remotely start charging your Tesla:
 
