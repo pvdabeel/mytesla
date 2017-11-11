@@ -1,5 +1,5 @@
 
-# Mytesla - bitbar plugin
+# Mytesla - OS X Menubar plugin
 
 Displays information regarding your Tesla vehicle in the Mac OS X menubar. Allows you to remotely control your Tesla vehicle as well.
 
