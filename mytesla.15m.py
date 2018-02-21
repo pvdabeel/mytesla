@@ -295,6 +295,9 @@ def door_state(dooropen):
     else:
         return CGREEN + 'Closed' + CEND
 
+def cold_state(percentage):
+    return CBLUE + '(-' + str(percentage) + '%)' + CEND
+
 def port_state(portopen,engaged):
     if bool(portopen):
         if (engaged == 'Engaged'):
@@ -447,13 +450,23 @@ def main(argv):
             distance_unit = 'mi'
 
         # print the data for the vehicle
-        print ('%sBattery Level:				%s%% | color=%s' % (prefix, charge_state['battery_level'],color))
+        # if charge_state['battery_level'] == charge_state['usable_battery_level']:
+        #   print ('%sBattery Level:				%s%% | color=%s' % (prefix, charge_state['battery_level'],color))
+        # else:
+        loss_cold = int(charge_state['battery_level']) - int(charge_state['usable_battery_level'])
+        print ('%sBattery Level:				%s%% %s | color=%s' % (prefix, charge_state['battery_level'], cold_state(loss_cold), color))
+ 
         print ('%s--Charge Level set to: %s%% | color=%s' % (prefix, charge_state['charge_limit_soc'], color))
         print ('%s---- 80%% | refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:80", info_color))
         print ('%s---- 85%% | refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:85", info_color))
         print ('%s---- 90%% (Default)| refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:90", color))
         print ('%s---- 95%% | refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:95", info_color))
         print ('%s---- 100%% (Trip only)| refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:100", info_color))
+        try:
+           if charge_state['battery_heater_on']:
+              print ('%s--Battery heating | color=%s' % (prefix, color))
+	except:
+           pass
         print ('%sCharging State:				%s   | color=%s' % (prefix, charge_state['charging_state'],color))
         if (charge_state['charging_state']=="Charging") or (charge_state['charging_state']=='Starting'):
             print ('%s--Stop charging | refresh=true terminal=false bash="%s" param1=%s param2=charge_stop color=%s' % (prefix, sys.argv[0], str(i), color))
@@ -471,7 +484,6 @@ def main(argv):
             print ('%sInside Temp:					%.1f° %s| color=%s' % (prefix, convert_temp(temp_unit,climate_state['inside_temp']),temp_unit,color))
         except:
             print ('%sInside Temp:					Unavailable| color=%s' % (prefix,color))
-        
         if climate_state['is_climate_on']:
             print ('%s--Turn off airco | refresh=true terminal=false bash="%s" param1=%s param2=auto_conditioning_stop color=%s' % (prefix, sys.argv[0], str(i), color))
         else:
@@ -485,6 +497,21 @@ def main(argv):
         print ('%s---- 23° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:23","passenger_temp:23", color))
         print ('%s---- 24° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:24","passenger_temp:24", color))
         print ('%s---- 25° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:25","passenger_temp:25", color))
+        try:
+           if climate_state['is_rear_defroster_on']:
+              print ('%s-- Rear window defrosting | color=%s' % (prefix, color))
+	except:
+           pass
+        try:
+           if climate_state['is_front_defroster_on']:
+              print ('%s-- Front window defrosting | color=%s' % (prefix, color))
+	except:
+           pass
+ 
+
+
+
+
         try:
             print ('%sOutside Temp:				%.1f° %s| color=%s' % (prefix, convert_temp(temp_unit,climate_state['outside_temp']),temp_unit,color))
         except:
