@@ -5,7 +5,7 @@ Displays information regarding your Tesla vehicle in the Mac OS X menubar. Allow
 
 Remotely start charging your Tesla:
 
-![Imgur](https://i.imgur.com/X035ZoW.png)
+![Imgur](https://i.imgur.com/yQ9i437.png)
 
 Remotely control the temperature of your Tesla:
 
@@ -32,6 +32,11 @@ Icloud integration: plugin can read from your iCloud calendar or Reminder list a
 Supports OS X Dark Mode 
 
 ## Changelog: 
+
+**Update 2018.02.21:** Updated for Tesla firmware 2018.4 (APIv3) 
+- [X] Shows battery loss percentage due to cold. 
+- [X] Shows rear and front window defroster status 
+- [X] Shows battery heating status
 
 **Update 2017.11.01:** (beta) Schedule vehicle charging and heating using OS X Calendar or OS X reminders
 
