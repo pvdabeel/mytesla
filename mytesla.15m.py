@@ -557,6 +557,7 @@ def main(argv):
         print ('%sActual charger current:		%s A| color=%s' % (prefix, charge_state['charger_actual_current'],info_color))
         print ('%sCharger power:				%s Kw| color=%s' % (prefix, charge_state['charger_power'],info_color))
         print ('%sCharger voltage:				%s V| color=%s' % (prefix, charge_state['charger_voltage'],info_color))
+        print ('%sCharger phases:				%s| color=%s' % (prefix, charge_state['charger_phases'],info_color))
         print ('%sSupercharging:				%s| color=%s' % (prefix, charge_state['fast_charger_present'],info_color))
         print ('%sCharger speed:				%s %s/h| color=%s' % (prefix, convert_distance(distance_unit,charge_state['charge_rate']),distance_unit,info_color))
 
