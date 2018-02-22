@@ -3,6 +3,10 @@
 
 Displays information regarding your Tesla vehicle in the Mac OS X menubar. Allows you to remotely control your Tesla vehicle as well.
 
+Shows battery loss due to cold & Battery/window heating & defrosting status.
+
+![Imgur](https://i.imgur.com/duiPFSK.png)
+
 Remotely start charging your Tesla:
 
 ![Imgur](https://i.imgur.com/yQ9i437.png)
