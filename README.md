@@ -36,6 +36,7 @@ Icloud integration: plugin can read from your iCloud calendar or Reminder list a
 Supports OS X Dark Mode 
 
 ## Changelog: 
+**Update 2018.03.22:** Added support for opening & closing trunks and chargeport
 
 **Update 2018.02.21:** Updated for Tesla firmware 2018.4 (APIv3) 
 - [X] Shows battery loss percentage due to cold. 

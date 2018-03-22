@@ -535,9 +535,19 @@ def main(argv):
         print ('%sPassenger front door:			%s| color=%s' % (prefix, door_state(vehicle_state['pf']),info_color))
         print ('%sPassenger rear door:			%s| color=%s' % (prefix, door_state(vehicle_state['pr']),info_color))
         print ('%sFront trunk:					%s| color=%s' % (prefix, door_state(vehicle_state['ft']),info_color))
+        if (bool(vehicle_state['ft'])):
+        	print ('%s--Close | refresh=true terminal=false bash="%s" param1=%s param2=trunk_open param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:front", color))
+        else: 
+        	print ('%s--Open | refresh=true terminal=false bash="%s" param1=%s param2=trunk_open param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:front", color))
         print ('%sRear trunk:					%s| color=%s' % (prefix, door_state(vehicle_state['rt']),info_color))
-        print ('%sCharge port:					%s| color=%s' % (prefix, port_state(charge_state['charge_port_door_open'],charge_state['charge_port_latch']),info_color))
-        print ('%s---' % prefix)
+        if (bool(vehicle_state['rt'])):
+        	print ('%s--Close | refresh=true terminal=false bash="%s" param1=%s param2=trunk_open param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
+        else: 
+        	print ('%s--Open | refresh=true terminal=true bash="%s" param1=%s param2=trunk_open param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
+        print ('%sCharge port:					%s| color=%s' % (prefix, port_state(charge_state['charge_port_door_open'],charge_state['charge_port_latch']), info_color))
+        if (not(bool(charge_state['charge_port_door_open']))):
+        	print ('%s--Open | refresh=true terminal=false bash="%s" param1=%s param2=charge_port_door_open color=%s' % (prefix, sys.argv[0], str(i), color))
+	print ('%s---' % prefix)
 
         if (gui_settings['gui_range_display'] == 'Rated'):
             print ('%sRated battery range:			%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['battery_range']),distance_unit,color))
