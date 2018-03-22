@@ -34,6 +34,7 @@ except: # Python 2 dependencies
     from urllib2 import Request, urlopen, build_opener
     from urllib2 import ProxyHandler, HTTPBasicAuthHandler, HTTPHandler, HTTPError, URLError
 
+
 import ast
 import json
 import sys
@@ -51,6 +52,7 @@ import pyicloud     # Icloud integration - retrieving calendar info
 
 from pyicloud import PyiCloudService
 from datetime import date
+from pathos.multiprocessing import ProcessingPool as Pool # Parallelize retrieval of data from Tesla
 
 # Nice ANSI colors
 CEND    = '\33[0m'
@@ -61,6 +63,7 @@ CBLUE   = '\33[34m'
 
 # Support for OS X Dark Mode
 DARK_MODE=os.getenv('BitBarDarkMode',0)
+
 
 # Class that represents the connection to Tesla 
 class TeslaConnection(object):
@@ -437,11 +440,16 @@ def main(argv):
 
 
         # get the data for the vehicle       
-        gui_settings  = vehicle.data_request('gui_settings')
-        charge_state  = vehicle.data_request('charge_state')
-        climate_state = vehicle.data_request('climate_state')
-        drive_state   = vehicle.data_request('drive_state')
-        vehicle_state = vehicle.data_request('vehicle_state')
+        dataset = ['gui_settings','charge_state','climate_state','drive_state','vehicle_state']
+
+	pool = Pool(5)
+	vehicle_info = pool.map(vehicle.data_request,dataset)
+
+        gui_settings  = vehicle_info[0] # vehicle.data_request('gui_settings')
+        charge_state  = vehicle_info[1] # vehicle.data_request('charge_state')
+        climate_state = vehicle_info[2] # vehicle.data_request('climate_state')
+        drive_state   = vehicle_info[3] # vehicle.data_request('drive_state')
+        vehicle_state = vehicle_info[4] # vehicle.data_request('vehicle_state')
 
         temp_unit = gui_settings['gui_temperature_units'].encode('utf-8')
         distance_unit='km'  
@@ -507,10 +515,6 @@ def main(argv):
               print ('%s-- Front window defrosting | color=%s' % (prefix, color))
 	except:
            pass
- 
-
-
-
 
         try:
             print ('%sOutside Temp:				%.1f° %s| color=%s' % (prefix, convert_temp(temp_unit,climate_state['outside_temp']),temp_unit,color))
