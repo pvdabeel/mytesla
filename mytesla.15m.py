@@ -48,11 +48,12 @@ import time
 import os
 import subprocess
 import pyicloud     # Icloud integration - retrieving calendar info 
-
+import requests
 
 from pyicloud import PyiCloudService
 from datetime import date
 from pathos.multiprocessing import ProcessingPool as Pool # Parallelize retrieval of data from Tesla
+
 
 # Nice ANSI colors
 CEND    = '\33[0m'
@@ -596,7 +597,13 @@ def main(argv):
         print ('%sTime to full charge:			%s hours | alternate=true color=%s' % (prefix, charge_state['time_to_full_charge'], color))
         print ('%s---' % prefix)
 
-        print ('%sView Location | href="https://maps.google.com?q=%s,%s" color=%s' % (prefix, drive_state['latitude'], drive_state['longitude'],color))
+        my_url1 ='https://maps.googleapis.com/maps/api/staticmap?center='+str(drive_state['latitude'])+','+str(drive_state['longitude'])+'&zoom=17&size=340x385&markers=color:red%7C'+str(drive_state['latitude'])+','+str(drive_state['longitude'])
+        my_url2 ='https://maps.googleapis.com/maps/api/staticmap?center='+str(drive_state['latitude'])+','+str(drive_state['longitude'])+'&maptype=hybrid&zoom=17&size=340x385&markers=color:red%7C'+str(drive_state['latitude'])+','+str(drive_state['longitude'])
+        my_img1 = base64.b64encode(requests.get(my_url1).content)
+        my_img2 = base64.b64encode(requests.get(my_url2).content)
+        print ('%s|image=%s href="https://maps.google.com?q=%s,%s" color=%s' % (prefix, my_img1, drive_state['latitude'],drive_state['longitude'],color))
+        print ('%s|image=%s alternate=true href="https://maps.google.com?q=%s,%s" color=%s' % (prefix, my_img2, drive_state['latitude'],drive_state['longitude'],color))
+
         print ('%s---' % prefix)
         print ('%sVehicle commands| color=%s' % (prefix,color))
         print ('%s--Flash lights | refresh=true terminal=false bash="%s" param1=%s param2=flash_lights color=%s' % (prefix, sys.argv[0], str(i), color))

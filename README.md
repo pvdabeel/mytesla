@@ -3,6 +3,10 @@
 
 Displays information regarding your Tesla vehicle in the Mac OS X menubar. Allows you to remotely control your Tesla vehicle as well.
 
+Displays live location of your Tesla:
+
+![Imgur](https://i.imgur.com/ypoAWtv.png)
+
 Shows battery loss due to cold & Battery/window heating & defrosting status.
 
 ![Imgur](https://i.imgur.com/duiPFSK.png)
@@ -41,7 +45,10 @@ Icloud integration: plugin can read from your iCloud calendar or Reminder list a
 Supports OS X Dark Mode 
 
 ## Changelog: 
-**Update 2018.03.22:** Added support for opening & closing trunks and chargeport
+**Update 2018.03.22:** 
+- [X] Added support for opening & closing trunks and chargeport
+- [X] Performance optimizations
+- [X] Shows live location (Google Maps) in the url. Alternate between Map and Satellite image.
 
 **Update 2018.02.21:** Updated for Tesla firmware 2018.4 (APIv3) 
 - [X] Shows battery loss percentage due to cold. 
@@ -71,7 +78,7 @@ Greg Glockner teslajson API [code](https://github.com/gglockner/teslajson/).
 
 ## Installation instructions: 
 
-1. Execute in terminal.app before running : sudo easy_install keyring pyicloud
+1. Execute in terminal.app before running : sudo easy_install keyring pyicloud pathos
 2. Ensure you have [bitbar](https://github.com/matryer/bitbar/releases/latest) installed.
 3. Ensure your bitbar plugins directory does not have a space in the path (A known bitbar bug)
 4. Copy [mytesla.15m.py](tesla.15m.py) to your bitbar plugins folder and chmod +x the file from your terminal in that folder
