@@ -15,6 +15,11 @@ Remotely control the temperature of your Tesla:
 
 ![Imgur](https://i.imgur.com/rhPoEUo.png)
 
+Remotely open & close trunk of your Tesla:
+
+![Imgur](https://i.imgur.com/KSjkkMG.png)
+![Imgur](https://i.imgur.com/95Vy90E.png)
+
 Remotely start keyless driving, flash lights and honk horn of your Tesla:
 
 ![Imgur](https://i.imgur.com/olexbfV.png)

@@ -291,9 +291,9 @@ def convert_distance(distance_unit,distance):
 # Pretty print
 def door_state(dooropen):
     if bool(dooropen):
-        return CRED + 'Open' + CEND
+        return CRED + 'Open' + CEND + ' '
     else:
-        return CGREEN + 'Closed' + CEND
+        return CGREEN + 'Closed' + CEND + ' '
 
 def cold_state(percentage):
     return CBLUE + '(-' + str(percentage) + '%)' + CEND
@@ -529,12 +529,14 @@ def main(argv):
         
         print ('%sFirmware Version:			%s| color=%s' % (prefix, vehicle_state['car_version'],color))
         print ('%s---' % prefix)
-        
         print ('%sDriver front door:				%s| color=%s' % (prefix, door_state(vehicle_state['df']),info_color))
         print ('%sDriver rear door:				%s| color=%s' % (prefix, door_state(vehicle_state['dr']),info_color))
         print ('%sPassenger front door:			%s| color=%s' % (prefix, door_state(vehicle_state['pf']),info_color))
         print ('%sPassenger rear door:			%s| color=%s' % (prefix, door_state(vehicle_state['pr']),info_color))
-        print ('%sFront trunk:					%s| color=%s' % (prefix, door_state(vehicle_state['ft']),info_color))
+        print ('%s---' % prefix)
+
+
+        print ('%sFront trunk:					%s| color=%s' % (prefix, door_state(vehicle_state['ft']),color))
         if (bool(vehicle_state['ft'])):
         	print ('%s--Close | refresh=true terminal=false bash="%s" param1=%s param2=trunk_open param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:front", color))
         else: 
@@ -544,7 +546,7 @@ def main(argv):
         	print ('%s--Close | refresh=true terminal=false bash="%s" param1=%s param2=trunk_open param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
         else: 
         	print ('%s--Open | refresh=true terminal=false bash="%s" param1=%s param2=trunk_open param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
-        print ('%sCharge port:					%s| color=%s' % (prefix, port_state(charge_state['charge_port_door_open'],charge_state['charge_port_latch']), info_color))
+        print ('%sCharge port:					%s| color=%s' % (prefix, port_state(charge_state['charge_port_door_open'],charge_state['charge_port_latch']), color))
         if (not(bool(charge_state['charge_port_door_open']))):
         	print ('%s--Open | refresh=true terminal=false bash="%s" param1=%s param2=charge_port_door_open color=%s' % (prefix, sys.argv[0], str(i), color))
 	print ('%s---' % prefix)
