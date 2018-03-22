@@ -543,7 +543,7 @@ def main(argv):
         if (bool(vehicle_state['rt'])):
         	print ('%s--Close | refresh=true terminal=false bash="%s" param1=%s param2=trunk_open param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
         else: 
-        	print ('%s--Open | refresh=true terminal=true bash="%s" param1=%s param2=trunk_open param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
+        	print ('%s--Open | refresh=true terminal=false bash="%s" param1=%s param2=trunk_open param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
         print ('%sCharge port:					%s| color=%s' % (prefix, port_state(charge_state['charge_port_door_open'],charge_state['charge_port_latch']), info_color))
         if (not(bool(charge_state['charge_port_door_open']))):
         	print ('%s--Open | refresh=true terminal=false bash="%s" param1=%s param2=charge_port_door_open color=%s' % (prefix, sys.argv[0], str(i), color))
