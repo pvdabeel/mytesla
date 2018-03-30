@@ -467,10 +467,15 @@ def main(argv):
  
         print ('%s--Charge Level set to: %s%% | color=%s' % (prefix, charge_state['charge_limit_soc'], color))
         print ('%s---- 80%% | refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:80", info_color))
+        print ('%s---- 80%% | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:80", info_color))
         print ('%s---- 85%% | refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:85", info_color))
+        print ('%s---- 85%% | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:85", info_color))
         print ('%s---- 90%% (Default)| refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:90", color))
+        print ('%s---- 90%% (Default)| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:90", color))
         print ('%s---- 95%% | refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:95", info_color))
+        print ('%s---- 95%% | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:95", info_color))
         print ('%s---- 100%% (Trip only)| refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:100", info_color))
+        print ('%s---- 100%% (Trip only)| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:100", info_color))
         try:
            if charge_state['battery_heater_on']:
               print ('%s--Battery heating | color=%s' % (prefix, color))
@@ -479,14 +484,18 @@ def main(argv):
         print ('%sCharging State:				%s   | color=%s' % (prefix, charge_state['charging_state'],color))
         if (charge_state['charging_state']=="Charging") or (charge_state['charging_state']=='Starting'):
             print ('%s--Stop charging | refresh=true terminal=false bash="%s" param1=%s param2=charge_stop color=%s' % (prefix, sys.argv[0], str(i), color))
+            print ('%s--Stop charging | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_stop color=%s' % (prefix, sys.argv[0], str(i), color))
         if (charge_state['battery_level'] < charge_state['charge_limit_soc']) and (charge_state['charging_state']!='Starting') and (charge_state['charging_state']!='Charging') and (charge_state['charging_state']!='Disconnected'):
             print ('%s--Start charging | refresh=true terminal=false bash="%s" param1=%s param2=charge_start color=%s' % (prefix, sys.argv[0], str(i), color))
+            print ('%s--Start charging | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_start color=%s' % (prefix, sys.argv[0], str(i), color))
  
         print ('%sVehicle State:				%s   | color=%s' % (prefix, lock_state(vehicle_state['locked']),color))
         if bool(vehicle_state['locked']):
             print ('%s--Unlock | refresh=true terminal=false bash="%s" param1=%s param2=door_unlock color=%s' % (prefix, sys.argv[0], str(i), color))
+            print ('%s--Unlock | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=door_unlock color=%s' % (prefix, sys.argv[0], str(i), color))
         else:
             print ('%s--Lock | refresh=true terminal=false bash="%s" param1=%s param2=door_lock color=%s' % (prefix, sys.argv[0], str(i), color))
+            print ('%s--Lock | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=door_lock color=%s' % (prefix, sys.argv[0], str(i), color))
         print ('%s---' % prefix)
         
         try:
@@ -495,17 +504,27 @@ def main(argv):
             print ('%sInside Temp:					Unavailable| color=%s' % (prefix,color))
         if climate_state['is_climate_on']:
             print ('%s--Turn off airco | refresh=true terminal=false bash="%s" param1=%s param2=auto_conditioning_stop color=%s' % (prefix, sys.argv[0], str(i), color))
+            print ('%s--Turn off airco | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=auto_conditioning_stop color=%s' % (prefix, sys.argv[0], str(i), color))
         else:
             print ('%s--Turn on airco | refresh=true terminal=false bash="%s" param1=%s param2=auto_conditioning_start color=%s' % (prefix, sys.argv[0], str(i), color))
+            print ('%s--Turn on airco | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=auto_conditioning_start color=%s' % (prefix, sys.argv[0], str(i), color))
         print ('%s--Airco set to:	%.1f° %s | color=%s' % (prefix, convert_temp(temp_unit,climate_state['driver_temp_setting']), temp_unit, color))
         print ('%s---- 18° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:18","passenger_temp:18", color))
+        print ('%s---- 18° %s| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:18","passenger_temp:18", color))
         print ('%s---- 19° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:19","passenger_temp:19", color))
+        print ('%s---- 19° %s| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:19","passenger_temp:19", color))
         print ('%s---- 20° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:20","passenger_temp:20", color))
+        print ('%s---- 20° %s| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:20","passenger_temp:20", color))
         print ('%s---- 21° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:21","passenger_temp:21", color))
+        print ('%s---- 21° %s| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:21","passenger_temp:21", color))
         print ('%s---- 22° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:22","passenger_temp:22", color))
+        print ('%s---- 22° %s| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:22","passenger_temp:22", color))
         print ('%s---- 23° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:23","passenger_temp:23", color))
+        print ('%s---- 23° %s| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:23","passenger_temp:23", color))
         print ('%s---- 24° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:24","passenger_temp:24", color))
+        print ('%s---- 24° %s| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:24","passenger_temp:24", color))
         print ('%s---- 25° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:25","passenger_temp:25", color))
+        print ('%s---- 25° %s| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:25","passenger_temp:25", color))
         try:
            if climate_state['is_rear_defroster_on']:
               print ('%s-- Rear window defrosting | color=%s' % (prefix, color))
@@ -544,16 +563,21 @@ def main(argv):
         print ('%sFront trunk:					%s| color=%s' % (prefix, door_state(vehicle_state['ft']),color))
         if (bool(vehicle_state['ft'])):
         	print ('%s--Close | refresh=true terminal=false bash="%s" param1=%s param2=trunk_open param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:front", color))
+        	print ('%s--Close | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=trunk_open param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:front", color))
         else: 
         	print ('%s--Open | refresh=true terminal=false bash="%s" param1=%s param2=trunk_open param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:front", color))
+        	print ('%s--Open | refresh=true alternate=true terminal=true  bash="%s" param1=%s param2=trunk_open param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:front", color))
         print ('%sRear trunk:					%s| color=%s' % (prefix, door_state(vehicle_state['rt']),info_color))
         if (bool(vehicle_state['rt'])):
         	print ('%s--Close | refresh=true terminal=false bash="%s" param1=%s param2=trunk_open param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
+        	print ('%s--Close | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=trunk_open param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
         else: 
         	print ('%s--Open | refresh=true terminal=false bash="%s" param1=%s param2=trunk_open param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
+        	print ('%s--Open | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=trunk_open param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
         print ('%sCharge port:					%s| color=%s' % (prefix, port_state(charge_state['charge_port_door_open'],charge_state['charge_port_latch']), color))
         if (not(bool(charge_state['charge_port_door_open']))):
         	print ('%s--Open | refresh=true terminal=false bash="%s" param1=%s param2=charge_port_door_open color=%s' % (prefix, sys.argv[0], str(i), color))
+        	print ('%s--Open | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_port_door_open color=%s' % (prefix, sys.argv[0], str(i), color))
 	print ('%s---' % prefix)
 
         if (gui_settings['gui_range_display'] == 'Rated'):
@@ -597,8 +621,8 @@ def main(argv):
         print ('%sTime to full charge:			%s hours | alternate=true color=%s' % (prefix, charge_state['time_to_full_charge'], color))
         print ('%s---' % prefix)
 
-        my_url1 ='https://maps.googleapis.com/maps/api/staticmap?center='+str(drive_state['latitude'])+','+str(drive_state['longitude'])+'&zoom=17&size=340x385&markers=color:red%7C'+str(drive_state['latitude'])+','+str(drive_state['longitude'])
-        my_url2 ='https://maps.googleapis.com/maps/api/staticmap?center='+str(drive_state['latitude'])+','+str(drive_state['longitude'])+'&maptype=hybrid&zoom=17&size=340x385&markers=color:red%7C'+str(drive_state['latitude'])+','+str(drive_state['longitude'])
+        my_url1 ='https://maps.googleapis.com/maps/api/staticmap?center='+str(drive_state['latitude'])+','+str(drive_state['longitude'])+'&key=AIzaSyBrgHowqRH-ewRCNrhAgmK7EtFsuZCdXwk&zoom=17&size=340x385&markers=color:red%7C'+str(drive_state['latitude'])+','+str(drive_state['longitude'])
+        my_url2 ='https://maps.googleapis.com/maps/api/staticmap?center='+str(drive_state['latitude'])+','+str(drive_state['longitude'])+'&key=AIzaSyBrgHowqRH-ewRCNrhAgmK7EtFsuZCdXwk&maptype=hybrid&zoom=17&size=340x385&markers=color:red%7C'+str(drive_state['latitude'])+','+str(drive_state['longitude'])
         my_img1 = base64.b64encode(requests.get(my_url1).content)
         my_img2 = base64.b64encode(requests.get(my_url2).content)
         print ('%s|image=%s href="https://maps.google.com?q=%s,%s" color=%s' % (prefix, my_img1, drive_state['latitude'],drive_state['longitude'],color))
@@ -607,15 +631,21 @@ def main(argv):
         print ('%s---' % prefix)
         print ('%sVehicle commands| color=%s' % (prefix,color))
         print ('%s--Flash lights | refresh=true terminal=false bash="%s" param1=%s param2=flash_lights color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s--Flash lights | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=flash_lights color=%s' % (prefix, sys.argv[0], str(i), color))
         print ('%s--Honk horn | refresh=true terminal=false bash="%s" param1=%s param2=honk_horn color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s--Honk horn | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=honk_horn color=%s' % (prefix, sys.argv[0], str(i), color))
         try:
            if bool(vehicle_state['sun_roof_installed']):
               print ('%s-----' % prefix)
               print ('%s--Sun roof open: %s%% | color=%s' % (prefix, vehicle_state['sun_roof_percent_open'], color))
               print ('%s---- 0%% (Closed)| refresh=true terminal=false bash="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:0", color))
+              print ('%s---- 0%% (Closed)| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:0", color))
               print ('%s---- 15%% (Vent)| refresh=true terminal=false bash="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:15", color))
+              print ('%s---- 15%% (Vent)| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:15", color))
               print ('%s---- 80%% (Comfort)| refresh=true terminal=false bash="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:80", color))
+              print ('%s---- 80%% (Comfort)| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:80", color))
               print ('%s---- 100%% (Open)| refresh=true terminal=false bash="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:100", color))
+              print ('%s---- 100%% (Open)| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:100", color))
         except:
            # API change going to firmware 2018.4
            pass
