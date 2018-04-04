@@ -441,16 +441,17 @@ def main(argv):
 
 
         # get the data for the vehicle       
-        dataset = ['gui_settings','charge_state','climate_state','drive_state','vehicle_state']
+        dataset = ['gui_settings','charge_state','climate_state','drive_state','vehicle_state','vehicle_config']
 
-	pool = Pool(5)
+	pool = Pool(6)
 	vehicle_info = pool.map(vehicle.data_request,dataset)
 
-        gui_settings  = vehicle_info[0] # vehicle.data_request('gui_settings')
-        charge_state  = vehicle_info[1] # vehicle.data_request('charge_state')
-        climate_state = vehicle_info[2] # vehicle.data_request('climate_state')
-        drive_state   = vehicle_info[3] # vehicle.data_request('drive_state')
-        vehicle_state = vehicle_info[4] # vehicle.data_request('vehicle_state')
+        gui_settings   = vehicle_info[0] # vehicle.data_request('gui_settings')
+        charge_state   = vehicle_info[1] # vehicle.data_request('charge_state')
+        climate_state  = vehicle_info[2] # vehicle.data_request('climate_state')
+        drive_state    = vehicle_info[3] # vehicle.data_request('drive_state')
+        vehicle_state  = vehicle_info[4] # vehicle.data_request('vehicle_state')
+        vehicle_config = vehicle_info[5] # vehicle.data_request('vehicle_config')
 
         temp_unit = gui_settings['gui_temperature_units'].encode('utf-8')
         distance_unit='km'  
