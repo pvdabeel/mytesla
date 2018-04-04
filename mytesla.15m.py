@@ -434,7 +434,7 @@ def main(argv):
     # loop through vehicles, print menu with relevant info       
     for i, vehicle in enumerate(vehicles):
         if prefix:
-            print get_name(vehicle['display_name'])
+            print vehicle['display_name']
 
         # wake up the vehicle
         vehicle.wake_up()
@@ -445,6 +445,9 @@ def main(argv):
 
 	pool = Pool(6)
 	vehicle_info = pool.map(vehicle.data_request,dataset)
+
+	vehicle_name = vehicle['display_name']
+	vehicle_vin  = vehicle['vin'] 
 
         gui_settings   = vehicle_info[0] # vehicle.data_request('gui_settings')
         charge_state   = vehicle_info[1] # vehicle.data_request('charge_state')
@@ -635,8 +638,10 @@ def main(argv):
         print ('%s---' % prefix)
 
         print ('%sVehicle info| color=%s' % (prefix,color))
-        print ('%s--Model:			%s | color=%s' % (prefix, vehicle_config['car_type'], color))
+        print ('%s--Name: 			%s | color=%s' % (prefix, vehicle_name, color))
+        print ('%s--VIN: 			%s | terminal=true bash="echo %s | pbcopy" color=%s' % (prefix, vehicle_vin, vehicle_vin, color))
         print ('%s-----' % prefix)
+        print ('%s--Model:			%s | color=%s' % (prefix, vehicle_config['car_type'], info_color))
         print ('%s--Type: 			%s | color=%s' % (prefix, vehicle_config['trim_badging'], info_color))
         print ('%s--Ludicrous:		%s | color=%s' % (prefix, vehicle_config['has_ludicrous_mode'], info_color))
         print ('%s--Uncorked: 		%s | color=%s' % (prefix, vehicle_config['perf_config'], info_color))
