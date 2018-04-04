@@ -464,6 +464,9 @@ def main(argv):
         #   print ('%sBattery Level:				%s%% | color=%s' % (prefix, charge_state['battery_level'],color))
         # else:
         loss_cold = int(charge_state['battery_level']) - int(charge_state['usable_battery_level'])
+
+
+
         print ('%sBattery Level:				%s%% %s | color=%s' % (prefix, charge_state['battery_level'], cold_state(loss_cold), color))
  
         print ('%s--Charge Level set to: %s%% | color=%s' % (prefix, charge_state['charge_limit_soc'], color))
@@ -630,13 +633,24 @@ def main(argv):
         print ('%s|image=%s alternate=true href="https://maps.google.com?q=%s,%s" color=%s' % (prefix, my_img2, drive_state['latitude'],drive_state['longitude'],color))
 
         print ('%s---' % prefix)
+
+        print ('%sVehicle info| color=%s' % (prefix,color))
+        print ('%s--Model:			%s | color=%s' % (prefix, vehicle_config['car_type'], color))
+        print ('%s-----' % prefix)
+        print ('%s--Type: 			%s | color=%s' % (prefix, vehicle_config['trim_badging'], info_color))
+        print ('%s--Ludicrous:		%s | color=%s' % (prefix, vehicle_config['has_ludicrous_mode'], info_color))
+        print ('%s--Uncorked: 		%s | color=%s' % (prefix, vehicle_config['perf_config'], info_color))
+        print ('%s--Color: 			%s | color=%s' % (prefix, vehicle_config['exterior_color'], info_color))
+        print ('%s--Wheels: 			%s | color=%s' % (prefix, vehicle_config['wheel_type'], info_color))
+
+
         print ('%sVehicle commands| color=%s' % (prefix,color))
         print ('%s--Flash lights | refresh=true terminal=false bash="%s" param1=%s param2=flash_lights color=%s' % (prefix, sys.argv[0], str(i), color))
         print ('%s--Flash lights | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=flash_lights color=%s' % (prefix, sys.argv[0], str(i), color))
         print ('%s--Honk horn | refresh=true terminal=false bash="%s" param1=%s param2=honk_horn color=%s' % (prefix, sys.argv[0], str(i), color))
         print ('%s--Honk horn | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=honk_horn color=%s' % (prefix, sys.argv[0], str(i), color))
         try:
-           if bool(vehicle_state['sun_roof_installed']):
+           if bool(vehicle_config['sun_roof_installed']):
               print ('%s-----' % prefix)
               print ('%s--Sun roof open: %s%% | color=%s' % (prefix, vehicle_state['sun_roof_percent_open'], color))
               print ('%s---- 0%% (Closed)| refresh=true terminal=false bash="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:0", color))
@@ -652,7 +666,11 @@ def main(argv):
            pass
         print ('%s-----' % prefix)
         print ('%s--Remote start | refresh=true terminal=true bash="%s" param1=%s param2=remote_start_drive color=%s' % (prefix, sys.argv[0], str(i), color))
-        
+ 
+
+
+
+       
 
 def run_script(script):
     return subprocess.Popen([script], stdout=subprocess.PIPE, shell=True).communicate()[0].strip()
