@@ -45,6 +45,13 @@ Icloud integration: plugin can read from your iCloud calendar or Reminder list a
 Supports OS X Dark Mode 
 
 ## Changelog: 
+**Update 2018.04.05:** 
+- [X] Shows vehicle information (VIN, color, wheels, type, model, Ludicrous) 
+- [X] Provide indication whether vehicle was uncorked or not
+- [X] Copy VIN to clipboard
+- [X] Hold ALT when clicking command for the command to be executed in Terminal
+
+
 **Update 2018.03.22:** 
 - [X] Added support for opening & closing trunks and chargeport
 - [X] Performance optimizations
