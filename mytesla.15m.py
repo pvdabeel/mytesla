@@ -436,15 +436,17 @@ def main(argv):
         if prefix:
             print vehicle['display_name']
 
-        # wake up the vehicle
-        vehicle.wake_up()
+	try:
+           # wake up the vehicle
+           vehicle.wake_up()
 
-
-        # get the data for the vehicle       
-        dataset = ['gui_settings','charge_state','climate_state','drive_state','vehicle_state','vehicle_config']
-
-	pool = Pool(6)
-	vehicle_info = pool.map(vehicle.data_request,dataset)
+           # get the data for the vehicle       
+           dataset = ['gui_settings','charge_state','climate_state','drive_state','vehicle_state','vehicle_config']
+	   pool = Pool(6)
+           vehicle_info = pool.map(vehicle.data_request,dataset)
+        except: 
+           print ('%sError: Faild to get info from Tesla. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
+           return         
 
 	vehicle_name = vehicle['display_name']
 	vehicle_vin  = vehicle['vin'] 
@@ -609,6 +611,7 @@ def main(argv):
         print ('%sSupercharging:				%s| color=%s' % (prefix, charge_state['fast_charger_present'],info_color))
         print ('%sCharger speed:				%s %s/h| color=%s' % (prefix, convert_distance(distance_unit,charge_state['charge_rate']),distance_unit,info_color))
 
+
 	hours_to_full_charge = charge_state['time_to_full_charge']
         mins_to_full_charge = hours_to_full_charge * 60
 
@@ -625,7 +628,8 @@ def main(argv):
            print ('%sTime to full charge:			%d hours 1 min | color=%s' % (prefix, remaining_hours, color))
         else:
            print ('%sTime to full charge:			%d hours %d mins | color=%s' % (prefix, remaining_hours, remaining_minutes, color))
-        print ('%sTime to full charge:			%s hours | alternate=true color=%s' % (prefix, charge_state['time_to_full_charge'], color))
+        #print ('%sTime to full charge:			%s hours | alternate=true color=%s' % (prefix, charge_state['time_to_full_charge'], color))
+        
         print ('%s---' % prefix)
 
         my_url1 ='https://maps.googleapis.com/maps/api/staticmap?center='+str(drive_state['latitude'])+','+str(drive_state['longitude'])+'&key=AIzaSyBrgHowqRH-ewRCNrhAgmK7EtFsuZCdXwk&zoom=17&size=340x385&markers=color:red%7C'+str(drive_state['latitude'])+','+str(drive_state['longitude'])
