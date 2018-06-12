@@ -438,7 +438,10 @@ def main(argv):
 
 	try:
            # wake up the vehicle
-           vehicle.wake_up()
+           if vehicle['state'] == 'offline':
+                 vehicle.wake_up()
+                 print ('%sVehicle offline. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
+                 return     
 
            # get the data for the vehicle       
            dataset = ['gui_settings','charge_state','climate_state','drive_state','vehicle_state','vehicle_config']
