@@ -18,6 +18,7 @@
 # Execute in terminal.app before running : 
 #    sudo easy_install keyring
 #    sudo easy_install pyicloud
+#    sudo easy_install pyobjc-framework-CoreLocation
 #
 # Ensure you have bitbar installed https://github.com/matryer/bitbar/releases/latest
 # Ensure your bitbar plugins directory does not have a space in the path (known bitbar bug)
@@ -49,6 +50,8 @@ import os
 import subprocess
 import pyicloud     # Icloud integration - retrieving calendar info 
 import requests
+
+import CoreLocation as cl
 
 from pyicloud import PyiCloudService
 from datetime import date
@@ -634,6 +637,13 @@ def main(argv):
         #print ('%sTime to full charge:			%s hours | alternate=true color=%s' % (prefix, charge_state['time_to_full_charge'], color))
         
         print ('%s---' % prefix)
+
+        #try: 
+        #   location_manager = cl.CLLocationManager.alloc().init()
+        #   location_manager.startUpdatngLocation()
+        #   current_location = location_manager.location()
+        #   location_manager.stopUpdatngLocation()
+
 
         my_google_key = '&key=AIzaSyBrgHowqRH-ewRCNrhAgmK7EtFsuZCdXwk'
         
