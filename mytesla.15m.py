@@ -635,8 +635,20 @@ def main(argv):
         
         print ('%s---' % prefix)
 
-        my_url1 ='https://maps.googleapis.com/maps/api/staticmap?center='+str(drive_state['latitude'])+','+str(drive_state['longitude'])+'&key=AIzaSyBrgHowqRH-ewRCNrhAgmK7EtFsuZCdXwk&zoom=17&size=340x385&markers=color:red%7C'+str(drive_state['latitude'])+','+str(drive_state['longitude'])
-        my_url2 ='https://maps.googleapis.com/maps/api/staticmap?center='+str(drive_state['latitude'])+','+str(drive_state['longitude'])+'&key=AIzaSyBrgHowqRH-ewRCNrhAgmK7EtFsuZCdXwk&maptype=hybrid&zoom=17&size=340x385&markers=color:red%7C'+str(drive_state['latitude'])+','+str(drive_state['longitude'])
+        my_google_key = '&key=AIzaSyBrgHowqRH-ewRCNrhAgmK7EtFsuZCdXwk'
+        
+        my_google_dark_style = ''
+
+        if bool(DARK_MODE):
+          my_google_dark_style = '&style=feature:all|element:labels|visibility:on&style=feature:all|element:labels.text.fill|saturation:36|color:0x000000|lightness:40&style=feature:all|element:labels.text.stroke|visibility:on|color:0x000000|lightness:16&style=feature:all|element:labels.icon|visibility:off&style=feature:administrative|element:geometry.fill|color:0x000000|lightness:20&style=feature:administrative|element:geometry.stroke|color:0x000000|lightness:17|weight:1.2&style=feature:administrative.country|element:labels.text.fill|color:0x838383&style=feature:administrative.locality|element:labels.text.fill|color:0xc4c4c4&style=feature:administrative.neighborhood|element:labels.text.fill|color:0xaaaaaa&style=feature:landscape|element:geometry|color:0x000000|lightness:20&style=feature:poi|element:geometry|color:0x000000|lightness:21|visibility:on&style=feature:poi.business|element:geometry|visibility:on&style=feature:road.highway|element:geometry.fill|color:0x6e6e6e|lightness:0&style=feature:road.highway|element:geometry.stroke|visibility:off&style=feature:road.highway|element:labels.text.fill|color:0xffffff&style=feature:road.arterial|element:geometry|color:0x000000|lightness:18&style=feature:road.arterial|element:geometry.fill|color:0x575757&style=feature:road.arterial|element:labels.text.fill|color:0xffffff&style=feature:road.arterial|element:labels.text.stroke|color:0x2c2c2c&style=feature:road.local|element:geometry|color:0x000000|lightness:16&style=feature:road.local|element:labels.text.fill|color:0x999999&style=feature:transit|element:geometry|color:0x000000|lightness:19&style=feature:water|element:geometry|color:0x000000|lightness:17'
+       
+
+        my_google_size = '&size=340x315'
+
+        my_google_zoom = '&zoom=17'
+
+        my_url1 ='https://maps.googleapis.com/maps/api/staticmap?center='+str(drive_state['latitude'])+','+str(drive_state['longitude'])+my_google_key+my_google_dark_style+my_google_zoom+my_google_size+'&markers=color:red%7C'+str(drive_state['latitude'])+','+str(drive_state['longitude'])
+        my_url2 ='https://maps.googleapis.com/maps/api/staticmap?center='+str(drive_state['latitude'])+','+str(drive_state['longitude'])+my_google_key+my_google_zoom+my_google_size+'&maptype=hybrid&markers=color:red%7C'+str(drive_state['latitude'])+','+str(drive_state['longitude'])
         my_img1 = base64.b64encode(requests.get(my_url1).content)
         my_img2 = base64.b64encode(requests.get(my_url2).content)
         print ('%s|image=%s href="https://maps.google.com?q=%s,%s" color=%s' % (prefix, my_img1, drive_state['latitude'],drive_state['longitude'],color))

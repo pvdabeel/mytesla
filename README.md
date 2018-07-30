@@ -45,6 +45,9 @@ Icloud integration: plugin can read from your iCloud calendar or Reminder list a
 Supports OS X Dark Mode 
 
 ## Changelog: 
+**Update 2018.07.30:** 
+- [X] When running in dark mode, also shows google map in dark mode
+
 **Update 2018.04.05:** 
 - [X] Shows vehicle information (VIN, color, wheels, type, model, Ludicrous) 
 - [X] Provide indication whether vehicle was uncorked or not
