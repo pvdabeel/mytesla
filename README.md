@@ -3,6 +3,8 @@
 
 Displays information regarding your Tesla vehicle in the Mac OS X menubar. Allows you to remotely control your Tesla vehicle as well.
 
+![Imgur](https://i.imgur.com/CpoGojz.png)
+
 Displays live location of your Tesla:
 
 ![Imgur](https://i.imgur.com/ypoAWtv.png)
