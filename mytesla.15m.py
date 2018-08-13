@@ -676,7 +676,8 @@ def main(argv):
         print ('%s--Uncorked: 		%s | color=%s' % (prefix, vehicle_config['perf_config'], info_color))
         print ('%s--Color: 			%s | color=%s' % (prefix, vehicle_config['exterior_color'], info_color))
         print ('%s--Wheels: 			%s | color=%s' % (prefix, vehicle_config['wheel_type'], info_color))
-        print ('%s--Odometer: 		%s %s | color=%s' % (prefix, convert_distance(distance_unit,vehicle_state['odometer']), distance_unit, info_color))
+        print ('%s-----' % prefix)
+        print ('%s--Odometer: 		%s %s | color=%s' % (prefix, convert_distance(distance_unit,vehicle_state['odometer']), distance_unit, color))
 
 
         print ('%sVehicle commands| color=%s' % (prefix,color))
