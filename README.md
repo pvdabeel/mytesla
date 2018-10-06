@@ -3,48 +3,12 @@
 
 Displays information regarding your Tesla vehicle in the Mac OS X menubar. Allows you to remotely control your Tesla vehicle as well.
 
-![Imgur](https://i.imgur.com/CpoGojz.png)
+[Imgur](https://i.imgur.com/EafJBW9.jpg)
 
-Displays live location of your Tesla:
+Supports OS X dark mode:
 
-![Imgur](https://i.imgur.com/ypoAWtv.png)
+[Imgur](https://i.imgur.com/740jhtw.jpg)
 
-Shows battery loss due to cold & Battery/window heating & defrosting status.
-
-![Imgur](https://i.imgur.com/duiPFSK.png)
-
-Remotely start charging your Tesla:
-
-![Imgur](https://i.imgur.com/yQ9i437.png)
-
-Remotely control the temperature of your Tesla:
-
-![Imgur](https://i.imgur.com/rhPoEUo.png)
-
-Remotely open & close trunk of your Tesla:
-
-![Imgur](https://i.imgur.com/KSjkkMG.png)
-![Imgur](https://i.imgur.com/95Vy90E.png)
-
-Remotely start keyless driving, flash lights and honk horn of your Tesla:
-
-![Imgur](https://i.imgur.com/olexbfV.png)
-
-Remotely unlock & lock your Tesla:
-
-![Imgur](https://i.imgur.com/IYiatlI.png)
-
-
-Allows you to locate your car in Google Maps and remotely enable / disable your Vehicle Airco.
-
-![Imgur](https://i.imgur.com/14mCiGp.png)
-
-
-Icloud integration: plugin can read from your iCloud calendar or Reminder list and execute specific commands scheduled as specific times. (Plugin has to be running for the execution to happen)
-
-![Imgur](https://i.imgur.com/IhOCHpL.png)
-
-Supports OS X Dark Mode 
 
 ## Changelog: 
 **Update 2018.07.30:** 
