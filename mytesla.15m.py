@@ -167,7 +167,6 @@ class TeslaConnection(object):
         if not baseurl:
             baseurl = self.baseurl
         headers['User-Agent']='github.com/pvdabeel/mytesla'
-        print (headers)
         req = Request("%s%s" % (baseurl, url), headers=headers)
         try:
             req.data = urlencode(data).encode('utf-8') # Python 3
