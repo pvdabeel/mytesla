@@ -477,7 +477,10 @@ def main(argv):
         # else:
         loss_cold = int(charge_state['battery_level']) - int(charge_state['usable_battery_level'])
 
-
+        if (vehicle_state['software_update']['status'] != ''):
+           print ('%sSoftware update:				%s | color=%s' % (prefix, vehicle_state['software_update']['status'], color))
+           print ('%s---' % prefix)
+        
 
         print ('%sBattery Level:				%s%% %s | color=%s' % (prefix, charge_state['battery_level'], cold_state(loss_cold), color))
  
