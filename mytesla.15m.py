@@ -409,7 +409,7 @@ def main(argv):
 
 
     # CASE 4: all ok, specific command for a specific vehicle received
-    if len(sys.argv) > 1:
+    if (len(sys.argv) > 1) and not('debug' in argv):
         v = vehicles[int(sys.argv[1])]
         v.wake_up()
         if sys.argv[2] != "wakeup":
@@ -467,6 +467,15 @@ def main(argv):
 
         temp_unit = gui_settings['gui_temperature_units'].encode('utf-8')
         distance_unit='km'  
+
+        if 'debug' in argv:
+            print ('>>> gui_settings:\n%s\n' % gui_settings)
+            print ('>>> charge_state:\n%s\n' % charge_state)
+            print ('>>> climate_state:\n%s\n' % climate_state)
+            print ('>>> drive_state:\n%s\n' % drive_state)
+            print ('>>> vehicle_state:\n%s\n' % vehicle_state)
+            print ('>>> vehicle_config:\n%s\n' % vehicle_config)
+            return
 
         if gui_settings['gui_distance_units'] == 'mi/hr':
             distance_unit = 'mi'
