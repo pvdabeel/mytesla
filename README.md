@@ -12,6 +12,11 @@ Supports OS X dark mode:
 
 ## Changelog: 
 **Update 2018.07.30:** 
+- [X] Toggle media on and off
+- [X] Next and previous track 
+- [X] Volume up and down
+
+**Update 2018.07.30:** 
 - [X] When running in dark mode, also shows google map in dark mode
 - [X] Uses CoreLocation to get own GPS coordinates and put on map together with car, 
 
@@ -20,7 +25,6 @@ Supports OS X dark mode:
 - [X] Provide indication whether vehicle was uncorked or not
 - [X] Copy VIN to clipboard
 - [X] Hold ALT when clicking command for the command to be executed in Terminal
-
 
 **Update 2018.03.22:** 
 - [X] Added support for opening & closing trunks and chargeport

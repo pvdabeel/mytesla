@@ -698,6 +698,22 @@ def main(argv):
         print ('%s--Flash lights | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=flash_lights color=%s' % (prefix, sys.argv[0], str(i), color))
         print ('%s--Honk horn | refresh=true terminal=false bash="%s" param1=%s param2=honk_horn color=%s' % (prefix, sys.argv[0], str(i), color))
         print ('%s--Honk horn | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=honk_horn color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s--Media| color=%s' % (prefix,color))
+        print ('%s----Toggle playback| refresh=true terminal=false bash="%s" param1=%s param2=media_toggle_playback color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s----Toggle playback| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=media_toggle_playback color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s----Track| color=%s' % (prefix,color))
+        print ('%s------Previous| refresh=true terminal=false bash="%s" param1=%s param2=media_prev_track color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s------Previous| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=media_prev_track color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s------Next| refresh=true terminal=false bash="%s" param1=%s param2=media_next_track color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s------Next| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=media_next_track color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s----Volume| color=%s' % (prefix,color))
+        print ('%s------Up| refresh=true terminal=false bash="%s" param1=%s param2=media_volume_up color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s------Up| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=media_volume_up color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s------Down| refresh=true terminal=false bash="%s" param1=%s param2=media_volume_down color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s------Down| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=media_volume_down color=%s' % (prefix, sys.argv[0], str(i), color))
+
+
+
         try:
            if bool(vehicle_config['sun_roof_installed']):
               print ('%s-----' % prefix)
