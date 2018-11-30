@@ -12,6 +12,7 @@ Supports OS X dark mode:
 
 ## Changelog: 
 **Update 2018.07.30:** 
+- [X] Software update 
 - [X] Toggle media on and off
 - [X] Next and previous track 
 - [X] Volume up and down

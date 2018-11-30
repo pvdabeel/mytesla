@@ -487,7 +487,7 @@ def main(argv):
         loss_cold = int(charge_state['battery_level']) - int(charge_state['usable_battery_level'])
 
         if (vehicle_state['software_update']['status'] != ''):
-           print ('%sSoftware update:				%s | color=%s' % (prefix, vehicle_state['software_update']['status'], color))
+           print ('%sSoftware update:				%s | refresh=true terminal=false bash="%s" param1=%s param2=schedule_software_update param3=%s color=%s' % (prefix, vehicle_state['software_update']['status'], sys.argv[0], str(i), "offset_sec:0", color))
            print ('%s---' % prefix)
         
 
