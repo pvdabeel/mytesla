@@ -154,6 +154,7 @@ class TeslaConnection(object):
             auth = self.__open("/oauth/token", data=self.oauth)
             self.__sethead(auth['access_token'],
                            auth['created_at'] + auth['expires_in'] - 86400)
+        print ("%s%s" % (self.api , command))
         return self.__open("%s%s" % (self.api, command), headers=self.head, data=data)
     
     def __sethead(self, access_token, expiration=float('inf')):
@@ -420,8 +421,18 @@ def main(argv):
                 # ask for password
                 print ('Enter your tesla.com password:')
                 password = getpass.getpass()
-                # v.command(sys.argv[2],password)
+                v.command(sys.argv[2],password)
                 password = ''
+            elif sys.argv[2] == 'navigation_request':
+                # ask for address
+                print ('Enter the address to set your navigation to:')
+                address = raw_input()
+                current_timestamp = int(time.time())
+                data = {'type':'share_ext_content_raw', 'locale':'en-US','timestamp_ms':current_timestamp, 'value' : {'android.intent.extra.TEXT' : address}}
+                print ('DEBUG')
+                print data
+                print ('DEBUG')
+                v.command('navigation_request',data)
             else:
                 # argv is of the form: CMD + vehicleid + command + key:value pairs 
                 v.command(sys.argv[2],dict(map(lambda x: x.split(':'),sys.argv[3:])))
@@ -711,7 +722,10 @@ def main(argv):
         print ('%s------Up| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=media_volume_up color=%s' % (prefix, sys.argv[0], str(i), color))
         print ('%s------Down| refresh=true terminal=false bash="%s" param1=%s param2=media_volume_down color=%s' % (prefix, sys.argv[0], str(i), color))
         print ('%s------Down| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=media_volume_down color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s-----' % prefix)
+        print ('%s--Navigate to address| refresh=true terminal=true bash="%s" param1=%s param2=navigation_request color=%s' % (prefix, sys.argv[0], str(i), color))
 
+ 
 
 
         try:

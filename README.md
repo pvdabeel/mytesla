@@ -11,7 +11,10 @@ Supports OS X dark mode:
 
 
 ## Changelog: 
-**Update 2018.07.30:** 
+**Update 2018.12.08:** 
+- [X] Remotely set your navigation
+
+**Update 2018.12.01:** 
 - [X] Schedule software update 
 - [X] Toggle media on and off
 - [X] Next and previous track 
