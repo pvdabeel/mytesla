@@ -155,7 +155,7 @@ class TeslaConnection(object):
             self.__sethead(auth['access_token'],
                            auth['created_at'] + auth['expires_in'] - 86400)
         #debug
-        print ("%s%s%s%s" % (CRED, self.api , command, CEND))
+        #print ("%s%s%s%s" % (CRED, self.api , command, CEND))
         return self.__open("%s%s" % (self.api, command), headers=self.head, data=data)
     
     def __sethead(self, access_token, expiration=float('inf')):
