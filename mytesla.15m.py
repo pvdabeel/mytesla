@@ -154,6 +154,7 @@ class TeslaConnection(object):
             auth = self.__open("/oauth/token", data=self.oauth)
             self.__sethead(auth['access_token'],
                            auth['created_at'] + auth['expires_in'] - 86400)
+        #debug
         #print ("%s%s" % (self.api , command))
         return self.__open("%s%s" % (self.api, command), headers=self.head, data=data)
     
@@ -167,15 +168,28 @@ class TeslaConnection(object):
         """Raw urlopen command"""
         if not baseurl:
             baseurl = self.baseurl
+        
         headers['User-Agent']='github.com/pvdabeel/mytesla'
+        # json
+        if type(data) is str:   
+            headers['Content-Type']='application/json'
+            jsondata=data.encode('utf-8')
+            headers['Content-Length']= len(jsondata)
         req = Request("%s%s" % (baseurl, url), headers=headers)
-        try:
-            req.data = urlencode(data).encode('utf-8') # Python 3
-        except:
+        
+        
+        # json
+        if type(data) is str:
+            req.data = jsondata
+        # not json
+        else:
             try:
-                req.add_data(urlencode(data)) # Python 2
+                req.data = urlencode(data).encode('utf-8') # Python 3
             except:
-                pass
+                try:
+                    req.add_data(urlencode(data)) # Python 2
+                except:
+                    pass
 
         # Proxy support
         if self.proxy_url:
@@ -190,13 +204,10 @@ class TeslaConnection(object):
                 opener = build_opener(handler)
         else:
             opener = build_opener()
-        try:
-            resp = opener.open(req)
-            charset = resp.info().get('charset', 'utf-8')
-            return json.loads(resp.read().decode(charset))
-        except Exception as e:
-            print e
-            return None
+       
+        resp = opener.open(req)
+        charset = resp.info().get('charset', 'utf-8')
+        return json.loads(resp.read().decode(charset))
         
 
 # Class that represents a Tesla vehicle
@@ -432,11 +443,11 @@ def main(argv):
                 print ('Enter the address to set your navigation to:')
                 address = raw_input()
                 current_timestamp = int(time.time())
-                data = {'type':"share_ext_content_raw", 'locale':"en-US",'timestamp_ms':str(current_timestamp), 'value' : {'android.intent.ACTION' : "android.intent.action.SEND", 'android.intent.TYPE':"text\/plain", 'android.intent.extra.SUBJECT':"MyTesla address",'android.intent.extra.TEXT': str(address)}}
+                json_data = json.dumps({"type":"share_ext_content_raw", "locale":"en-US","timestamp_ms":str(current_timestamp), "value" : {"android.intent.ACTION" : "android.intent.action.SEND", "android.intent.TYPE":"text\/plain", "android.intent.extra.SUBJECT":"MyTesla address","android.intent.extra.TEXT": str(address)}})
                 #print ('DEBUG')
                 #print data
                 #print ('DEBUG')
-                v.command('navigation_request',data)
+                v.command('navigation_request',json_data)
             else:
                 # argv is of the form: CMD + vehicleid + command + key:value pairs 
                 v.command(sys.argv[2],dict(map(lambda x: x.split(':'),sys.argv[3:])))
