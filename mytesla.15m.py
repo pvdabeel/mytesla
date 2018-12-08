@@ -155,7 +155,7 @@ class TeslaConnection(object):
             self.__sethead(auth['access_token'],
                            auth['created_at'] + auth['expires_in'] - 86400)
         #debug
-        #print ("%s%s" % (self.api , command))
+        print ("%s%s%s%s" % (CRED, self.api , command, CEND))
         return self.__open("%s%s" % (self.api, command), headers=self.head, data=data)
     
     def __sethead(self, access_token, expiration=float('inf')):
@@ -226,6 +226,11 @@ class TeslaVehicle(dict):
         super(TeslaVehicle, self).__init__(data)
         self.connection = connection
     
+    def vehicle_data(self):
+        """Get vehicle data"""
+        result = self.get('vehicle_data')
+        return result['response']
+        
     def data_request(self, name):
         """Get vehicle data"""
         result = self.get('data_request/%s' % name)
@@ -427,7 +432,7 @@ def main(argv):
     # CASE 4: all ok, specific command for a specific vehicle received
     if (len(sys.argv) > 1) and not('debug' in argv):
         v = vehicles[int(sys.argv[1])]
-        v.wake_up()
+        #v.wake_up()
         if sys.argv[2] != "wakeup":
             if (len(sys.argv) == 2) and (sys.argv[2] != 'remote_start_drive'):
                 # argv is of the form: CMD + vehicleid + command 
@@ -472,11 +477,11 @@ def main(argv):
                  vehicle.wake_up()
                  print ('%sVehicle offline. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
                  return     
-
+ 
            # get the data for the vehicle       
            dataset = ['gui_settings','charge_state','climate_state','drive_state','vehicle_state','vehicle_config']
-	   pool = Pool(6)
-           vehicle_info = pool.map(vehicle.data_request,dataset)
+	   #pool = Pool(6)
+           vehicle_info = vehicle.vehicle_data() #pool.map(vehicle.data_request,dataset)
         except: 
            print ('%sError: Faild to get info from Tesla. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
            return         
@@ -484,12 +489,12 @@ def main(argv):
 	vehicle_name = vehicle['display_name']
 	vehicle_vin  = vehicle['vin'] 
 
-        gui_settings   = vehicle_info[0] # vehicle.data_request('gui_settings')
-        charge_state   = vehicle_info[1] # vehicle.data_request('charge_state')
-        climate_state  = vehicle_info[2] # vehicle.data_request('climate_state')
-        drive_state    = vehicle_info[3] # vehicle.data_request('drive_state')
-        vehicle_state  = vehicle_info[4] # vehicle.data_request('vehicle_state')
-        vehicle_config = vehicle_info[5] # vehicle.data_request('vehicle_config')
+        gui_settings   = vehicle_info['gui_settings']   #vehicle_info[0] # vehicle.data_request('gui_settings')
+        charge_state   = vehicle_info['charge_state']   #vehicle_info[1] # vehicle.data_request('charge_state')
+        climate_state  = vehicle_info['climate_state']  #vehicle_info[2] # vehicle.data_request('climate_state')
+        drive_state    = vehicle_info['drive_state']    #vehicle_info[3] # vehicle.data_request('drive_state')
+        vehicle_state  = vehicle_info['vehicle_state']  #vehicle_info[4] # vehicle.data_request('vehicle_state')
+        vehicle_config = vehicle_info['vehicle_config'] #vehicle_info[5] # vehicle.data_request('vehicle_config')
 
         temp_unit = gui_settings['gui_temperature_units'].encode('utf-8')
         distance_unit='km'  
