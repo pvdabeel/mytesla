@@ -154,7 +154,7 @@ class TeslaConnection(object):
             auth = self.__open("/oauth/token", data=self.oauth)
             self.__sethead(auth['access_token'],
                            auth['created_at'] + auth['expires_in'] - 86400)
-        print ("%s%s" % (self.api , command))
+        #print ("%s%s" % (self.api , command))
         return self.__open("%s%s" % (self.api, command), headers=self.head, data=data)
     
     def __sethead(self, access_token, expiration=float('inf')):
@@ -190,9 +190,13 @@ class TeslaConnection(object):
                 opener = build_opener(handler)
         else:
             opener = build_opener()
-        resp = opener.open(req)
-        charset = resp.info().get('charset', 'utf-8')
-        return json.loads(resp.read().decode(charset))
+        try:
+            resp = opener.open(req)
+            charset = resp.info().get('charset', 'utf-8')
+            return json.loads(resp.read().decode(charset))
+        except Exception as e:
+            print e
+            return None
         
 
 # Class that represents a Tesla vehicle
@@ -428,10 +432,10 @@ def main(argv):
                 print ('Enter the address to set your navigation to:')
                 address = raw_input()
                 current_timestamp = int(time.time())
-                data = {'type':'share_ext_content_raw', 'locale':'en-US','timestamp_ms':current_timestamp, 'value' : {'android.intent.extra.TEXT' : address}}
-                print ('DEBUG')
-                print data
-                print ('DEBUG')
+                data = {'type':"share_ext_content_raw", 'locale':"en-US",'timestamp_ms':str(current_timestamp), 'value' : {'android.intent.ACTION' : "android.intent.action.SEND", 'android.intent.TYPE':"text\/plain", 'android.intent.extra.SUBJECT':"MyTesla address",'android.intent.extra.TEXT': str(address)}}
+                #print ('DEBUG')
+                #print data
+                #print ('DEBUG')
                 v.command('navigation_request',data)
             else:
                 # argv is of the form: CMD + vehicleid + command + key:value pairs 
