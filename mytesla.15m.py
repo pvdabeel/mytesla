@@ -239,7 +239,14 @@ class TeslaVehicle(dict):
     def wake_up(self):
         """Wake the vehicle"""
         return self.post('wake_up')
-    
+   
+    def nearby_charging_sites(self):
+        """Return list of nearby chargers"""
+        try: # Firmware 2018.48 or higher needed
+           return self.post('nearby_charging_sites')
+        except: 
+           return []
+
     def command(self, name, data={}):
         """Run the command for the vehicle"""
         return self.post('command/%s' % name, data)
@@ -479,9 +486,7 @@ def main(argv):
                  return     
  
            # get the data for the vehicle       
-           dataset = ['gui_settings','charge_state','climate_state','drive_state','vehicle_state','vehicle_config']
-	   #pool = Pool(6)
-           vehicle_info = vehicle.vehicle_data() #pool.map(vehicle.data_request,dataset)
+           vehicle_info = vehicle.vehicle_data() 
         except: 
            print ('%sError: Faild to get info from Tesla. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
            return         
@@ -489,12 +494,14 @@ def main(argv):
 	vehicle_name = vehicle['display_name']
 	vehicle_vin  = vehicle['vin'] 
 
-        gui_settings   = vehicle_info['gui_settings']   #vehicle_info[0] # vehicle.data_request('gui_settings')
-        charge_state   = vehicle_info['charge_state']   #vehicle_info[1] # vehicle.data_request('charge_state')
-        climate_state  = vehicle_info['climate_state']  #vehicle_info[2] # vehicle.data_request('climate_state')
-        drive_state    = vehicle_info['drive_state']    #vehicle_info[3] # vehicle.data_request('drive_state')
-        vehicle_state  = vehicle_info['vehicle_state']  #vehicle_info[4] # vehicle.data_request('vehicle_state')
-        vehicle_config = vehicle_info['vehicle_config'] #vehicle_info[5] # vehicle.data_request('vehicle_config')
+        gui_settings    = vehicle_info['gui_settings']   #vehicle_info[0] # vehicle.data_request('gui_settings')
+        charge_state    = vehicle_info['charge_state']   #vehicle_info[1] # vehicle.data_request('charge_state')
+        climate_state   = vehicle_info['climate_state']  #vehicle_info[2] # vehicle.data_request('climate_state')
+        drive_state     = vehicle_info['drive_state']    #vehicle_info[3] # vehicle.data_request('drive_state')
+        vehicle_state   = vehicle_info['vehicle_state']  #vehicle_info[4] # vehicle.data_request('vehicle_state')
+        vehicle_config  = vehicle_info['vehicle_config'] #vehicle_info[5] # vehicle.data_request('vehicle_config')
+
+        nearby_charging_sites = vehicle.nearby_charging_sites()
 
         temp_unit = gui_settings['gui_temperature_units'].encode('utf-8')
         distance_unit='km'  
@@ -750,9 +757,11 @@ def main(argv):
         print ('%s------Down| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=media_volume_down color=%s' % (prefix, sys.argv[0], str(i), color))
         print ('%s-----' % prefix)
         print ('%s--Navigate to address| refresh=true terminal=true bash="%s" param1=%s param2=navigation_request color=%s' % (prefix, sys.argv[0], str(i), color))
-
- 
-
+        
+        if nearby_charging_sites:
+           print ('%s--Navigate to nearby charging site | color=%s' % (prefix, color))
+           for site, charger in enumerate(nearby_charging_sites): 
+              print ('%s--SuperCharger: %s| refresh=true terminal=true bash="%s" param1=%s param2=navigation_request param3=%s color=%s' % (prefix, charger, sys.argv[0], str(i), site, color))
 
         try:
            if bool(vehicle_config['sun_roof_installed']):

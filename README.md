@@ -11,6 +11,9 @@ Supports OS X dark mode:
 
 
 ## Changelog: 
+**Update 2018.12.16:** 
+- [X] Set navigation to nearby charging site (Firmware 2018.48 or higher needed)
+
 **Update 2018.12.08:** 
 - [X] Remotely set your navigation
 
