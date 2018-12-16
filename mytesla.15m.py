@@ -634,10 +634,16 @@ def main(argv):
         	print ('%s--Open | refresh=true terminal=false bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
         	print ('%s--Open | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
         print ('%sCharge port:					%s| color=%s' % (prefix, port_state(charge_state['charge_port_door_open'],charge_state['charge_port_latch']), color))
+        # Charge Port open and not in use
+        if (bool(charge_state['charge_port_door_open'])) and (not(charge_state['charge_port_latch'] == 'Engaged')):
+        	print ('%s--Close | refresh=true terminal=false bash="%s" param1=%s param2=charge_port_door_close color=%s' % (prefix, sys.argv[0], str(i), color))
+        	print ('%s--Close | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_port_door_close color=%s' % (prefix, sys.argv[0], str(i), color))
+        # Charge Port closed
         if (not(bool(charge_state['charge_port_door_open']))):
         	print ('%s--Open | refresh=true terminal=false bash="%s" param1=%s param2=charge_port_door_open color=%s' % (prefix, sys.argv[0], str(i), color))
         	print ('%s--Open | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_port_door_open color=%s' % (prefix, sys.argv[0], str(i), color))
-	print ('%s---' % prefix)
+
+        print ('%s---' % prefix)
 
         if (gui_settings['gui_range_display'] == 'Rated'):
             print ('%sRated battery range:			%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['battery_range']),distance_unit,color))
