@@ -68,6 +68,7 @@ tesla_option_codes = {
 "AD09":"Adapter, Swiss (1 phase, 10A)",
 "AD10":"Adapter, Denmark (1 phase, 13A)",
 "AD11":"Adapter, Italy (1 phase, 13A)",
+"AD15":"Adapter, J1772",
 "ADPC2":"Type 2 to Type 2 Connector",
 "ADPX2":"Type 2 Public Charging Connector", 
 "ADX10":"No - Adapter, Denmark (1 phase, 13A)",
@@ -240,6 +241,7 @@ tesla_option_codes = {
 "QLFP":"Black Premium Interior",
 "QLFW":"White Premium Interior",
 "QLWS":"White Premium Interior",
+"QLPB":"Black Premium Interior",
 "QNET":"Tan NextGen", 
 "QPBT":"Black Textile Interior",
 "QPMP":"Black seats", 
@@ -363,11 +365,12 @@ tesla_option_codes = {
 "X037":"Powerfolding Mirrors", 
 "X039":"DAB Radio", 
 "X040":"No DAB Radio", 
+"X042":"Auto Presenting door", 
 "X043":"No Phone Dock Kit", 
 "X044":"Phone Dock Kit", 
 "YF00":"No Yacht Floor", 
 "YF01":"Matching Yacht Floor", 
-"YFCC":"YFCC", 
+"YFCC":"Center Console",
 "YFFC":"Integrated Center Console" }
 
 # Nice ANSI colors
