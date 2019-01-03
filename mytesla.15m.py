@@ -51,6 +51,7 @@ import os
 import subprocess
 import pyicloud     # Icloud integration - retrieving calendar info 
 import requests
+import binascii
 
 import CoreLocation as cl
 
@@ -783,9 +784,12 @@ def main(argv):
                 address = raw_input()
                 current_timestamp = int(time.time())
                 json_data = json.dumps({"type":"share_ext_content_raw", "locale":"en-US","timestamp_ms":str(current_timestamp), "value" : {"android.intent.ACTION" : "android.intent.action.SEND", "android.intent.TYPE":"text\/plain", "android.intent.extra.SUBJECT":"MyTesla address","android.intent.extra.TEXT": str(address)}})
-                #print ('DEBUG')
-                #print data
-                #print ('DEBUG')
+                v.command('navigation_request',json_data)
+            elif sys.argv[2] == 'navigation_set_charger':
+                address = binascii.unhexlify(sys.argv[3])
+                current_timestamp = int(time.time())
+                json_data = json.dumps({"type":"share_ext_content_raw", "locale":"en-US","timestamp_ms":str(current_timestamp), "value" : {"android.intent.ACTION" : "android.intent.action.SEND", "android.intent.TYPE":"text\/plain", "android.intent.extra.SUBJECT":"MyTesla address","android.intent.extra.TEXT": str(address)}})
+                print ('Setting navigation to: %s' % address)
                 v.command('navigation_request',json_data)
             else:
                 # argv is of the form: CMD + vehicleid + command + key:value pairs 
@@ -1163,10 +1167,12 @@ def main(argv):
            print ('%s--Navigate to nearby charger | color=%s' % (prefix, color))
            print ('%s----Tesla Superchargers | color=%s' % (prefix, color))
            for site, charger in enumerate(nearby_charging_sites['superchargers']): 
-              print ('%s------%s %s\t(%s/%s)\t%s | refresh=true terminal=true bash="%s" param1=%s param2=navigation_request param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['available_stalls'],charger['total_stalls'], charger['name'], sys.argv[0], str(i), site, color))
+              print ('%s------%s %s\t(%s/%s)\t%s | refresh=true terminal=false bash="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['available_stalls'],charger['total_stalls'], charger['name'], sys.argv[0], str(i), binascii.hexlify('Tesla Supercharger '+charger['name']), color))
+              print ('%s------%s %s\t(%s/%s)\t%s | alternate=true refresh=true terminal=true bash="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['available_stalls'],charger['total_stalls'], charger['name'], sys.argv[0], str(i), binascii.hexlify('Tesla Supercharger '+charger['name']), color))
            print ('%s----Destination Chargers | color=%s' % (prefix, color))
            for site, charger in enumerate(nearby_charging_sites['destination_charging']): 
-              print ('%s------%s %s\t%s\t | refresh=true terminal=true bash="%s" param1=%s param2=navigation_request param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['name'], sys.argv[0], str(i), site, color))
+              print ('%s------%s %s\t%s\t | refresh=true terminal=false bash="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['name'], sys.argv[0], str(i), binascii.hexlify(charger['name']), color))
+              print ('%s------%s %s\t%s\t | alternate=true refresh=true terminal=true bash="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['name'], sys.argv[0], str(i), binascii.hexlify(charger['name']), color))
 
         try:
            if bool(vehicle_config['sun_roof_installed']):
