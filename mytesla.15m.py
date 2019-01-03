@@ -815,7 +815,7 @@ def main(argv):
            # get the data for the vehicle       
            vehicle_info = vehicle.vehicle_data() 
         except: 
-           print ('%sError: Faild to get info from Tesla. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
+           print ('%sError: Failed to get info from Tesla. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
            return         
 
 	vehicle_name = vehicle['display_name']
