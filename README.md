@@ -11,6 +11,11 @@ Supports OS X dark mode:
 
 
 ## Changelog: 
+
+**Update 2019.01.03:**
+- [X] Remote control seat heaters 
+- [X] Bugfix: nativate to nearby superchargers or destination chargers
+
 **Update 2018.12.16:** 
 - [X] Set navigation to nearby charging site (Firmware 2018.48 or higher needed)
 - [X] Display vehicle option codes
