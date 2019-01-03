@@ -25,6 +25,7 @@
 # Copy this file to your bitbar plugins folder and chmod +x the file from your terminal in that folder
 # Run bitbar
 
+_DEBUG_ = False 
 
 try:   # Python 3 dependencies
     from urllib.parse import urlencode
@@ -469,9 +470,12 @@ class TeslaConnection(object):
             auth = self.__open("/oauth/token", data=self.oauth)
             self.__sethead(auth['access_token'],
                            auth['created_at'] + auth['expires_in'] - 86400)
-        #debug
-        #print ("%s%s%s%s" % (CRED, self.api , command, CEND))
-        return self.__open("%s%s" % (self.api, command), headers=self.head, data=data)
+        if _DEBUG_:
+           print ("%s%s%s%s" % (CRED, self.api , command, CEND))
+        result = self.__open("%s%s" % (self.api, command), headers=self.head, data=data)
+        if _DEBUG_:
+           print ("%s%s%s" % (CGREEN, result, CEND))
+        return result
     
     def __sethead(self, access_token, expiration=float('inf')):
         """Set HTTP header"""
@@ -558,7 +562,7 @@ class TeslaVehicle(dict):
     def nearby_charging_sites(self):
         """Return list of nearby chargers"""
         try: # Firmware 2018.48 or higher needed
-           return self.post('nearby_charging_sites')
+           return self.get('nearby_charging_sites')['response']
         except: 
            return []
 
@@ -1141,6 +1145,7 @@ def main(argv):
         print ('%s--Media| color=%s' % (prefix,color))
         print ('%s----Toggle playback| refresh=true terminal=false bash="%s" param1=%s param2=media_toggle_playback color=%s' % (prefix, sys.argv[0], str(i), color))
         print ('%s----Toggle playback| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=media_toggle_playback color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s-------' % prefix)
         print ('%s----Track| color=%s' % (prefix,color))
         print ('%s------Previous| refresh=true terminal=false bash="%s" param1=%s param2=media_prev_track color=%s' % (prefix, sys.argv[0], str(i), color))
         print ('%s------Previous| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=media_prev_track color=%s' % (prefix, sys.argv[0], str(i), color))
@@ -1155,9 +1160,13 @@ def main(argv):
         print ('%s--Navigate to address| refresh=true terminal=true bash="%s" param1=%s param2=navigation_request color=%s' % (prefix, sys.argv[0], str(i), color))
         
         if nearby_charging_sites:
-           print ('%s--Navigate to nearby charging site | color=%s' % (prefix, color))
-           for site, charger in enumerate(nearby_charging_sites): 
-              print ('%s--SuperCharger: %s| refresh=true terminal=true bash="%s" param1=%s param2=navigation_request param3=%s color=%s' % (prefix, charger, sys.argv[0], str(i), site, color))
+           print ('%s--Navigate to nearby charger | color=%s' % (prefix, color))
+           print ('%s----Tesla Superchargers | color=%s' % (prefix, color))
+           for site, charger in enumerate(nearby_charging_sites['superchargers']): 
+              print ('%s------%s %s\t(%s/%s)\t%s | refresh=true terminal=true bash="%s" param1=%s param2=navigation_request param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['available_stalls'],charger['total_stalls'], charger['name'], sys.argv[0], str(i), site, color))
+           print ('%s----Destination Chargers | color=%s' % (prefix, color))
+           for site, charger in enumerate(nearby_charging_sites['destination_charging']): 
+              print ('%s------%s %s\t%s\t | refresh=true terminal=true bash="%s" param1=%s param2=navigation_request param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['name'], sys.argv[0], str(i), site, color))
 
         try:
            if bool(vehicle_config['sun_roof_installed']):
