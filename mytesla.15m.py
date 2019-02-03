@@ -27,6 +27,11 @@
 
 _DEBUG_ = False 
 
+# Disabled if you don't want your car location to be tracked to a DB
+
+_LOCATION_TRACKING_ = True
+
+
 try:   # Python 3 dependencies
     from urllib.parse import urlencode
     from urllib.request import Request, urlopen, build_opener
@@ -58,6 +63,13 @@ import CoreLocation as cl
 from pyicloud import PyiCloudService
 from datetime import date
 from pathos.multiprocessing import ProcessingPool as Pool # Parallelize retrieval of data from Tesla
+
+from tinydb import TinyDB
+
+# Location tracking database
+
+locationdb = TinyDB('/tmp/mytesla-locations.json')
+
 
 # Tesla option codes
 
@@ -837,6 +849,9 @@ def main(argv):
         temp_unit = gui_settings['gui_temperature_units'].encode('utf-8')
         distance_unit='km'  
 
+        if _LOCATION_TRACKING_: 
+            locationdb.insert({'date':str(datetime.datetime.now()),'vehicle_info':vehicle_info})
+
         if 'debug' in argv:
             print ('>>> gui_settings:\n%s\n' % gui_settings)
             print ('>>> charge_state:\n%s\n' % charge_state)
@@ -1100,14 +1115,14 @@ def main(argv):
         todayDate = datetime.date.today()
     
         try:
-            with open('/tmp/mytesla-location-map'+todayDate.strftime("%Y%m")+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png') as location_map:
+            with open('/tmp/mytesla-location-map-'+todayDate.strftime("%Y%m")+'-'+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png') as location_map:
                 my_img1 = base64.b64encode(location_map.read())
                 location_map.close()
-            with open('/tmp/mytesla-location-sat'+todayDate.strftime("%Y%m")+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png') as location_sat:
+            with open('/tmp/mytesla-location-sat-'+todayDate.strftime("%Y%m")+'-'+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png') as location_sat:
                 my_img2 = base64.b64encode(location_sat.read())
                 location_sat.close()
         except: 
-            with open('/tmp/mytesla-location-map'+todayDate.strftime("%Y%m")+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png','w') as location_map, open('/tmp/mytesla-location-sat'+todayDate.strftime("%Y%m")+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png','w') as location_sat:
+            with open('/tmp/mytesla-location-map-'+todayDate.strftime("%Y%m")+'-'+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png','w') as location_map, open('/tmp/mytesla-location-sat-'+todayDate.strftime("%Y%m")+'-'+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png','w') as location_sat:
                 my_google_key = '&key=AIzaSyBrgHowqRH-ewRCNrhAgmK7EtFsuZCdXwk'
                 my_google_dark_style = ''
                 if bool(DARK_MODE):
