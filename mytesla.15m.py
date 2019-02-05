@@ -1198,8 +1198,8 @@ def main(argv):
               print ('%s------%s %s\t(%s/%s)\t%s | alternate=true refresh=true terminal=true bash="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['available_stalls'],charger['total_stalls'], charger['name'], sys.argv[0], str(i), binascii.hexlify('Tesla Supercharger '+charger['name']), color))
            print ('%s----Destination Chargers | color=%s' % (prefix, color))
            for site, charger in enumerate(nearby_charging_sites['destination_charging']): 
-              print ('%s------%s %s\t%s\t | refresh=true terminal=false bash="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['name'], sys.argv[0], str(i), binascii.hexlify(charger['name']), color))
-              print ('%s------%s %s\t%s\t | alternate=true refresh=true terminal=true bash="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['name'], sys.argv[0], str(i), binascii.hexlify(charger['name']), color))
+              print ('%s------%s %s\t%s\t | refresh=true terminal=false bash="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['name'].encode('utf-8', 'ignore'), sys.argv[0], str(i), binascii.hexlify(charger['name'].encode('utf-8','ignore')), color))
+              print ('%s------%s %s\t%s\t | alternate=true refresh=true terminal=true bash="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['name'].encode('utf-8', 'ignore'), sys.argv[0], str(i), binascii.hexlify(charger['name'].encode('utf-8','ignore')), color))
 
         try:
            if bool(vehicle_config['sun_roof_installed']):
