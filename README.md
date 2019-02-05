@@ -12,6 +12,10 @@ Supports OS X dark mode:
 
 ## Changelog: 
 
+**Update 2019.02.05:**
+- [X] Added continuous location tracking to a TinyDB (can be disabled) 
+- [X] Google maps are cached (~25% performance improvement)
+
 **Update 2019.01.03:**
 - [X] Remote control seat heaters 
 - [X] List and nativate to nearby superchargers or destination chargers
