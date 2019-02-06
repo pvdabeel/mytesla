@@ -828,6 +828,11 @@ def main(argv):
                  print ('%sVehicle offline. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
                  return     
  
+           if vehicle['in_service'] == True:
+                 print ('%sVehicle in service. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
+                 return     
+                
+
            # get the data for the vehicle       
            vehicle_info = vehicle.vehicle_data() 
         except: 
