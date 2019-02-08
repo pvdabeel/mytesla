@@ -25,7 +25,7 @@
 # Copy this file to your bitbar plugins folder and chmod +x the file from your terminal in that folder
 # Run bitbar
 
-_DEBUG_ = True 
+_DEBUG_ = False 
 
 # Disabled if you don't want your car location to be tracked to a DB
 
