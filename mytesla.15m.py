@@ -25,7 +25,7 @@
 # Copy this file to your bitbar plugins folder and chmod +x the file from your terminal in that folder
 # Run bitbar
 
-_DEBUG_ = False 
+_DEBUG_ = True 
 
 # Disabled if you don't want your car location to be tracked to a DB
 
@@ -779,8 +779,8 @@ def main(argv):
     # CASE 4: all ok, specific command for a specific vehicle received
     if (len(sys.argv) > 1) and not('debug' in argv):
         v = vehicles[int(sys.argv[1])]
-        #v.wake_up()
-        if sys.argv[2] != "wakeup":
+        #v.wakeup()
+        if sys.argv[2] != "wake_up":
             if (len(sys.argv) == 2) and (sys.argv[2] != 'remote_start_drive'):
                 # argv is of the form: CMD + vehicleid + command 
                 v.command(sys.argv[2])
@@ -825,6 +825,7 @@ def main(argv):
            # wake up the vehicle
            if vehicle['state'] == 'offline':
                  vehicle.wake_up()
+                 time.sleep(5)
                  print ('%sVehicle offline. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
                  return     
  
@@ -858,6 +859,8 @@ def main(argv):
             locationdb.insert({'date':str(datetime.datetime.now()),'vehicle_info':vehicle_info})
 
         if 'debug' in argv:
+            
+            print ('>>> vehicle_info:\n%s\n' % vehicle_info)
             print ('>>> gui_settings:\n%s\n' % gui_settings)
             print ('>>> charge_state:\n%s\n' % charge_state)
             print ('>>> climate_state:\n%s\n' % climate_state)
