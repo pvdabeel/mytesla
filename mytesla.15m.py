@@ -779,8 +779,10 @@ def main(argv):
     # CASE 4: all ok, specific command for a specific vehicle received
     if (len(sys.argv) > 1) and not('debug' in argv):
         v = vehicles[int(sys.argv[1])]
-        #v.wakeup()
-        if sys.argv[2] != "wake_up":
+        
+        if sys.argv[2] == "wake_up":
+            v.wake_up()
+        else:
             if (len(sys.argv) == 2) and (sys.argv[2] != 'remote_start_drive'):
                 # argv is of the form: CMD + vehicleid + command 
                 v.command(sys.argv[2])
@@ -824,7 +826,7 @@ def main(argv):
 
 	try:
            # wake up the vehicle
-           if vehicle['state'] == 'offline':
+           if vehicle['state'] != 'online':
                  vehicle.wake_up()
                  print ('%sVehicle offline. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
                  return     
