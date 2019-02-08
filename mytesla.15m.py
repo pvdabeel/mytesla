@@ -818,6 +818,7 @@ def main(argv):
 
     # loop through vehicles, print menu with relevant info       
     for i, vehicle in enumerate(vehicles):
+
         if prefix:
             print vehicle['display_name']
 
@@ -825,7 +826,6 @@ def main(argv):
            # wake up the vehicle
            if vehicle['state'] == 'offline':
                  vehicle.wake_up()
-                 time.sleep(5)
                  print ('%sVehicle offline. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
                  return     
  
