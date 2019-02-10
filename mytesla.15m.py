@@ -62,17 +62,22 @@ import CoreLocation as cl
 
 from pyicloud import PyiCloudService
 from datetime import date
-from pathos.multiprocessing import ProcessingPool as Pool # Parallelize retrieval of data from Tesla
 
 from tinydb import TinyDB
 
-# Location tracking database
+from os.path import expanduser
 
-locationdb = TinyDB('/tmp/mytesla-locations.json')
+
+# Location where to store state files
+home         = expanduser("~")
+state_dir    = home+'/.state/mytesla'
+
+
+# Location tracking database
+locationdb = TinyDB(state_dir+'/mytesla-locations.json')
 
 
 # Tesla option codes
-
 tesla_option_codes = { 
 "AD02":"NEMA 14-50", 
 "AD04":"European 3-Phase", 
@@ -828,11 +833,11 @@ def main(argv):
            # wake up the vehicle
            if vehicle['state'] != 'online':
                  vehicle.wake_up()
-                 print ('%sVehicle offline. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
+                 print ('%sVehicle offline. Click to try again. | refresh=true terminal=false bash="echo refresh" color=%s' % (prefix, color))
                  return     
  
            if vehicle['in_service'] == True:
-                 print ('%sVehicle in service. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
+                 print ('%sVehicle in service. Click to try again. | refresh=true terminal=false bash="echo refresh" color=%s' % (prefix, color))
                  return     
                 
 
@@ -1125,14 +1130,14 @@ def main(argv):
         todayDate = datetime.date.today()
     
         try:
-            with open('/tmp/mytesla-location-map-'+todayDate.strftime("%Y%m")+'-'+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png') as location_map:
+            with open(state_dir+'/mytesla-location-map-'+todayDate.strftime("%Y%m")+'-'+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png') as location_map:
                 my_img1 = base64.b64encode(location_map.read())
                 location_map.close()
-            with open('/tmp/mytesla-location-sat-'+todayDate.strftime("%Y%m")+'-'+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png') as location_sat:
+            with open(state_dir+'/mytesla-location-sat-'+todayDate.strftime("%Y%m")+'-'+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png') as location_sat:
                 my_img2 = base64.b64encode(location_sat.read())
                 location_sat.close()
         except: 
-            with open('/tmp/mytesla-location-map-'+todayDate.strftime("%Y%m")+'-'+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png','w') as location_map, open('/tmp/mytesla-location-sat-'+todayDate.strftime("%Y%m")+'-'+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png','w') as location_sat:
+            with open(state_dir+'/mytesla-location-map-'+todayDate.strftime("%Y%m")+'-'+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png','w') as location_map, open(state_dir+'/mytesla-location-sat-'+todayDate.strftime("%Y%m")+'-'+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png','w') as location_sat:
                 my_google_key = '&key=AIzaSyBrgHowqRH-ewRCNrhAgmK7EtFsuZCdXwk'
                 my_google_dark_style = ''
                 if bool(DARK_MODE):
