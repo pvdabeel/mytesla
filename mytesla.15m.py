@@ -72,6 +72,9 @@ from os.path import expanduser
 home         = expanduser("~")
 state_dir    = home+'/.state/mytesla'
 
+if not os.path.exists(state_dir):
+    os.makedirs(state_dir)
+
 
 # Location tracking database
 locationdb = TinyDB(state_dir+'/mytesla-locations.json')
