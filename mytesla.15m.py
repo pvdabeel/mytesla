@@ -410,32 +410,42 @@ DARK_MODE=os.getenv('BitBarDarkMode',0)
 class TeslaConnection(object):
     """Connection to Tesla Motors API"""
 
-    tesla_http_client = {
-        'v1': {
-            'id': 'e4a9949fcfa04068f59abb5a658f2bac0a3428e4652315490b659d5ab3f35a9e', 
-            'secret': 'c75f14bbadc8bee3a7594412c31416f8300256d7668ea7e6e7f06727bfb9d220', 
-            'baseurl': 'https://owner-api.teslamotors.com', 
-            'api': '/api/1/'
-        }
-    }
-
-    tesla_wss_client = {
-        'v1': {
-            'id': 'e4a9949fcfa04068f59abb5a658f2bac0a3428e4652315490b659d5ab3f35a9e', 
-            'secret': 'c75f14bbadc8bee3a7594412c31416f8300256d7668ea7e6e7f06727bfb9d220', 
-            'baseurl': 'https://streaming.vn.teslamotors.com', 
-            'api': '/stream/'
+    tesla_client = {
+        'http': {
+            'v1': {
+                'id'     : 'e4a9949fcfa04068f59abb5a658f2bac0a3428e4652315490b659d5ab3f35a9e', 
+                'secret' : 'c75f14bbadc8bee3a7594412c31416f8300256d7668ea7e6e7f06727bfb9d220', 
+                'baseurl': 'https://owner-api.teslamotors.com', 
+                'api'    : '/api/1/'
+            }
+        },
+        'stream': {
+            'v1': {
+                'id'     : 'e4a9949fcfa04068f59abb5a658f2bac0a3428e4652315490b659d5ab3f35a9e', 
+                'secret' : 'c75f14bbadc8bee3a7594412c31416f8300256d7668ea7e6e7f06727bfb9d220', 
+                'baseurl': 'https://streaming.vn.teslamotors.com', 
+                'api'    : '/stream/'
+            }
+        },
+        'wss': {
+            'v1': {
+                'id'     : 'e4a9949fcfa04068f59abb5a658f2bac0a3428e4652315490b659d5ab3f35a9e', 
+                'secret' : 'c75f14bbadc8bee3a7594412c31416f8300256d7668ea7e6e7f06727bfb9d220', 
+                'baseurl': 'https://streaming.vn.teslamotors.com', 
+                'api'    : '/connect/'
+            }
         }
     }
 
 
     def __init__(self,
-            email='',
-            password='',
-            access_token=None,
-            proxy_url = '',
-            proxy_user = '',
-            proxy_password = ''):
+            email          = '',
+            password       = '',
+            access_token   = None,
+            proxy_url      = '',
+            proxy_user     = '',
+            proxy_password = '',
+            api            = 'http'):
         """Initialize connection object
         
         Required parameters:
@@ -448,14 +458,14 @@ class TeslaConnection(object):
         proxy_user: username for proxy server
         proxy_password: password for proxy server
         """
-        self.proxy_url = proxy_url
-        self.proxy_user = proxy_user
+        self.proxy_url      = proxy_url
+        self.proxy_user     = proxy_user
         self.proxy_password = proxy_password
 
-        current_client = self.tesla_http_client['v1']
+        current_client      = self.tesla_client[api]['v1']
         
-        self.baseurl = current_client['baseurl']
-        self.api = current_client['api']
+        self.baseurl        = current_client['baseurl']
+        self.api            = current_client['api']
 
 
         if access_token:
@@ -465,13 +475,13 @@ class TeslaConnection(object):
         else:
             # Case 2: TeslaConnection instantiation using email and password
             self.access_token = None
-            self.expiration = 0 
+            self.expiration   = 0 
             self.oauth = {
-                "grant_type" : "password",
-                "client_id" : current_client['id'],
+                "grant_type"    : "password",
+                "client_id"     : current_client['id'],
                 "client_secret" : current_client['secret'],
-                "email" : email,
-                "password" : password }
+                "email"         : email,
+                "password"      : password }
 
 
     def vehicles(self):
@@ -584,20 +594,24 @@ class TeslaVehicle(dict):
         super(TeslaVehicle, self).__init__(data)
         self.connection = connection
     
+
     def vehicle_data(self):
         """Get vehicle data"""
         result = self.get('vehicle_data')
         return result['response']
-        
+    
+
     def data_request(self, name):
         """Get vehicle data"""
         result = self.get('data_request/%s' % name)
         return result['response']
     
+
     def wake_up(self):
         """Wake the vehicle"""
         return self.post('wake_up')
    
+
     def nearby_charging_sites(self):
         """Return list of nearby chargers"""
         try: # Firmware 2018.48 or higher needed
@@ -605,14 +619,17 @@ class TeslaVehicle(dict):
         except: 
            return []
 
+
     def command(self, name, data={}):
         """Run the command for the vehicle"""
         return self.post('command/%s' % name, data)
-    
+
+
     def get(self, command):
         """Utility command to get data from API"""
         return self.connection.get('vehicles/%i/%s' % (self['id'], command))
-    
+
+
     def post(self, command, data={}):
         """Utility command to post data to API"""
         return self.connection.post('vehicles/%i/%s' % (self['id'], command), data)
@@ -626,6 +643,7 @@ class Icloud(dict):
         """Initialize"""
         self.api=None
         return
+
 
     def init(self):    
         """Get iCloud credentials and store them in keyring"""
@@ -643,6 +661,7 @@ class Icloud(dict):
         keyring.set_password("mytesla-bitbar","icloud_password",icloud_password)
         return
 
+
     def authenticate(self): # TODO: add 2fa auth support
         # https://pypi.python.org/pypi/pyicloud/0.9.1
         """Get iCloud credentials and store them in keyring"""
@@ -655,13 +674,16 @@ class Icloud(dict):
            return
         return       
 
+
     def devices(self):
         """Get iCloud devices"""
         return self.api.devices
 
+
     def calendarevents(self):
         """Get iCloud calendar events"""
         return self.api.calendar.events(date.today(),date.today())
+
 
     def reminders(self):
         """Get iCloud reminders"""
@@ -757,7 +779,7 @@ def init():
     keyring.set_password("mytesla-bitbar","access_token",init_access_token)
 
 
-# The main function
+USERNAME = keyring.get_password("mytesla-bitbar","username")  # The main function
 
 def main(argv):
 
