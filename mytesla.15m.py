@@ -409,6 +409,26 @@ DARK_MODE=os.getenv('BitBarDarkMode',0)
 # Class that represents the connection to Tesla 
 class TeslaConnection(object):
     """Connection to Tesla Motors API"""
+
+    tesla_http_client = {
+        'v1': {
+            'id': 'e4a9949fcfa04068f59abb5a658f2bac0a3428e4652315490b659d5ab3f35a9e', 
+            'secret': 'c75f14bbadc8bee3a7594412c31416f8300256d7668ea7e6e7f06727bfb9d220', 
+            'baseurl': 'https://owner-api.teslamotors.com', 
+            'api': '/api/1/'
+        }
+    }
+
+    tesla_wss_client = {
+        'v1': {
+            'id': 'e4a9949fcfa04068f59abb5a658f2bac0a3428e4652315490b659d5ab3f35a9e', 
+            'secret': 'c75f14bbadc8bee3a7594412c31416f8300256d7668ea7e6e7f06727bfb9d220', 
+            'baseurl': 'https://streaming.vn.teslamotors.com', 
+            'api': '/stream/'
+        }
+    }
+
+
     def __init__(self,
             email='',
             password='',
@@ -432,18 +452,10 @@ class TeslaConnection(object):
         self.proxy_user = proxy_user
         self.proxy_password = proxy_password
 
-        tesla_client = {
-            'v1': {
-                'id': 'e4a9949fcfa04068f59abb5a658f2bac0a3428e4652315490b659d5ab3f35a9e', 
-                'secret': 'c75f14bbadc8bee3a7594412c31416f8300256d7668ea7e6e7f06727bfb9d220', 
-                'baseurl': 'https://owner-api.teslamotors.com', 
-                'api': '/api/1/'
-            }
-        }
-        current_client = tesla_client['v1']
+        current_client = self.tesla_http_client['v1']
+        
         self.baseurl = current_client['baseurl']
         self.api = current_client['api']
-
 
 
         if access_token:
@@ -460,9 +472,11 @@ class TeslaConnection(object):
                 "client_secret" : current_client['secret'],
                 "email" : email,
                 "password" : password }
-   
+
+
     def vehicles(self):
         return [TeslaVehicle(v, self) for v in self.get('vehicles')['response']]
+
 
     def get_token(self):
         # Case 1 : access token known and not expired
@@ -483,7 +497,8 @@ class TeslaConnection(object):
     def get(self, command):
         """Utility command to get data from API"""
         return self.post(command, None)
-    
+   
+
     def post(self, command, data={}):
         """Utility command to post data to API"""
         now = calendar.timegm(datetime.datetime.now().timetuple())
@@ -497,26 +512,29 @@ class TeslaConnection(object):
         if _DEBUG_:
            print ("%s%s%s" % (CGREEN, result, CEND))
         return result
-    
+   
+
     def __sethead(self, access_token, expiration=float('inf')):
         """Set HTTP header"""
         self.access_token = access_token
         self.expiration = expiration
         self.head = {"Authorization": "Bearer %s" % access_token}
-    
+   
+
     def __open(self, url, headers={}, data=None, baseurl=""):
         """Raw urlopen command"""
         if not baseurl:
             baseurl = self.baseurl
         
         headers['User-Agent']='github.com/pvdabeel/mytesla'
+        
         # json
         if type(data) is str:   
             headers['Content-Type']='application/json'
             jsondata=data.encode('utf-8')
             headers['Content-Length']= len(jsondata)
-        req = Request("%s%s" % (baseurl, url), headers=headers)
         
+        req = Request("%s%s" % (baseurl, url), headers=headers)
         
         # json
         if type(data) is str:
