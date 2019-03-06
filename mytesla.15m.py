@@ -622,6 +622,12 @@ class TeslaVehicle(dict):
            return []
 
 
+    def model_short(self,model):
+        """Return the short name for the vehicle model"""
+        switcher = { 'modelx':'mx', 'models':'ms', 'model3':'m3'} 
+        return switcher.get(model,model)
+
+
     def command(self, name, data={}):
         """Run the command for the vehicle"""
         return self.post('command/%s' % name, data)
@@ -636,20 +642,26 @@ class TeslaVehicle(dict):
         """Utility command to post data to API"""
         return self.connection.post('vehicles/%i/%s' % (self['id'], command), data)
 
+ 
+    def compose_url(self, model, size=2048):
+        """Returns composed image url representing the car"""
+        return 'https://static-assets.tesla.com/v1/compositor/?model='+self.model_short(model)+'&view=STUD_SIDE&size='+str(size)+'&options='+self['option_codes']+'&bkba_opt=1&context=dashboard'
+        
 
-    def compose_image(self,size=512):
+    def compose_image(self, model, size=512):
         """Returns composed image representing the car"""
         try:
             with open(state_dir+'/mytesla-composed-'+str(self['vehicle_id'])+'-'+str(size)+'.png') as composed_img_cache:
                 composed_img = base64.b64encode(composed_img_cache.read())
                 composed_img_cache.close()
+                return base64.b64encode(composed_img)
         except:
             with open(state_dir+'/mytesla-composed-'+str(self['vehicle_id'])+'-'+str(size)+'.png','w') as composed_img_cache:
-                 composed_url = 'https://static-assets.tesla.com/v1/compositor/?model=mx&view=STUD_SIDE&size='+str(size)+'&options='+self['option_codes']+'&bkba_opt=1&context=dashboard'
+                 composed_url = self.compose_url(model,size)
                  composed_img = requests.get(composed_url).content
                  composed_img_cache.write(composed_img)
                  composed_img_cache.close()
-        return base64.b64encode(composed_img)
+                 return base64.b64encode(composed_img)
 
 
 # Class that represents a Tesla Calendar
@@ -1223,7 +1235,7 @@ def main(argv):
         print ('%s---' % prefix)
 
         print ('%sVehicle info| color=%s' % (prefix,color))
-        print ('%s--|image=%s color=%s' % (prefix, vehicle.compose_image(),color))
+        print ('%s--|image=%s href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type']), vehicle.compose_url(vehicle_config['car_type']), color))
         print ('%s-----' % prefix)
         print ('%s--Name: 			%s | color=%s' % (prefix, vehicle_name, color))
         print ('%s--VIN: 			%s | terminal=true bash="echo %s | pbcopy" color=%s' % (prefix, vehicle_vin, vehicle_vin, color))
