@@ -31,6 +31,10 @@ _DEBUG_ = False
 
 _LOCATION_TRACKING_ = True
 
+# Download high-resolution images from store composer to cache
+
+_COMPOSER_CACHE_HIGH_ = True
+
 
 try:   # Python 3 dependencies
     from urllib.parse import urlencode
@@ -938,8 +942,13 @@ def main(argv):
         if _LOCATION_TRACKING_: 
             locationdb.insert({'date':str(datetime.datetime.now()),'vehicle_info':vehicle_info})
 
+        if _COMPOSER_CACHE_HIGH_:
+            for view in ['STUD_3QTR','STUD_SIDE','STUD_REAR','STUD_SEAT']:
+                for background in ['1','2','3','4']:
+                    for size in ['512','1024','2048','4096']:
+                        vehicle.compose_image(vehicle_config['car_type'],view=view,size=size,background=background)
+
         if 'debug' in argv:
-            
             print ('>>> vehicle_info:\n%s\n' % vehicle_info)
             print ('>>> gui_settings:\n%s\n' % gui_settings)
             print ('>>> charge_state:\n%s\n' % charge_state)
