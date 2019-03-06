@@ -640,11 +640,11 @@ class TeslaVehicle(dict):
     def compose_image(self,size=512):
         """Returns composed image representing the car"""
         try:
-            with open(state_dir+'/mytesla-composed-'+self['id']+'-'+str(size)+'.png') as composed_img_cache:
+            with open(state_dir+'/mytesla-composed-'+str(self['id'])+'-'+str(size)+'.png') as composed_img_cache:
                 composed_img = base64.b64encode(composed_img_cache.read())
                 composed_img_cache.close()
         except:
-            with open(state_dir+'/mytesla-composed-'+self['id']+'-'+str(size)+'.png','w') as composed_img_cache:
+            with open(state_dir+'/mytesla-composed-'+str(self['id'])+'-'+str(size)+'.png','w') as composed_img_cache:
                  composed_url = 'https://static-assets.tesla.com/v1/compositor/?model=mx&view=STUD_SIDE&size='+str(size)+'&options='+self['option_codes']+'&bkba_opt=1&context=dashboard'
                  composed_img = requests.get(composed_url).content
                  composed_img_cache.write(composed_img)
