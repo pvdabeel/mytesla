@@ -641,24 +641,24 @@ class TeslaVehicle(dict):
         return self.connection.post('vehicles/%i/%s' % (self['id'], command), data)
 
  
-    def compose_url(self, model, size=2048, view='STUD_SIDE'):
+    def compose_url(self, model, size=2048, view='STUD_SIDE', background='1'):
         """Returns composed image url representing the car"""
-        return 'https://static-assets.tesla.com/v1/compositor/?model='+self.model_short(model)+'&view='+view+'&size='+str(size)+'&options='+self['option_codes']+'&bkba_opt=4&context=design_studio_desktop'
+        return 'https://static-assets.tesla.com/v1/compositor/?model='+self.model_short(model)+'&view='+view+'&size='+str(size)+'&options='+self['option_codes']+'&bkba_opt='+str(background)+'&context=design_studio_desktop'
         
 
-    def compose_image(self, model, size=512, view='STUD_SIDE'):
+    def compose_image(self, model, size=512, view='STUD_SIDE', background='1'):
         """Returns composed image representing the car"""
         try:
-            with open(state_dir+'/mytesla-composed-'+str(self['vehicle_id'])+'-'+str(size)+'-'+view+'.png') as composed_img_cache:
-                composed_img = base64.b64encode(composed_img_cache.read())
+            with open(state_dir+'/mytesla-composed-'+str(self['vehicle_id'])+'-'+str(size)+'-'+str(view)+'-'+str(background)+'.png') as composed_img_cache:
+                composed_img = composed_img_cache.read()
                 composed_img_cache.close()
                 return base64.b64encode(composed_img)
         except:
             my_headers = {'Accept-Language': 'en-US,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'Upgrade-Insecure-Requests': '1', 'DNT': '1', 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.76 Safari/537.36'} 
-            composed_url = self.compose_url(model,size,view)
+            composed_url = self.compose_url(model,size,view,background)
             composed_img = requests.get(composed_url,headers=my_headers)
             if (len(composed_img.content) > 0):
-                with open(state_dir+'/mytesla-composed-'+str(self['vehicle_id'])+'-'+str(size)+'-'+view+'.png','w') as composed_img_cache:
+                with open(state_dir+'/mytesla-composed-'+str(self['vehicle_id'])+'-'+str(size)+'-'+view+'-'+str(background)+'.png','w') as composed_img_cache:
                    composed_img_cache.write(composed_img.content)
                    composed_img_cache.close()
             return base64.b64encode(composed_img.content)
@@ -1256,7 +1256,8 @@ def main(argv):
            print ('%s----%s:\t\t %s | color=%s' % (prefix, option, option_description,info_color))
         print ('%s--Images| color=%s' % (prefix , info_color))
         for view in ['STUD_3QTR','STUD_SIDE','STUD_REAR','STUD_SEAT']:
-           print ('%s----|image=%s href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view), color))
+           print ('%s----|image=%s href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='4'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='4'), color))
+           print ('%s----|image=%s alternate=true href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='4'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='1'), color))
 
         print ('%s-----' % prefix)
         print ('%s--Odometer: 		%s %s | color=%s' % (prefix, convert_distance(distance_unit,vehicle_state['odometer']), distance_unit, color))
