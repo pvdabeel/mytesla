@@ -3,14 +3,13 @@
 
 Displays information regarding your Tesla vehicle in the Mac OS X menubar. Allows you to remotely control your Tesla vehicle as well.
 
-![Imgur](https://i.imgur.com/EafJBW9.jpg)
-
-Supports OS X dark mode:
-
-![Imgur](https://i.imgur.com/740jhtw.jpg)
+![Imgur](https://i.imgur.com/xgskcro.jpg)
 
 
 ## Changelog: 
+
+**Update 2019.03.06:**
+- [X] Compose car image based on optionlist
 
 **Update 2019.02.05:**
 - [X] Added continuous location tracking to a TinyDB (can be disabled) 
