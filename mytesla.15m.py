@@ -25,6 +25,8 @@
 # Copy this file to your bitbar plugins folder and chmod +x the file from your terminal in that folder
 # Run bitbar
 
+# https://static-assets.tesla.com/v1/compositor/?model=mx&view=STUD_SIDE&size=2040&options=APPB,CH04,DRLH,FG02,PI01,COL2-PMBL,RFPX,TP03,WT22,X021&bkba_opt=1&context=dashboard
+
 _DEBUG_ = False 
 
 # Disabled if you don't want your car location to be tracked to a DB
@@ -635,6 +637,21 @@ class TeslaVehicle(dict):
         return self.connection.post('vehicles/%i/%s' % (self['id'], command), data)
 
 
+    def compose_image(self,size=512):
+        """Returns composed image representing the car"""
+        try:
+            with open(state_dir+'/mytesla-composed-'+self['id']+'-'+str(size)+'.png') as composed_img_cache:
+                composed_img = base64.b64encode(composed_img_cache.read())
+                composed_img_cache.close()
+        except:
+            with open(state_dir+'/mytesla-composed-'+self['id']+'-'+str(size)+'.png','w') as composed_img_cache:
+                 composed_url = 'https://static-assets.tesla.com/v1/compositor/?model=mx&view=STUD_SIDE&size='+str(size)+'&options='+self['option_codes']+'&bkba_opt=1&context=dashboard'
+                 composed_img = requests.get(composed_url).content
+                 composed_img_cache.write(composed_img)
+                 composed_img_cache.close()
+        return base64.b64encode(composed_img)
+
+
 # Class that represents a Tesla Calendar
 class Icloud(dict):
     """iCloud class, subclassed from dictionary."""
@@ -827,7 +844,8 @@ def main(argv):
     # CASE 4: all ok, specific command for a specific vehicle received
     if (len(sys.argv) > 1) and not('debug' in argv):
         v = vehicles[int(sys.argv[1])]
-        
+
+
         if sys.argv[2] == "wake_up":
             v.wake_up()
         else:
@@ -1205,6 +1223,8 @@ def main(argv):
         print ('%s---' % prefix)
 
         print ('%sVehicle info| color=%s' % (prefix,color))
+        print ('%s--|image=%s color=%s' % (prefix, vehicle.compose_image(),color))
+        print ('%s-----' % prefix)
         print ('%s--Name: 			%s | color=%s' % (prefix, vehicle_name, color))
         print ('%s--VIN: 			%s | terminal=true bash="echo %s | pbcopy" color=%s' % (prefix, vehicle_vin, vehicle_vin, color))
         print ('%s-----' % prefix)
