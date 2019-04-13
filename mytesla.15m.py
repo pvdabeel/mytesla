@@ -782,6 +782,14 @@ def lock_state(locked):
     else:
         return CRED + 'Unlocked' + CEND
 
+
+def sentry_state(state):
+    if bool(state):
+        return CGREEN + '(Sentry On)'+ CEND
+    else: 
+        return CRED + '(Sentry Off)' + CEND
+
+
 # Logo for both dark mode and regular mode
 def app_print_logo():
     if bool(DARK_MODE):
@@ -1028,7 +1036,9 @@ def main(argv):
         else:
             print ('%s--Turn on airco | refresh=true terminal=false bash="%s" param1=%s param2=auto_conditioning_start color=%s' % (prefix, sys.argv[0], str(i), color))
             print ('%s--Turn on airco | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=auto_conditioning_start color=%s' % (prefix, sys.argv[0], str(i), color))
-        print ('%s--Airco set to:	%.1f° %s | color=%s' % (prefix, convert_temp(temp_unit,climate_state['driver_temp_setting']), temp_unit, color))
+
+        print ('%s-----' % prefix)
+        print ('%s--Airco set to:\t\t\t%.1f° %s | color=%s' % (prefix, convert_temp(temp_unit,climate_state['driver_temp_setting']), temp_unit, color))
         print ('%s---- 18° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:18","passenger_temp:18", color))
         print ('%s---- 18° %s| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:18","passenger_temp:18", color))
         print ('%s---- 19° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:19","passenger_temp:19", color))
@@ -1045,6 +1055,18 @@ def main(argv):
         print ('%s---- 24° %s| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:24","passenger_temp:24", color))
         print ('%s---- 25° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:25","passenger_temp:25", color))
         print ('%s---- 25° %s| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:25","passenger_temp:25", color))
+
+
+        # API unpublished
+        if climate_state['climate_keeper_mode'] == 'dog':
+            print ('%s--Dog Mode:\t\t\tOn | color=%s' % (prefix, color))
+            print ('%s----Turn off | refresh=true terminal=false bash="%s" param1=%s param2=set_climate_keeper param3="on:false" color=%s' % (prefix, sys.argv[0], str(i), color))
+            print ('%s----Turn off | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_climate_keeper param3="on:false" color=%s' % (prefix, sys.argv[0], str(i), color))
+        else:
+            print ('%s--Dog Mode:\t\t\tOff | color=%s' % (prefix, color))
+            print ('%s----Turn on | refresh=true terminal=false bash="%s" param1=%s param2=set_climate_keeper param3="on:true" color=%s' % (prefix, sys.argv[0], str(i), color))
+            print ('%s----Turn on | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_climate_keeper param3="on:true" color=%s' % (prefix, sys.argv[0], str(i), color))
+
         print ('%s-----' % prefix)
         print ('%s--Seat heating | color=%s' % (prefix, color))
         #try:
@@ -1107,19 +1129,29 @@ def main(argv):
            print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', sys.argv[0], str(i), "heater:4","level:3", color))
         except: 
            pass
-
         try:
-           if climate_state['is_rear_defroster_on']:
-              print ('%s-- Rear window defrosting | color=%s' % (prefix, color))
-	except:
+           if climate_state['steering_wheel_heater']: 
+              print ('%s--Steering heating:\tOn| color=%s' % (prefix, color))
+              print ('%s----Turn off | refresh=true terminal=false bash="%s" param1=%s param2=remote_steering_wheel_heater_request param3="on:false" color=%s' % (prefix, sys.argv[0], str(i), color))
+              print ('%s----Turn off | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_steering_wheel_heater_request param3="on:false" color=%s' % (prefix, sys.argv[0], str(i), color))
+           else:
+              print ('%s--Steering heating:\tOff| color=%s' % (prefix, color))
+              print ('%s----Turn off | refresh=true terminal=false bash="%s" param1=%s param2=remote_steering_wheel_heater_request param3="on:true" color=%s' % (prefix, sys.argv[0], str(i), color))
+              print ('%s----Turn off | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_steering_wheel_heater_request param3="on:true" color=%s' % (prefix, sys.argv[0], str(i), color))
+        except:
            pass
+
         try:
            if climate_state['is_front_defroster_on']:
               print ('%s-- Front window defrosting | color=%s' % (prefix, color))
 	except:
            pass
-
-
+        try:
+           if climate_state['is_rear_defroster_on']:
+              print ('%s-- Rear window defrosting | color=%s' % (prefix, color))
+	except:
+           pass
+ 
 
         try:
             print ('%sOutside Temp:				%.1f° %s| color=%s' % (prefix, convert_temp(temp_unit,climate_state['outside_temp']),temp_unit,color))
@@ -1159,10 +1191,18 @@ def main(argv):
         else: 
         	print ('%s--Open | refresh=true terminal=false bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
         	print ('%s--Open | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
-        print ('%sCharge port:					%s| color=%s' % (prefix, port_state(charge_state['charge_port_door_open'],charge_state['charge_port_latch']), color))
+
+       	charge_port_defrost = ""
+        try:
+           if (charge_state['charge_port_cold_weather_mode']):
+              charge_port_defrost = CBLUE + '(defrosting)' + CEND
+        except:
+           pass
+ 
+        print ('%sCharge port:					%s %s| color=%s' % (prefix, port_state(charge_state['charge_port_door_open'],charge_state['charge_port_latch']), charge_port_defrost, color))
         # Charge Port open and not in use
         if (bool(charge_state['charge_port_door_open'])) and (not(charge_state['charge_port_latch'] == 'Engaged')):
-        	print ('%s--Close | refresh=true terminal=false bash="%s" param1=%s param2=charge_port_door_close color=%s' % (prefix, sys.argv[0], str(i), color))
+                print ('%s--Close | refresh=true terminal=false bash="%s" param1=%s param2=charge_port_door_close color=%s' % (prefix, sys.argv[0], str(i), color))
         	print ('%s--Close | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_port_door_close color=%s' % (prefix, sys.argv[0], str(i), color))
         # Charge Port closed
         if (not(bool(charge_state['charge_port_door_open']))):
