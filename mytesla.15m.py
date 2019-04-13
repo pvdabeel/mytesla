@@ -1414,7 +1414,7 @@ def main(argv):
         print ('%s-----' % prefix)
         print ('%s--Name: 			%s | color=%s' % (prefix, vehicle_name, color))
         print ('%s--VIN: 			%s | terminal=true bash="echo %s | pbcopy" color=%s' % (prefix, vehicle_vin, vehicle_vin, color))
-        print ('%s--Firmware:		%s (API: v%s)| color=%s' % (prefix, vehicle_state['car_version'],vehicle_state['api_version'], color))
+        print ('%s--Firmware:		%s | terminal=true bash="echo %s | pbcopy" color=%s' % (prefix, vehicle_state['car_version'],vehicle_state['car_version'], color))
         print ('%s-----' % prefix)
         print ('%s--Model:			%s | color=%s' % (prefix, vehicle_config['car_type'], info_color))
         print ('%s--Type: 			%s | color=%s' % (prefix, vehicle_config['trim_badging'], info_color))
