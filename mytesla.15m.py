@@ -756,7 +756,10 @@ def door_state(dooropen):
         return CGREEN + 'Closed' + CEND + ' '
 
 def cold_state(percentage):
-    return CBLUE + '(-' + str(percentage) + '%)' + CEND
+    if (percentage != 0):
+        return CBLUE + '(-' + str(percentage) + '%)' + CEND
+    else:
+        return ''
 
 
 def seat_state(temp):
@@ -788,6 +791,32 @@ def sentry_state(state):
         return CGREEN + '(Sentry On)'+ CEND
     else: 
         return CRED + '(Sentry Off)' + CEND
+
+
+def calculate_time_left(hours_to_full_charge):
+    mins_to_full_charge = hours_to_full_charge * 60
+  
+    remaining_hours = int(mins_to_full_charge // 60)
+    remaining_minutes = mins_to_full_charge - (remaining_hours * 60)
+  
+    time_left = ""
+
+    if (mins_to_full_charge == 0):
+        return 'Calculating time remaining'
+
+    if (remaining_hours == 0):
+       time_left = '%d mins left' % (remaining_minutes)
+    elif (remaining_hours == 1):
+       time_left = '1 hour %d  mins left' % (remaining_minutes)
+    elif (remaining_minutes == 0):
+       time_left = '%d hours left' % (remaining_hours)
+    elif (remaining_minutes == 1):
+       time_left = '%d hours 1 min left' % (remaining_hours)
+    else:
+       time_left = '%d hours %d mins left' % (remaining_hours, remaining_minutes)
+
+    return time_left
+
 
 
 # Logo for both dark mode and regular mode
@@ -957,6 +986,9 @@ def main(argv):
 
         temp_unit = gui_settings['gui_temperature_units'].encode('utf-8')
         distance_unit='km'  
+        if gui_settings['gui_distance_units'] == 'mi/hr':
+            distance_unit = 'mi'
+
 
         if _LOCATION_TRACKING_: 
             locationdb.insert({'date':str(datetime.datetime.now()),'vehicle_info':vehicle_info})
@@ -966,6 +998,10 @@ def main(argv):
                 for background in ['1','2','3','4']:
                     for size in ['512','1024','2048','4096']:
                         vehicle.compose_image(vehicle_config['car_type'],view=view,size=size,background=background)
+
+        # --------------------------------------------------
+        # DEBUG MENU
+        # --------------------------------------------------
 
         if 'debug' in argv:
             print ('>>> vehicle_info:\n%s\n' % vehicle_info)
@@ -977,23 +1013,38 @@ def main(argv):
             print ('>>> vehicle_config:\n%s\n' % vehicle_config)
             return
 
-        if gui_settings['gui_distance_units'] == 'mi/hr':
-            distance_unit = 'mi'
-
-        # print the data for the vehicle
-        # if charge_state['battery_level'] == charge_state['usable_battery_level']:
-        #   print ('%sBattery Level:				%s%% | color=%s' % (prefix, charge_state['battery_level'],color))
-        # else:
-        loss_cold = int(charge_state['battery_level']) - int(charge_state['usable_battery_level'])
+        # --------------------------------------------------
+        # SOFTWARE UPDATE MENU 
+        # --------------------------------------------------
 
         if (vehicle_state['software_update']['status'] != ''):
            print ('%sSoftware update:				%s | refresh=true terminal=false bash="%s" param1=%s param2=schedule_software_update param3=%s color=%s' % (prefix, vehicle_state['software_update']['status'], sys.argv[0], str(i), "offset_sec:0", color))
            print ('%s---' % prefix)
-        
 
-        print ('%sBattery Level:				%s%% %s | color=%s' % (prefix, charge_state['battery_level'], cold_state(loss_cold), color))
- 
-        print ('%s--Charge Level set to: %s%% | color=%s' % (prefix, charge_state['charge_limit_soc'], color))
+
+        # --------------------------------------------------
+        # SERVICE MENU 
+        # --------------------------------------------------
+
+        # TODO Service mode info here
+
+
+
+        # --------------------------------------------------
+        # BATTERY MENU 
+        # --------------------------------------------------
+
+        battery_loss_cold = int(charge_state['battery_level']) - int(charge_state['usable_battery_level'])
+        battery_distance  = ""
+
+        if (gui_settings['gui_range_display'] == 'Rated'):
+           battery_distance = convert_distance(distance_unit,charge_state['battery_range'])
+        else: 
+           battery_distance = convert_distance(distance_unit,charge_state['ideal_battery_range'])
+
+
+        print ('%sBattery:\t\t\t\t\t\t%s%% %s (%s %s) | color=%s' % (prefix, charge_state['battery_level'], cold_state(battery_loss_cold), battery_distance, distance_unit, color))
+        print ('%s--Charge Level set to:\t\t\t%s%% | color=%s' % (prefix, charge_state['charge_limit_soc'], color))
         print ('%s---- 80%% | refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:80", info_color))
         print ('%s---- 80%% | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:80", info_color))
         print ('%s---- 85%% | refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:85", info_color))
@@ -1004,28 +1055,220 @@ def main(argv):
         print ('%s---- 95%% | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:95", info_color))
         print ('%s---- 100%% (Trip only)| refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:100", info_color))
         print ('%s---- 100%% (Trip only)| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:100", info_color))
-        try:
-           if charge_state['battery_heater_on']:
-              print ('%s--Battery heating | color=%s' % (prefix, color))
-	except:
-           pass
-        print ('%sCharging State:				%s   | color=%s' % (prefix, charge_state['charging_state'],color))
-        if (charge_state['charging_state']=="Charging") or (charge_state['charging_state']=='Starting'):
+
+
+        print ('%s-----' % prefix)
+        print ('%s--Rated battery range:\t\t\t%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['battery_range']),distance_unit,info_color))
+        print ('%s--Ideal battery range:\t\t\t%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['ideal_battery_range']),distance_unit,color))
+        print ('%s--Estimated battery range:\t\t%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['est_battery_range']),distance_unit,info_color))
+
+        print ('%s-----' % prefix)
+        print ('%s--Energy added:\t\t\t\t+%s kwh| color=%s' % (prefix, charge_state['charge_energy_added'],info_color))
+        print ('%s--Rated range added:\t\t\t+%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['charge_miles_added_rated']), distance_unit, info_color))
+        print ('%s--Ideal range added:\t\t\t+%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['charge_miles_added_ideal']), distance_unit, info_color))
+ 
+
+
+        # --------------------------------------------------
+        # CHARGING MENU 
+        # --------------------------------------------------
+
+        if (charge_state['charging_state']=="Disconnected"):
+            print ('%sCharger:\t\t\t\t\tDisconnected | color=%s' % (prefix, color))
+
+
+        elif (charge_state['charging_state']=='Starting'): 
+            print ('%sCharger:\t\t\t\t\tStarting | color=%s' % (prefix, color))
             print ('%s--Stop charging | refresh=true terminal=false bash="%s" param1=%s param2=charge_stop color=%s' % (prefix, sys.argv[0], str(i), color))
             print ('%s--Stop charging | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_stop color=%s' % (prefix, sys.argv[0], str(i), color))
-        if (charge_state['battery_level'] < charge_state['charge_limit_soc']) and (charge_state['charging_state']!='Starting') and (charge_state['charging_state']!='Charging') and (charge_state['charging_state']!='Disconnected'):
-            print ('%s--Start charging | refresh=true terminal=false bash="%s" param1=%s param2=charge_start color=%s' % (prefix, sys.argv[0], str(i), color))
-            print ('%s--Start charging | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_start color=%s' % (prefix, sys.argv[0], str(i), color))
+
+
+        elif (charge_state['charging_state']=="Stopped"): 
+            print ('%sCharger:\t\t\t\t\tStopped | color=%s' % (prefix, color))
+            print ('%s--Continue charging | refresh=true terminal=false bash="%s" param1=%s param2=charge_start color=%s' % (prefix, sys.argv[0], str(i), color))
+            print ('%s--Continue charging | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_start color=%s' % (prefix, sys.argv[0], str(i), color))
+
+
+        elif (charge_state['charging_state']=="Completed"): 
+            print ('%sCharger:\t\t\t\t\tCompleted | color=%s' % (prefix, color))
+
+
+        elif (charge_state['charging_state']=="Charging"):
+            time_left = calculate_time_left(charge_state['time_to_full_charge'])
+            charger_description = "Charger:\t"
+
+            if (charge_state['fast_charger_present']):
+               charger_description = "Supercharger:" 
+
+            print ('%s%s\t\t\t\t%s (%s %s/h) | color=%s' % (prefix, charger_description, time_left, convert_distance(distance_unit,charge_state['charge_rate']), distance_unit, color))
+            print ('%s--Stop charging | refresh=true terminal=false bash="%s" param1=%s param2=charge_stop color=%s' % (prefix, sys.argv[0], str(i), color))
+            print ('%s--Stop charging | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_stop color=%s' % (prefix, sys.argv[0], str(i), color))
  
-        print ('%sVehicle State:				%s   | color=%s' % (prefix, lock_state(vehicle_state['locked']),color))
-        if bool(vehicle_state['locked']):
-            print ('%s--Unlock | refresh=true terminal=false bash="%s" param1=%s param2=door_unlock color=%s' % (prefix, sys.argv[0], str(i), color))
-            print ('%s--Unlock | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=door_unlock color=%s' % (prefix, sys.argv[0], str(i), color))
+            print ('%s-----' % prefix)
+
+            if bool(charge_state['charger_pilot_current']):
+               print ('%s--Maximum current:\t%s A| color=%s' % (prefix, charge_state['charger_pilot_current'],info_color))
+            else:
+               print ('%s--Maximum current:\tNo information| color=%s' % (prefix,info_color))
+            print ('%s--Actual current:\t\t%s A| color=%s' % (prefix, charge_state['charger_actual_current'],info_color))
+            print ('%s--Power:\t\t\t\t%s Kw| color=%s' % (prefix, charge_state['charger_power'],info_color))
+            print ('%s--Voltage:\t\t\t\t%s V| color=%s' % (prefix, charge_state['charger_voltage'],info_color))
+            print ('%s--Phases:\t\t\t\t%s| color=%s' % (prefix, charge_state['charger_phases'],info_color))
+
+
         else:
-            print ('%s--Lock | refresh=true terminal=false bash="%s" param1=%s param2=door_lock color=%s' % (prefix, sys.argv[0], str(i), color))
-            print ('%s--Lock | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=door_lock color=%s' % (prefix, sys.argv[0], str(i), color))
+            print ('%sCharger:\t\t\t\t\t%s | color=%s' % (prefix, charge_state['charging_state'],color))
+       
         print ('%s---' % prefix)
+
+        # --------------------------------------------------
+        # VEHICLE STATE MENU 
+        # --------------------------------------------------
+
+        # Car & Alarm overview
         
+        sentry_available = False
+        sentry_description = ""
+        sentry_state = 'off'
+
+        try:
+            if (vehicle_state['sentry_mode'] == 'true'):
+                sentry_available = True
+                sentry_description = CGREEN+'(Sentry On)'+CEND
+                sentry_state = 'on'
+            else: 
+                sentry_available = True
+                sentry_description = CRED+'(Sentry Off)'+CEND
+                sentry_state = 'off'
+        except:
+            pass
+  
+        print ('%sVehicle State:				%s %s | color=%s' % (prefix, lock_state(vehicle_state['locked']), sentry_description, color))
+
+        if bool(vehicle_state['locked']):
+            print ('%s--%s | refresh=true terminal=false bash="%s" param1=%s param2=door_unlock color=%s' % (prefix, CRED+'Unlock'+CEND, sys.argv[0], str(i), color))
+            print ('%s--%s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=door_unlock color=%s' % (prefix, CRED+'Unlock'+CEND, sys.argv[0], str(i), color))
+            if bool(sentry_available): 
+                print ('%s-----' % (prefix))
+                if (sentry_state == 'off'):
+                   print ('%s--%s | refresh=true terminal=false bash="%s" param1=%s param2=set_sentry_mode param3="on:true" color=%s' % (prefix, CGREEN+'Turn on Sentry'+CEND, sys.argv[0], str(i), color))
+                   print ('%s--%s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_sentry_mode param3="on:true" color=%s' % (prefix, CGREEN+'Turn on Sentry'+CEND, sys.argv[0], str(i), color))
+                else:
+                   print ('%s--%s | refresh=true terminal=false bash="%s" param1=%s param2=set_sentry_mode param3="on:false" color=%s' % (prefix, CRED+'Turn off Sentry'+CEND, sys.argv[0], str(i), color))
+                   print ('%s--%s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_sentry_mode param3="on:false" color=%s' % (prefix, CRED+'Turn off Sentry'+CEND, sys.argv[0], str(i), color))
+ 
+        else:
+            print ('%s--%s | refresh=true terminal=false bash="%s" param1=%s param2=door_lock color=%s' % (prefix, CGREEN+'Lock'+CEND, sys.argv[0], str(i), color))
+            print ('%s--%s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=door_lock color=%s' % (prefix, CGREEN+'Lock'+CEND, sys.argv[0], str(i), color))
+
+
+        # Doors overview
+
+        print ('%s-----' % prefix)
+        print ('%s--Driver front door:				%s| color=%s' % (prefix, door_state(vehicle_state['df']),info_color))
+        print ('%s--Driver rear door:				%s| color=%s' % (prefix, door_state(vehicle_state['dr']),info_color))
+        print ('%s--Passenger front door:			%s| color=%s' % (prefix, door_state(vehicle_state['pf']),info_color))
+        print ('%s--Passenger rear door:			%s| color=%s' % (prefix, door_state(vehicle_state['pr']),info_color))
+        print ('%s-----' % prefix)
+
+        print ('%s--Front trunk:					%s| color=%s' % (prefix, door_state(vehicle_state['ft']),color))
+        if (bool(vehicle_state['ft'])):
+        	print ('%s----Close | refresh=true terminal=false bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:front", color))
+        	print ('%s----Close | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:front", color))
+        else: 
+        	print ('%s----Open | refresh=true terminal=false bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:front", color))
+        	print ('%s----Open | refresh=true alternate=true terminal=true  bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:front", color))
+
+        print ('%s--Rear trunk:					%s| color=%s' % (prefix, door_state(vehicle_state['rt']),info_color))
+        if (bool(vehicle_state['rt'])):
+        	print ('%s----Close | refresh=true terminal=false bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
+        	print ('%s----Close | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
+        else: 
+        	print ('%s----Open | refresh=true terminal=false bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
+        	print ('%s----Open | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
+
+       	charge_port_defrost = ""
+        try:
+           if (charge_state['charge_port_cold_weather_mode']):
+              charge_port_defrost = CBLUE + '(defrosting)' + CEND
+        except:
+           pass
+ 
+        print ('%s--Charge port:					%s %s| color=%s' % (prefix, port_state(charge_state['charge_port_door_open'],charge_state['charge_port_latch']), charge_port_defrost, color))
+        if (bool(charge_state['charge_port_door_open'])) and (not(charge_state['charge_port_latch'] == 'Engaged')):
+                print ('%s----Close | refresh=true terminal=false bash="%s" param1=%s param2=charge_port_door_close color=%s' % (prefix, sys.argv[0], str(i), color))
+        	print ('%s----Close | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_port_door_close color=%s' % (prefix, sys.argv[0], str(i), color))
+        if (not(bool(charge_state['charge_port_door_open']))):
+        	print ('%s----Open | refresh=true terminal=false bash="%s" param1=%s param2=charge_port_door_open color=%s' % (prefix, sys.argv[0], str(i), color))
+        	print ('%s----Open | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_port_door_open color=%s' % (prefix, sys.argv[0], str(i), color))
+
+        print ('%s-----' % prefix)
+       
+
+        # Vehicle location overview
+
+        if bool(drive_state['speed']):
+            print ('%s--Vehicle Speed:				%s %s/h| color=%s' % (prefix, convert_distance(distance_unit,drive_state['speed']),distance_unit,color))
+        else:
+            print ('%s--Vehicle Speed:				Parked| color=%s' % (prefix,color))
+        print ('%s--Vehicle Lat:					%s| color=%s' % (prefix, drive_state['latitude'],info_color))
+        print ('%s--Vehicle Lon:					%s| color=%s' % (prefix, drive_state['longitude'],info_color))
+        print ('%s--Vehicle Heading: 			%s°| color=%s' % (prefix, drive_state['heading'],info_color))
+        print ('%s-----' % prefix)
+
+
+        # My Location - TODO: Calculate distance from my location
+
+        #try: 
+        #   location_manager = cl.CLLocationManager.alloc().init()
+        #   location_manager.startUpdatngLocation()
+        #   current_location = location_manager.location()
+        #   location_manager.stopUpdatngLocation()
+        #except:
+        #   pass
+
+
+        # Vehicle location on map
+
+        todayDate = datetime.date.today()
+    
+        try:
+            with open(state_dir+'/mytesla-location-map-'+todayDate.strftime("%Y%m")+'-'+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png') as location_map:
+                my_img1 = base64.b64encode(location_map.read())
+                location_map.close()
+            with open(state_dir+'/mytesla-location-sat-'+todayDate.strftime("%Y%m")+'-'+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png') as location_sat:
+                my_img2 = base64.b64encode(location_sat.read())
+                location_sat.close()
+        except: 
+            with open(state_dir+'/mytesla-location-map-'+todayDate.strftime("%Y%m")+'-'+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png','w') as location_map, open(state_dir+'/mytesla-location-sat-'+todayDate.strftime("%Y%m")+'-'+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png','w') as location_sat:
+                my_google_key = '&key=AIzaSyBrgHowqRH-ewRCNrhAgmK7EtFsuZCdXwk'
+                my_google_dark_style = ''
+                if bool(DARK_MODE):
+                    my_google_dark_style = '&style=feature:all|element:labels|visibility:on&style=feature:all|element:labels.text.fill|saturation:36|color:0x000000|lightness:40&style=feature:all|element:labels.text.stroke|visibility:on|color:0x000000|lightness:16&style=feature:all|element:labels.icon|visibility:off&style=feature:administrative|element:geometry.fill|color:0x000000|lightness:20&style=feature:administrative|element:geometry.stroke|color:0x000000|lightness:17|weight:1.2&style=feature:administrative.country|element:labels.text.fill|color:0x838383&style=feature:administrative.locality|element:labels.text.fill|color:0xc4c4c4&style=feature:administrative.neighborhood|element:labels.text.fill|color:0xaaaaaa&style=feature:landscape|element:geometry|color:0x000000|lightness:20&style=feature:poi|element:geometry|color:0x000000|lightness:21|visibility:on&style=feature:poi.business|element:geometry|visibility:on&style=feature:road.highway|element:geometry.fill|color:0x6e6e6e|lightness:0&style=feature:road.highway|element:geometry.stroke|visibility:off&style=feature:road.highway|element:labels.text.fill|color:0xffffff&style=feature:road.arterial|element:geometry|color:0x000000|lightness:18&style=feature:road.arterial|element:geometry.fill|color:0x575757&style=feature:road.arterial|element:labels.text.fill|color:0xffffff&style=feature:road.arterial|element:labels.text.stroke|color:0x2c2c2c&style=feature:road.local|element:geometry|color:0x000000|lightness:16&style=feature:road.local|element:labels.text.fill|color:0x999999&style=feature:transit|element:geometry|color:0x000000|lightness:19&style=feature:water|element:geometry|color:0x000000|lightness:17'
+       
+                my_google_size = '&size=340x315'
+                my_google_zoom = '&zoom=17'
+                my_url1 ='https://maps.googleapis.com/maps/api/staticmap?center='+str(drive_state['latitude'])+','+str(drive_state['longitude'])+my_google_key+my_google_dark_style+my_google_zoom+my_google_size+'&markers=color:red%7C'+str(drive_state['latitude'])+','+str(drive_state['longitude'])
+                my_url2 ='https://maps.googleapis.com/maps/api/staticmap?center='+str(drive_state['latitude'])+','+str(drive_state['longitude'])+my_google_key+my_google_zoom+my_google_size+'&maptype=hybrid&markers=color:red%7C'+str(drive_state['latitude'])+','+str(drive_state['longitude'])
+                my_cnt1 = requests.get(my_url1).content
+                my_cnt2 = requests.get(my_url2).content
+                my_img1 = base64.b64encode(my_cnt1)
+                my_img2 = base64.b64encode(my_cnt2)
+                location_map.write(my_cnt1)
+                location_sat.write(my_cnt2)
+                location_map.close()
+                location_sat.close()
+
+        print ('%s--|image=%s href="https://maps.google.com?q=%s,%s" color=%s' % (prefix, my_img1, drive_state['latitude'],drive_state['longitude'],color))
+        print ('%s--|image=%s alternate=true href="https://maps.google.com?q=%s,%s" color=%s' % (prefix, my_img2, drive_state['latitude'],drive_state['longitude'],color))
+
+        print ('%s---' % prefix)
+       
+
+        # --------------------------------------------------
+        # CLIMATE STATE MENU 
+        # --------------------------------------------------
+   
         try:
             print ('%sInside Temp:					%.1f° %s| color=%s' % (prefix, convert_temp(temp_unit,climate_state['inside_temp']),temp_unit,color))
         except:
@@ -1057,7 +1300,8 @@ def main(argv):
         print ('%s---- 25° %s| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:25","passenger_temp:25", color))
 
 
-        # API unpublished
+        # TODO: API unpublished - to be verified
+
         if climate_state['climate_keeper_mode'] == 'dog':
             print ('%s--Dog Mode:\t\t\tOn | color=%s' % (prefix, color))
             print ('%s----Turn off | refresh=true terminal=false bash="%s" param1=%s param2=set_climate_keeper param3="on:false" color=%s' % (prefix, sys.argv[0], str(i), color))
@@ -1069,18 +1313,18 @@ def main(argv):
 
         print ('%s-----' % prefix)
         print ('%s--Seat heating | color=%s' % (prefix, color))
-        #try:
-        print ('%s----Driver:\t\t\t%s | color=%s' % (prefix, seat_state(climate_state['seat_heater_left']), color))
-        print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', sys.argv[0], str(i), "heater:0","level:0", color))
-        print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', sys.argv[0], str(i), "heater:0","level:0", color))
-        print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',sys.argv[0], str(i), "heater:0","level:1", color))
-        print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',sys.argv[0], str(i), "heater:0","level:1", color))
-        print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', sys.argv[0], str(i), "heater:0","2", color))
-        print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', sys.argv[0], str(i), "heater:0","level:2", color))
-        print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', sys.argv[0], str(i), "heater:0","level:3", color))
-        print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', sys.argv[0], str(i), "heater:0","level:3", color))
-        #except:
-        #   pass
+        try:
+           print ('%s----Driver:\t\t\t%s | color=%s' % (prefix, seat_state(climate_state['seat_heater_left']), color))
+           print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', sys.argv[0], str(i), "heater:0","level:0", color))
+           print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', sys.argv[0], str(i), "heater:0","level:0", color))
+           print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',sys.argv[0], str(i), "heater:0","level:1", color))
+           print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',sys.argv[0], str(i), "heater:0","level:1", color))
+           print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', sys.argv[0], str(i), "heater:0","2", color))
+           print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', sys.argv[0], str(i), "heater:0","level:2", color))
+           print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', sys.argv[0], str(i), "heater:0","level:3", color))
+           print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', sys.argv[0], str(i), "heater:0","level:3", color))
+        except:
+           pass
         try:    
            print ('%s----Passenger:\t\t%s | color=%s' % (prefix, seat_state(climate_state['seat_heater_right']), color))
            print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', sys.argv[0], str(i), "heater:1","level:0", color))
@@ -1151,146 +1395,16 @@ def main(argv):
               print ('%s-- Rear window defrosting | color=%s' % (prefix, color))
 	except:
            pass
+        try:
+           if charge_state['battery_heater_on']:
+              print ('%s--Battery heating | color=%s' % (prefix, color))
+	except:
+           pass
  
-
         try:
             print ('%sOutside Temp:				%.1f° %s| color=%s' % (prefix, convert_temp(temp_unit,climate_state['outside_temp']),temp_unit,color))
         except:
             print ('%sOutside Temp:				Unavailable| color=%s' % (prefix, color))
-        print ('%s---' % prefix)
-        
-        if bool(drive_state['speed']):
-            print ('%sVehicle Speed:				%s %s/h| color=%s' % (prefix, convert_distance(distance_unit,drive_state['speed']),distance_unit,color))
-        else:
-            print ('%sVehicle Speed:				Parked| color=%s' % (prefix,color))
-        print ('%sVehicle Lat:					%s| color=%s' % (prefix, drive_state['latitude'],info_color))
-        print ('%sVehicle Lon:					%s| color=%s' % (prefix, drive_state['longitude'],info_color))
-        print ('%sVehicle Heading: 			%s°| color=%s' % (prefix, drive_state['heading'],info_color))
-        print ('%s---' % prefix)
-        
-        print ('%sFirmware Version:			%s| color=%s' % (prefix, vehicle_state['car_version'],color))
-        print ('%s---' % prefix)
-        print ('%sDriver front door:				%s| color=%s' % (prefix, door_state(vehicle_state['df']),info_color))
-        print ('%sDriver rear door:				%s| color=%s' % (prefix, door_state(vehicle_state['dr']),info_color))
-        print ('%sPassenger front door:			%s| color=%s' % (prefix, door_state(vehicle_state['pf']),info_color))
-        print ('%sPassenger rear door:			%s| color=%s' % (prefix, door_state(vehicle_state['pr']),info_color))
-        print ('%s---' % prefix)
-
-
-        print ('%sFront trunk:					%s| color=%s' % (prefix, door_state(vehicle_state['ft']),color))
-        if (bool(vehicle_state['ft'])):
-        	print ('%s--Close | refresh=true terminal=false bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:front", color))
-        	print ('%s--Close | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:front", color))
-        else: 
-        	print ('%s--Open | refresh=true terminal=false bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:front", color))
-        	print ('%s--Open | refresh=true alternate=true terminal=true  bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:front", color))
-        print ('%sRear trunk:					%s| color=%s' % (prefix, door_state(vehicle_state['rt']),info_color))
-        if (bool(vehicle_state['rt'])):
-        	print ('%s--Close | refresh=true terminal=false bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
-        	print ('%s--Close | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
-        else: 
-        	print ('%s--Open | refresh=true terminal=false bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
-        	print ('%s--Open | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
-
-       	charge_port_defrost = ""
-        try:
-           if (charge_state['charge_port_cold_weather_mode']):
-              charge_port_defrost = CBLUE + '(defrosting)' + CEND
-        except:
-           pass
- 
-        print ('%sCharge port:					%s %s| color=%s' % (prefix, port_state(charge_state['charge_port_door_open'],charge_state['charge_port_latch']), charge_port_defrost, color))
-        # Charge Port open and not in use
-        if (bool(charge_state['charge_port_door_open'])) and (not(charge_state['charge_port_latch'] == 'Engaged')):
-                print ('%s--Close | refresh=true terminal=false bash="%s" param1=%s param2=charge_port_door_close color=%s' % (prefix, sys.argv[0], str(i), color))
-        	print ('%s--Close | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_port_door_close color=%s' % (prefix, sys.argv[0], str(i), color))
-        # Charge Port closed
-        if (not(bool(charge_state['charge_port_door_open']))):
-        	print ('%s--Open | refresh=true terminal=false bash="%s" param1=%s param2=charge_port_door_open color=%s' % (prefix, sys.argv[0], str(i), color))
-        	print ('%s--Open | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_port_door_open color=%s' % (prefix, sys.argv[0], str(i), color))
-
-        print ('%s---' % prefix)
-
-        if (gui_settings['gui_range_display'] == 'Rated'):
-            print ('%sRated battery range:			%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['battery_range']),distance_unit,color))
-            print ('%sIdeal battery range:			%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['ideal_battery_range']),distance_unit,info_color))
-        else: 
-            print ('%sRated battery range:			%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['battery_range']),distance_unit,info_color))
-            print ('%sIdeal battery range:			%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['ideal_battery_range']),distance_unit,color))
-
-        print ('%sEstimated battery range:		%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['est_battery_range']),distance_unit,info_color))
-        print ('%s---' % prefix)
-
-        if bool(charge_state['charger_pilot_current']):
-            print ('%sMaximum charger current:	%s A| color=%s' % (prefix, charge_state['charger_pilot_current'],info_color))
-        else:
-            print ('%sMaximum charger current:	Not connected| color=%s' % (prefix,info_color))
-
-        print ('%sActual charger current:		%s A| color=%s' % (prefix, charge_state['charger_actual_current'],info_color))
-        print ('%sCharger power:				%s Kw| color=%s' % (prefix, charge_state['charger_power'],info_color))
-        print ('%sCharger voltage:				%s V| color=%s' % (prefix, charge_state['charger_voltage'],info_color))
-        print ('%sCharger phases:				%s| color=%s' % (prefix, charge_state['charger_phases'],info_color))
-        print ('%sSupercharging:				%s| color=%s' % (prefix, charge_state['fast_charger_present'],info_color))
-        print ('%sCharger speed:				%s %s/h| color=%s' % (prefix, convert_distance(distance_unit,charge_state['charge_rate']),distance_unit,info_color))
-
-
-	hours_to_full_charge = charge_state['time_to_full_charge']
-        mins_to_full_charge = hours_to_full_charge * 60
-
-        remaining_hours = int(mins_to_full_charge // 60)
-	remaining_minutes = mins_to_full_charge - (remaining_hours * 60)
-
-	if (remaining_hours == 0):
-           print ('%sTime to full charge:			%s minutes | color=%s' % (prefix, remaining_minutes,color))
-	elif (remaining_hours == 1):
-           print ('%sTime to full charge:			%d hour %d mins | color=%s' % (prefix, remaining_hours, remaining_minutes, color))
-        elif (remaining_minutes == 0):
-           print ('%sTime to full charge:			%d hours | color=%s' % (prefix, remaining_hours, color))
-        elif (remaining_minutes == 1):
-           print ('%sTime to full charge:			%d hours 1 min | color=%s' % (prefix, remaining_hours, color))
-        else:
-           print ('%sTime to full charge:			%d hours %d mins | color=%s' % (prefix, remaining_hours, remaining_minutes, color))
-        #print ('%sTime to full charge:			%s hours | alternate=true color=%s' % (prefix, charge_state['time_to_full_charge'], color))
-        
-        print ('%s---' % prefix)
-
-        #try: 
-        #   location_manager = cl.CLLocationManager.alloc().init()
-        #   location_manager.startUpdatngLocation()
-        #   current_location = location_manager.location()
-        #   location_manager.stopUpdatngLocation()
-
-        todayDate = datetime.date.today()
-    
-        try:
-            with open(state_dir+'/mytesla-location-map-'+todayDate.strftime("%Y%m")+'-'+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png') as location_map:
-                my_img1 = base64.b64encode(location_map.read())
-                location_map.close()
-            with open(state_dir+'/mytesla-location-sat-'+todayDate.strftime("%Y%m")+'-'+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png') as location_sat:
-                my_img2 = base64.b64encode(location_sat.read())
-                location_sat.close()
-        except: 
-            with open(state_dir+'/mytesla-location-map-'+todayDate.strftime("%Y%m")+'-'+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png','w') as location_map, open(state_dir+'/mytesla-location-sat-'+todayDate.strftime("%Y%m")+'-'+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png','w') as location_sat:
-                my_google_key = '&key=AIzaSyBrgHowqRH-ewRCNrhAgmK7EtFsuZCdXwk'
-                my_google_dark_style = ''
-                if bool(DARK_MODE):
-                    my_google_dark_style = '&style=feature:all|element:labels|visibility:on&style=feature:all|element:labels.text.fill|saturation:36|color:0x000000|lightness:40&style=feature:all|element:labels.text.stroke|visibility:on|color:0x000000|lightness:16&style=feature:all|element:labels.icon|visibility:off&style=feature:administrative|element:geometry.fill|color:0x000000|lightness:20&style=feature:administrative|element:geometry.stroke|color:0x000000|lightness:17|weight:1.2&style=feature:administrative.country|element:labels.text.fill|color:0x838383&style=feature:administrative.locality|element:labels.text.fill|color:0xc4c4c4&style=feature:administrative.neighborhood|element:labels.text.fill|color:0xaaaaaa&style=feature:landscape|element:geometry|color:0x000000|lightness:20&style=feature:poi|element:geometry|color:0x000000|lightness:21|visibility:on&style=feature:poi.business|element:geometry|visibility:on&style=feature:road.highway|element:geometry.fill|color:0x6e6e6e|lightness:0&style=feature:road.highway|element:geometry.stroke|visibility:off&style=feature:road.highway|element:labels.text.fill|color:0xffffff&style=feature:road.arterial|element:geometry|color:0x000000|lightness:18&style=feature:road.arterial|element:geometry.fill|color:0x575757&style=feature:road.arterial|element:labels.text.fill|color:0xffffff&style=feature:road.arterial|element:labels.text.stroke|color:0x2c2c2c&style=feature:road.local|element:geometry|color:0x000000|lightness:16&style=feature:road.local|element:labels.text.fill|color:0x999999&style=feature:transit|element:geometry|color:0x000000|lightness:19&style=feature:water|element:geometry|color:0x000000|lightness:17'
-       
-                my_google_size = '&size=340x315'
-                my_google_zoom = '&zoom=17'
-                my_url1 ='https://maps.googleapis.com/maps/api/staticmap?center='+str(drive_state['latitude'])+','+str(drive_state['longitude'])+my_google_key+my_google_dark_style+my_google_zoom+my_google_size+'&markers=color:red%7C'+str(drive_state['latitude'])+','+str(drive_state['longitude'])
-                my_url2 ='https://maps.googleapis.com/maps/api/staticmap?center='+str(drive_state['latitude'])+','+str(drive_state['longitude'])+my_google_key+my_google_zoom+my_google_size+'&maptype=hybrid&markers=color:red%7C'+str(drive_state['latitude'])+','+str(drive_state['longitude'])
-                my_cnt1 = requests.get(my_url1).content
-                my_cnt2 = requests.get(my_url2).content
-                my_img1 = base64.b64encode(my_cnt1)
-                my_img2 = base64.b64encode(my_cnt2)
-                location_map.write(my_cnt1)
-                location_sat.write(my_cnt2)
-                location_map.close()
-                location_sat.close()
-
-        print ('%s|image=%s href="https://maps.google.com?q=%s,%s" color=%s' % (prefix, my_img1, drive_state['latitude'],drive_state['longitude'],color))
-        print ('%s|image=%s alternate=true href="https://maps.google.com?q=%s,%s" color=%s' % (prefix, my_img2, drive_state['latitude'],drive_state['longitude'],color))
 
         print ('%s---' % prefix)
 
@@ -1300,6 +1414,7 @@ def main(argv):
         print ('%s-----' % prefix)
         print ('%s--Name: 			%s | color=%s' % (prefix, vehicle_name, color))
         print ('%s--VIN: 			%s | terminal=true bash="echo %s | pbcopy" color=%s' % (prefix, vehicle_vin, vehicle_vin, color))
+        print ('%s--Firmware:		%s (API: v%s)| color=%s' % (prefix, vehicle_state['car_version'],vehicle_state['api_version'], color))
         print ('%s-----' % prefix)
         print ('%s--Model:			%s | color=%s' % (prefix, vehicle_config['car_type'], info_color))
         print ('%s--Type: 			%s | color=%s' % (prefix, vehicle_config['trim_badging'], info_color))
