@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # <bitbar.title>MyTesla</bitbar.title>
-# <bitbar.version>v3.0</bitbar.version>
+# <bitbar.version>Tesla API v6.0</bitbar.version>
 # <bitbar.author>pvdabeel@mac.com</bitbar.author>
 # <bitbar.author.github>pvdabeel</bitbar.author.github>
 # <bitbar.desc>Control your Tesla vehicle from the Mac OS X menubar</bitbar.desc>
@@ -53,23 +53,22 @@ import datetime
 import calendar
 import base64
 import math
-import keyring      # Access token is stored in OS X keychain
-import getpass      # Getting password without showing chars in terminal.app
+import keyring                                  # Tesla access token is stored in OS X keychain
+import getpass                                  # Getting password without showing chars in terminal.app
 import time
 import os
 import subprocess
-import pyicloud     # Icloud integration - retrieving calendar info 
+import pyicloud                                 # Icloud integration - retrieving calendar info 
 import requests
 import binascii
 
 import CoreLocation as cl
 
-from pyicloud import PyiCloudService
-from datetime import date
-
-from tinydb import TinyDB
-
-from os.path import expanduser
+from pyicloud   import PyiCloudService          # Icloud integration - schedule events in icloud agenda
+from datetime   import date
+from tinydb     import TinyDB                   # Keep track of location and vehicle states
+from os.path    import expanduser
+from googlemaps import Client as googleclient   # Reverse lookup of addresses based on coordinates
 
 
 # Location where to store state files
@@ -735,40 +734,42 @@ class Icloud(dict):
         return self.api.reminders.lists
 
 
-# Convertors
+# Convertor for temperature
 def convert_temp(temp_unit,temp):
     if temp_unit == 'F':
         return (temp * 1.8) + 32
     else:
         return temp
 
+# Convertor for distance
 def convert_distance(distance_unit,distance):
     if distance_unit == 'km':
         return math.ceil(distance * 160.9344)/100
     else:
         return distance
 
-# Pretty print
+# Pretty print door state
 def door_state(dooropen):
     if bool(dooropen):
         return CRED + 'Open' + CEND + ' '
     else:
         return CGREEN + 'Closed' + CEND + ' '
 
+# Pretty print battery loss due to cold
 def cold_state(percentage):
     if (percentage != 0):
         return CBLUE + '(-' + str(percentage) + '%)' + CEND
     else:
         return ''
 
-
+# Pretty print seat heater setting
 def seat_state(temp):
     if (temp == 0):
         return 'Off'
     else:
         return CRED  + 'On, level: ' + str(temp) + CEND
 
-
+# Pretty print charge port state 
 def port_state(portopen,engaged):
     if bool(portopen):
         if (engaged == 'Engaged'):
@@ -778,14 +779,14 @@ def port_state(portopen,engaged):
     else:
         return CGREEN + 'Closed' + CEND
         
-
+# Pretty print car lock state 
 def lock_state(locked):
     if bool(locked):
         return CGREEN + 'Locked' + CEND
     else:
         return CRED + 'Unlocked' + CEND
 
-
+# Pretty print sentry mode state 
 def sentry_state(state):
     if bool(state):
         return CGREEN + '(Sentry On)'+ CEND
@@ -793,6 +794,7 @@ def sentry_state(state):
         return CRED + '(Sentry Off)' + CEND
 
 
+# Pretty print charge time left in hours & minutes
 def calculate_time_left(hours_to_full_charge):
     mins_to_full_charge = hours_to_full_charge * 60
   
@@ -818,6 +820,39 @@ def calculate_time_left(hours_to_full_charge):
     return time_left
 
 
+# Function to retrieve goole map & sat images for a given location
+def retrieve_google_maps(latitude,longitude):
+   todayDate = datetime.date.today()
+    
+   try:
+      with open(state_dir+'/mytesla-location-map-'+todayDate.strftime("%Y%m")+'-'+latitude+'-'+longitude+'.png') as location_map:
+         my_img1 = base64.b64encode(location_map.read())
+         location_map.close()
+      with open(state_dir+'/mytesla-location-sat-'+todayDate.strftime("%Y%m")+'-'+latitude+'-'+longitude+'.png') as location_sat:
+         my_img2 = base64.b64encode(location_sat.read())
+         location_sat.close()
+   except: 
+      with open(state_dir+'/mytesla-location-map-'+todayDate.strftime("%Y%m")+'-'+latitude+'-'+longitude+'.png','w') as location_map, open(state_dir+'/mytesla-location-sat-'+todayDate.strftime("%Y%m")+'-'+latitude+'-'+longitude+'.png','w') as location_sat:
+         my_google_key = '&key=AIzaSyBrgHowqRH-ewRCNrhAgmK7EtFsuZCdXwk'
+         my_google_dark_style = ''
+                
+         if bool(DARK_MODE):
+            my_google_dark_style = '&style=feature:all|element:labels|visibility:on&style=feature:all|element:labels.text.fill|saturation:36|color:0x000000|lightness:40&style=feature:all|element:labels.text.stroke|visibility:on|color:0x000000|lightness:16&style=feature:all|element:labels.icon|visibility:off&style=feature:administrative|element:geometry.fill|color:0x000000|lightness:20&style=feature:administrative|element:geometry.stroke|color:0x000000|lightness:17|weight:1.2&style=feature:administrative.country|element:labels.text.fill|color:0x838383&style=feature:administrative.locality|element:labels.text.fill|color:0xc4c4c4&style=feature:administrative.neighborhood|element:labels.text.fill|color:0xaaaaaa&style=feature:landscape|element:geometry|color:0x000000|lightness:20&style=feature:poi|element:geometry|color:0x000000|lightness:21|visibility:on&style=feature:poi.business|element:geometry|visibility:on&style=feature:road.highway|element:geometry.fill|color:0x6e6e6e|lightness:0&style=feature:road.highway|element:geometry.stroke|visibility:off&style=feature:road.highway|element:labels.text.fill|color:0xffffff&style=feature:road.arterial|element:geometry|color:0x000000|lightness:18&style=feature:road.arterial|element:geometry.fill|color:0x575757&style=feature:road.arterial|element:labels.text.fill|color:0xffffff&style=feature:road.arterial|element:labels.text.stroke|color:0x2c2c2c&style=feature:road.local|element:geometry|color:0x000000|lightness:16&style=feature:road.local|element:labels.text.fill|color:0x999999&style=feature:transit|element:geometry|color:0x000000|lightness:19&style=feature:water|element:geometry|color:0x000000|lightness:17'
+       
+         my_google_size = '&size=340x315'
+         my_google_zoom = '&zoom=17'
+         my_url1 ='https://maps.googleapis.com/maps/api/staticmap?center='+latitude+','+longitude+my_google_key+my_google_dark_style+my_google_zoom+my_google_size+'&markers=color:red%7C'+latitude+','+longitude
+         my_url2 ='https://maps.googleapis.com/maps/api/staticmap?center='+latitude+','+longitude+my_google_key+my_google_zoom+my_google_size+'&maptype=hybrid&markers=color:red%7C'+latitude+','+longitude
+         my_cnt1 = requests.get(my_url1).content
+         my_cnt2 = requests.get(my_url2).content
+         my_img1 = base64.b64encode(my_cnt1)
+         my_img2 = base64.b64encode(my_cnt2)
+         location_map.write(my_cnt1)
+         location_sat.write(my_cnt2)
+         location_map.close()
+         location_sat.close()
+   return [my_img1,my_img2]
+
 
 # Logo for both dark mode and regular mode
 def app_print_logo():
@@ -828,8 +863,11 @@ def app_print_logo():
     print('---')
 
 
-# The init function: Called to store your username and access_code in OS X Keychain on first launch
+# --------------------------
+# The main function
+# --------------------------
 
+# The init function: Called to store your username and access_code in OS X Keychain on first launch
 def init():
     # Here we do the setup
     # Store access_token in OS X keychain on first run
@@ -860,7 +898,13 @@ def init():
     keyring.set_password("mytesla-bitbar","access_token",init_access_token)
 
 
-USERNAME = keyring.get_password("mytesla-bitbar","username")  # The main function
+
+USERNAME = keyring.get_password("mytesla-bitbar","username")  
+
+
+# --------------------------
+# The main function
+# --------------------------
 
 def main(argv):
 
@@ -1004,12 +1048,12 @@ def main(argv):
         # --------------------------------------------------
 
         if 'debug' in argv:
-            print ('>>> vehicle_info:\n%s\n' % vehicle_info)
-            print ('>>> gui_settings:\n%s\n' % gui_settings)
-            print ('>>> charge_state:\n%s\n' % charge_state)
-            print ('>>> climate_state:\n%s\n' % climate_state)
-            print ('>>> drive_state:\n%s\n' % drive_state)
-            print ('>>> vehicle_state:\n%s\n' % vehicle_state)
+            print ('>>> vehicle_info:\n%s\n'   % vehicle_info)
+            print ('>>> gui_settings:\n%s\n'   % gui_settings)
+            print ('>>> charge_state:\n%s\n'   % charge_state)
+            print ('>>> climate_state:\n%s\n'  % climate_state)
+            print ('>>> drive_state:\n%s\n'    % drive_state)
+            print ('>>> vehicle_state:\n%s\n'  % vehicle_state)
             print ('>>> vehicle_config:\n%s\n' % vehicle_config)
             return
 
@@ -1027,7 +1071,6 @@ def main(argv):
         # --------------------------------------------------
 
         # TODO Service mode info here
-
 
 
         # --------------------------------------------------
@@ -1059,7 +1102,7 @@ def main(argv):
 
         print ('%s-----' % prefix)
         print ('%s--Rated battery range:\t\t\t%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['battery_range']),distance_unit,info_color))
-        print ('%s--Ideal battery range:\t\t\t%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['ideal_battery_range']),distance_unit,color))
+        print ('%s--Ideal battery range:\t\t\t%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['ideal_battery_range']),distance_unit,info_color))
         print ('%s--Estimated battery range:\t\t%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['est_battery_range']),distance_unit,info_color))
 
         print ('%s-----' % prefix)
@@ -1121,6 +1164,7 @@ def main(argv):
        
         print ('%s---' % prefix)
 
+
         # --------------------------------------------------
         # VEHICLE STATE MENU 
         # --------------------------------------------------
@@ -1143,7 +1187,7 @@ def main(argv):
         except:
             pass
   
-        print ('%sVehicle State:				%s %s | color=%s' % (prefix, lock_state(vehicle_state['locked']), sentry_description, color))
+        print ('%sVehicle State:\t\t\t\t%s %s | color=%s' % (prefix, lock_state(vehicle_state['locked']), sentry_description, color))
 
         if bool(vehicle_state['locked']):
             print ('%s--%s | refresh=true terminal=false bash="%s" param1=%s param2=door_unlock color=%s' % (prefix, CRED+'Unlock'+CEND, sys.argv[0], str(i), color))
@@ -1165,13 +1209,13 @@ def main(argv):
         # Doors overview
 
         print ('%s-----' % prefix)
-        print ('%s--Driver front door:				%s| color=%s' % (prefix, door_state(vehicle_state['df']),info_color))
-        print ('%s--Driver rear door:				%s| color=%s' % (prefix, door_state(vehicle_state['dr']),info_color))
-        print ('%s--Passenger front door:			%s| color=%s' % (prefix, door_state(vehicle_state['pf']),info_color))
-        print ('%s--Passenger rear door:			%s| color=%s' % (prefix, door_state(vehicle_state['pr']),info_color))
+        print ('%s--Driver front door:\t\t\t\t%s| color=%s' % (prefix, door_state(vehicle_state['df']),color))
+        print ('%s--Driver rear door:\t\t\t\t%s| color=%s' % (prefix, door_state(vehicle_state['dr']),color))
+        print ('%s--Passenger front door:\t\t\t%s| color=%s' % (prefix, door_state(vehicle_state['pf']),color))
+        print ('%s--Passenger rear door:\t\t\t%s| color=%s' % (prefix, door_state(vehicle_state['pr']),color))
         print ('%s-----' % prefix)
 
-        print ('%s--Front trunk:					%s| color=%s' % (prefix, door_state(vehicle_state['ft']),color))
+        print ('%s--Front trunk:\t\t\t\t\t%s| color=%s' % (prefix, door_state(vehicle_state['ft']),color))
         if (bool(vehicle_state['ft'])):
         	print ('%s----Close | refresh=true terminal=false bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:front", color))
         	print ('%s----Close | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:front", color))
@@ -1179,7 +1223,7 @@ def main(argv):
         	print ('%s----Open | refresh=true terminal=false bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:front", color))
         	print ('%s----Open | refresh=true alternate=true terminal=true  bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:front", color))
 
-        print ('%s--Rear trunk:					%s| color=%s' % (prefix, door_state(vehicle_state['rt']),info_color))
+        print ('%s--Rear trunk:\t\t\t\t\t%s| color=%s' % (prefix, door_state(vehicle_state['rt']),info_color))
         if (bool(vehicle_state['rt'])):
         	print ('%s----Close | refresh=true terminal=false bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
         	print ('%s----Close | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
@@ -1194,7 +1238,7 @@ def main(argv):
         except:
            pass
  
-        print ('%s--Charge port:					%s %s| color=%s' % (prefix, port_state(charge_state['charge_port_door_open'],charge_state['charge_port_latch']), charge_port_defrost, color))
+        print ('%s--Charge port:\t\t\t\t\t%s %s| color=%s' % (prefix, port_state(charge_state['charge_port_door_open'],charge_state['charge_port_latch']), charge_port_defrost, color))
         if (bool(charge_state['charge_port_door_open'])) and (not(charge_state['charge_port_latch'] == 'Engaged')):
                 print ('%s----Close | refresh=true terminal=false bash="%s" param1=%s param2=charge_port_door_close color=%s' % (prefix, sys.argv[0], str(i), color))
         	print ('%s----Close | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_port_door_close color=%s' % (prefix, sys.argv[0], str(i), color))
@@ -1202,77 +1246,49 @@ def main(argv):
         	print ('%s----Open | refresh=true terminal=false bash="%s" param1=%s param2=charge_port_door_open color=%s' % (prefix, sys.argv[0], str(i), color))
         	print ('%s----Open | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_port_door_open color=%s' % (prefix, sys.argv[0], str(i), color))
 
-        print ('%s-----' % prefix)
-       
+        if bool(drive_state['speed']):
+            print ('%sVehicle Speed:\t\t\t\t%s %s/h| color=%s' % (prefix, convert_distance(distance_unit,drive_state['speed']),distance_unit,color))
+        else:
+            print ('%sVehicle Speed:\t\t\t\tParked| color=%s' % (prefix,color))
+ 
+        
 
         # Vehicle location overview
 
-        if bool(drive_state['speed']):
-            print ('%s--Vehicle Speed:				%s %s/h| color=%s' % (prefix, convert_distance(distance_unit,drive_state['speed']),distance_unit,color))
-        else:
-            print ('%s--Vehicle Speed:				Parked| color=%s' % (prefix,color))
-        print ('%s--Vehicle Lat:					%s| color=%s' % (prefix, drive_state['latitude'],info_color))
-        print ('%s--Vehicle Lon:					%s| color=%s' % (prefix, drive_state['longitude'],info_color))
-        print ('%s--Vehicle Heading: 			%s°| color=%s' % (prefix, drive_state['heading'],info_color))
+        gmaps = googleclient('AIzaSyCtVR6-HQOVMYVGG6vOxWvPxjeggFz39mg')
+        car_location_address = gmaps.reverse_geocode((str(drive_state['latitude']),str(drive_state['longitude'])))[0]['formatted_address']
+
         print ('%s-----' % prefix)
-
-
-        # My Location - TODO: Calculate distance from my location
-
-        #try: 
-        #   location_manager = cl.CLLocationManager.alloc().init()
-        #   location_manager.startUpdatngLocation()
-        #   current_location = location_manager.location()
-        #   location_manager.stopUpdatngLocation()
-        #except:
-        #   pass
-
-
-        # Vehicle location on map
-
-        todayDate = datetime.date.today()
-    
-        try:
-            with open(state_dir+'/mytesla-location-map-'+todayDate.strftime("%Y%m")+'-'+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png') as location_map:
-                my_img1 = base64.b64encode(location_map.read())
-                location_map.close()
-            with open(state_dir+'/mytesla-location-sat-'+todayDate.strftime("%Y%m")+'-'+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png') as location_sat:
-                my_img2 = base64.b64encode(location_sat.read())
-                location_sat.close()
-        except: 
-            with open(state_dir+'/mytesla-location-map-'+todayDate.strftime("%Y%m")+'-'+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png','w') as location_map, open(state_dir+'/mytesla-location-sat-'+todayDate.strftime("%Y%m")+'-'+str(drive_state['latitude'])+'-'+str(drive_state['longitude'])+'.png','w') as location_sat:
-                my_google_key = '&key=AIzaSyBrgHowqRH-ewRCNrhAgmK7EtFsuZCdXwk'
-                my_google_dark_style = ''
-                if bool(DARK_MODE):
-                    my_google_dark_style = '&style=feature:all|element:labels|visibility:on&style=feature:all|element:labels.text.fill|saturation:36|color:0x000000|lightness:40&style=feature:all|element:labels.text.stroke|visibility:on|color:0x000000|lightness:16&style=feature:all|element:labels.icon|visibility:off&style=feature:administrative|element:geometry.fill|color:0x000000|lightness:20&style=feature:administrative|element:geometry.stroke|color:0x000000|lightness:17|weight:1.2&style=feature:administrative.country|element:labels.text.fill|color:0x838383&style=feature:administrative.locality|element:labels.text.fill|color:0xc4c4c4&style=feature:administrative.neighborhood|element:labels.text.fill|color:0xaaaaaa&style=feature:landscape|element:geometry|color:0x000000|lightness:20&style=feature:poi|element:geometry|color:0x000000|lightness:21|visibility:on&style=feature:poi.business|element:geometry|visibility:on&style=feature:road.highway|element:geometry.fill|color:0x6e6e6e|lightness:0&style=feature:road.highway|element:geometry.stroke|visibility:off&style=feature:road.highway|element:labels.text.fill|color:0xffffff&style=feature:road.arterial|element:geometry|color:0x000000|lightness:18&style=feature:road.arterial|element:geometry.fill|color:0x575757&style=feature:road.arterial|element:labels.text.fill|color:0xffffff&style=feature:road.arterial|element:labels.text.stroke|color:0x2c2c2c&style=feature:road.local|element:geometry|color:0x000000|lightness:16&style=feature:road.local|element:labels.text.fill|color:0x999999&style=feature:transit|element:geometry|color:0x000000|lightness:19&style=feature:water|element:geometry|color:0x000000|lightness:17'
-       
-                my_google_size = '&size=340x315'
-                my_google_zoom = '&zoom=17'
-                my_url1 ='https://maps.googleapis.com/maps/api/staticmap?center='+str(drive_state['latitude'])+','+str(drive_state['longitude'])+my_google_key+my_google_dark_style+my_google_zoom+my_google_size+'&markers=color:red%7C'+str(drive_state['latitude'])+','+str(drive_state['longitude'])
-                my_url2 ='https://maps.googleapis.com/maps/api/staticmap?center='+str(drive_state['latitude'])+','+str(drive_state['longitude'])+my_google_key+my_google_zoom+my_google_size+'&maptype=hybrid&markers=color:red%7C'+str(drive_state['latitude'])+','+str(drive_state['longitude'])
-                my_cnt1 = requests.get(my_url1).content
-                my_cnt2 = requests.get(my_url2).content
-                my_img1 = base64.b64encode(my_cnt1)
-                my_img2 = base64.b64encode(my_cnt2)
-                location_map.write(my_cnt1)
-                location_sat.write(my_cnt2)
-                location_map.close()
-                location_sat.close()
-
-        print ('%s--|image=%s href="https://maps.google.com?q=%s,%s" color=%s' % (prefix, my_img1, drive_state['latitude'],drive_state['longitude'],color))
-        print ('%s--|image=%s alternate=true href="https://maps.google.com?q=%s,%s" color=%s' % (prefix, my_img2, drive_state['latitude'],drive_state['longitude'],color))
+        print ('%s--Address:\t\t%s| color=%s' % (prefix, car_location_address, color))
+        print ('%s-----' % prefix)
+        print ('%s--Lat:\t\t\t\t%s| color=%s' % (prefix, drive_state['latitude'], info_color))
+        print ('%s--Lon:\t\t\t\t%s| color=%s' % (prefix, drive_state['longitude'], info_color))
+        print ('%s--Heading:\t\t%s°| color=%s' % (prefix, drive_state['heading'], info_color))
 
         print ('%s---' % prefix)
-       
+        
+        
+        # --------------------------------------------------
+        # VEHICLE MAP MENU 
+        # --------------------------------------------------
+
+        google_maps = retrieve_google_maps(str(drive_state['latitude']),str(drive_state['longitude']))
+        vehicle_location_map = google_maps[0]
+        vehicle_location_sat = google_maps[1]
+
+        print ('%s|image=%s href="https://maps.google.com?q=%s,%s" color=%s' % (prefix, vehicle_location_map, drive_state['latitude'],drive_state['longitude'],color))
+        print ('%s|image=%s alternate=true href="https://maps.google.com?q=%s,%s" color=%s' % (prefix, vehicle_location_sat, drive_state['latitude'],drive_state['longitude'],color))
+
+        print ('%s---' % prefix)
 
         # --------------------------------------------------
         # CLIMATE STATE MENU 
         # --------------------------------------------------
    
         try:
-            print ('%sInside Temp:					%.1f° %s| color=%s' % (prefix, convert_temp(temp_unit,climate_state['inside_temp']),temp_unit,color))
+            print ('%sInside Temp:\t\t\t\t\t%.1f° %s| color=%s' % (prefix, convert_temp(temp_unit,climate_state['inside_temp']),temp_unit,color))
         except:
-            print ('%sInside Temp:					Unavailable| color=%s' % (prefix,color))
+            print ('%sInside Temp:\t\t\t\t\tUnavailable| color=%s' % (prefix,color))
         if climate_state['is_climate_on']:
             print ('%s--Turn off airco | refresh=true terminal=false bash="%s" param1=%s param2=auto_conditioning_stop color=%s' % (prefix, sys.argv[0], str(i), color))
             print ('%s--Turn off airco | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=auto_conditioning_stop color=%s' % (prefix, sys.argv[0], str(i), color))
@@ -1300,7 +1316,7 @@ def main(argv):
         print ('%s---- 25° %s| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:25","passenger_temp:25", color))
 
 
-        # TODO: API unpublished - to be verified
+        # TODO: Dog Mode API unpublished - to be verified
 
         if climate_state['climate_keeper_mode'] == 'dog':
             print ('%s--Dog Mode:\t\t\tOn | color=%s' % (prefix, color))
@@ -1310,6 +1326,7 @@ def main(argv):
             print ('%s--Dog Mode:\t\t\tOff | color=%s' % (prefix, color))
             print ('%s----Turn on | refresh=true terminal=false bash="%s" param1=%s param2=set_climate_keeper param3="on:true" color=%s' % (prefix, sys.argv[0], str(i), color))
             print ('%s----Turn on | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_climate_keeper param3="on:true" color=%s' % (prefix, sys.argv[0], str(i), color))
+
 
         print ('%s-----' % prefix)
         print ('%s--Seat heating | color=%s' % (prefix, color))
@@ -1402,9 +1419,9 @@ def main(argv):
            pass
  
         try:
-            print ('%sOutside Temp:				%.1f° %s| color=%s' % (prefix, convert_temp(temp_unit,climate_state['outside_temp']),temp_unit,color))
+            print ('%sOutside Temp:\t\t\t\t%.1f° %s| color=%s' % (prefix, convert_temp(temp_unit,climate_state['outside_temp']),temp_unit,color))
         except:
-            print ('%sOutside Temp:				Unavailable| color=%s' % (prefix, color))
+            print ('%sOutside Temp:\t\t\t\tUnavailable| color=%s' % (prefix, color))
 
         print ('%s---' % prefix)
 
