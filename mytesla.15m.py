@@ -181,6 +181,7 @@ tesla_option_codes = {
 "HC01":"Home Charging Installation", 
 "HP00":"No HPWC Ordered", 
 "HP01":"HPWC Ordered", 
+"ID3W":"Model 3 Wood Decor", 
 "IDBA":"Dark Ash Wood Decor", 
 "IDBO":"Figured Ash Wood Decor", 
 "IDCF":"Carbon Fiber Decor", 
