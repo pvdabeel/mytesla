@@ -5,7 +5,14 @@ Displays information regarding your Tesla vehicle in the Mac OS X menubar. Allow
 
 ![Imgur](https://i.imgur.com/qn9yphU.jpg)
 
+Want a Tesla with free supercharging Credits? Use my [referral code](http://ts.la/pieter9690)
+
 ## Changelog: 
+
+**Update 2019.04.13:**
+- [X] Dog Mode 
+- [X] Sentry Mode
+- [X] More information when vehicle is in service
 
 **Update 2019.03.06:**
 - [X] Compose car image based on optionlist
