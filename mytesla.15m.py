@@ -1176,7 +1176,7 @@ def main(argv):
         sentry_state = 'off'
 
         try:
-            if (vehicle_state['sentry_mode'] == 'true'):
+            if (vehicle_state['sentry_mode'] == True):
                 sentry_available = True
                 sentry_description = CGREEN+'(Sentry On)'+CEND
                 sentry_state = 'on'
