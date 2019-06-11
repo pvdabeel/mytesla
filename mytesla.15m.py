@@ -1436,7 +1436,10 @@ def main(argv):
         print ('%s--Model:			%s | color=%s' % (prefix, vehicle_config['car_type'], info_color))
         print ('%s--Type: 			%s | color=%s' % (prefix, vehicle_config['trim_badging'], info_color))
         print ('%s--Ludicrous:		%s | color=%s' % (prefix, vehicle_config['has_ludicrous_mode'], info_color))
-        print ('%s--Uncorked: 		%s | color=%s' % (prefix, vehicle_config['perf_config'], info_color))
+        try: # since 2019.20.1 no longer in API
+           print ('%s--Uncorked: 		%s | color=%s' % (prefix, vehicle_config['perf_config'], info_color))
+        except:
+           pass 
         print ('%s--Color: 			%s | color=%s' % (prefix, vehicle_config['exterior_color'], info_color))
         print ('%s--Wheels: 			%s | color=%s' % (prefix, vehicle_config['wheel_type'], info_color))
         print ('%s-----' % prefix)
