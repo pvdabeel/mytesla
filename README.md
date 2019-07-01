@@ -7,7 +7,7 @@ Displays information regarding your Tesla vehicle in the Mac OS X menubar. Allow
 
 
 
-![Imgur](https://i.imgur.com/HUwBbKM.jpg) | ![Imgur](https://i.imgur.com/1Wg4gMG.jpg)
+| ![Imgur](https://i.imgur.com/HUwBbKM.jpg) | ![Imgur](https://i.imgur.com/1Wg4gMG.jpg) |
 
 
 
