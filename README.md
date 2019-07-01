@@ -6,10 +6,12 @@ Displays information regarding your Tesla vehicle in the Mac OS X menubar. Allow
 ![Imgur](https://i.imgur.com/lU0zI06.jpg)
 
 
-| Vehicle options | Vehicle images | Control charging |
+| Browse Vehicle options | Browse Vehicle images | Control charging |
 | --- | --- | --- |
 | ![Imgur](https://i.imgur.com/HUwBbKMm.jpg) | ![Imgur](https://i.imgur.com/1Wg4gMGm.jpg) | ![Imgur](https://i.imgur.com/lU0zI06m.jpg) | 
+
 | Control Airco | Control Media | Control Navigation |
+| --- | --- | --- |
 | ![Imgur](https://i.imgur.com/T3FwZntm.jpg) | ![Imgur](https://i.imgur.com/KROaNT1m.jpg) | ![Imgur](https://i.imgur.com/M5VSe4Um.jpg) |
 
 
