@@ -6,13 +6,21 @@ Displays information regarding your Tesla vehicle in the Mac OS X menubar. Allow
 ![Imgur](https://i.imgur.com/lU0zI06.jpg)
 
 
-| col A | col B |
+| Vehicle features features | Vehicle images |
 | --- | --- |
 | ![Imgur](https://i.imgur.com/HUwBbKMm.jpg) | ![Imgur](https://i.imgur.com/1Wg4gMGm.jpg) |
 
 
+<div class="panel panel-gitlab-orange">
+**Heading**
+{: .panel-heading}
+<div class="panel-body">
+
 Want a Tesla with free supercharging Credits? Use my [referral code](http://ts.la/pieter9690)
-{: .alert .alert-info}
+
+</div>
+</div>
+
 
 ## Changelog: 
 
