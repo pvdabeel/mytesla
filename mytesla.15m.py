@@ -501,6 +501,9 @@ class TeslaConnection(object):
     def vehicles(self):
         return [TeslaVehicle(v, self) for v in self.get('vehicles')['response']]
 
+    def appointments(self):
+        return self.get('users/service_scheduling_data')['response']
+
 
     def get_token(self):
         # Case 1 : access token known and not expired
@@ -943,6 +946,7 @@ def main(argv):
        # create connection to tesla account
        c = TeslaConnection(access_token = ACCESS_TOKEN)
        vehicles = c.vehicles()
+       appointments = c.appointments()
     except: 
        app_print_logo()
        print ('Login to tesla.com | refresh=true terminal=true bash="\'%s\'" param1="%s" color=%s' % (sys.argv[0], 'init', color))
@@ -1055,6 +1059,7 @@ def main(argv):
             print ('>>> drive_state:\n%s\n'    % drive_state)
             print ('>>> vehicle_state:\n%s\n'  % vehicle_state)
             print ('>>> vehicle_config:\n%s\n' % vehicle_config)
+            print ('>>> appointments:\n%s\n'   % appointments)
             return
 
         # --------------------------------------------------
