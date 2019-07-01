@@ -9,6 +9,10 @@ Want a Tesla with free supercharging Credits? Use my [referral code](http://ts.l
 
 ## Changelog: 
 
+**Update 2019.07.01:**
+- [X] Show service appointments
+- [X] Mac OS X Catalina beta support
+
 **Update 2019.04.13:**
 - [X] Dog Mode 
 - [X] Sentry Mode
