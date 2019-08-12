@@ -1075,13 +1075,14 @@ def main(argv):
         # SERVICE APPOINTMENT MENU 
         # --------------------------------------------------
 
-        next_appt = datetime.datetime.strptime(appointments['enabled_vins'][0]['next_appt_timestamp'],"%Y-%m-%dT%H:%M:%S")
 
-        if (appointments['enabled_vins'] != ''):
-           print ('%sService appoinment:\t\t\t%s | color=%s' % (prefix, next_appt.strftime("%b %d %Y, %H:%M"), color))
-           print ('%s---' % prefix)
-
-
+        if (appointments['enabled_vins'][0]['next_appt_timestamp'] != None):
+           try: 
+              next_appt = datetime.datetime.strptime(appointments['enabled_vins'][0]['next_appt_timestamp'],"%Y-%m-%dT%H:%M:%S")
+              print ('%sService appoinment:\t\t\t%s | color=%s' % (prefix, next_appt.strftime("%b %d %Y, %H:%M"), color))
+              print ('%s---' % prefix)
+           except: 
+              pass
 
 
         # --------------------------------------------------
