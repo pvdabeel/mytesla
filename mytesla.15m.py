@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env PYTHONIOENCODING=UTF-8 /usr/bin/python 
 # -*- coding: utf-8 -*-
 #
 # <bitbar.title>MyTesla</bitbar.title>
