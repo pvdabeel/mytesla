@@ -20,6 +20,13 @@ Want a Tesla with free supercharging Credits? Use my [referral code](http://ts.l
 
 ## Changelog: 
 
+**Update 2019.09.29:**
+- [X] Support for V.10 firmware
+- [X] Window control
+- [X] Trigger Homelink
+- [X] Share to vehicle
+- [X] Maximum window defrost
+
 **Update 2019.07.01:**
 - [X] Show service appointments
 - [X] Mac OS X Catalina beta support

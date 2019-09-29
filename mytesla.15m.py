@@ -976,13 +976,13 @@ def main(argv):
                 address = raw_input()
                 current_timestamp = int(time.time())
                 json_data = json.dumps({"type":"share_ext_content_raw", "locale":"en-US","timestamp_ms":str(current_timestamp), "value" : {"android.intent.ACTION" : "android.intent.action.SEND", "android.intent.TYPE":"text\/plain", "android.intent.extra.SUBJECT":"MyTesla address","android.intent.extra.TEXT": str(address)}})
-                v.command('navigation_request',json_data)
+                v.command('share',json_data)
             elif sys.argv[2] == 'navigation_set_charger':
                 address = binascii.unhexlify(sys.argv[3])
                 current_timestamp = int(time.time())
                 json_data = json.dumps({"type":"share_ext_content_raw", "locale":"en-US","timestamp_ms":str(current_timestamp), "value" : {"android.intent.ACTION" : "android.intent.action.SEND", "android.intent.TYPE":"text\/plain", "android.intent.extra.SUBJECT":"MyTesla address","android.intent.extra.TEXT": str(address)}})
                 print ('Setting navigation to: %s' % address)
-                v.command('navigation_request',json_data)
+                v.command('share',json_data)
             else:
                 # argv is of the form: CMD + vehicleid + command + key:value pairs 
                 v.command(sys.argv[2],dict(map(lambda x: x.split(':'),sys.argv[3:])))
@@ -1307,6 +1307,10 @@ def main(argv):
         else:
             print ('%s--Turn on airco | refresh=true terminal=false bash="%s" param1=%s param2=auto_conditioning_start color=%s' % (prefix, sys.argv[0], str(i), color))
             print ('%s--Turn on airco | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=auto_conditioning_start color=%s' % (prefix, sys.argv[0], str(i), color))
+            print ('%s--Turn on window defrost | refresh=true terminal=false bash="%s" param1=%s param2=set_preconditioning_max color=%s' % (prefix, sys.argv[0], str(i), color))
+            print ('%s--Turn on window defrost | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_preconditioning_max color=%s' % (prefix, sys.argv[0], str(i), color))
+
+
 
         print ('%s-----' % prefix)
         print ('%s--Airco set to:\t\t\t%.1f° %s | color=%s' % (prefix, convert_temp(temp_unit,climate_state['driver_temp_setting']), temp_unit, color))
@@ -1519,6 +1523,12 @@ def main(argv):
         except:
            # API change going to firmware 2018.4
            pass
+        print ('%s-----' % prefix)
+        print ('%s--Trigger Homelink | refresh=true terminal=false bash="%s" param1=%s param2=trigger_homelink color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s--Trigger Homelink | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=trigger_homelink color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s-----' % prefix)
+        print ('%s--Vent Windows | refresh=true terminal=false bash="%s" param1=%s param2=window_control color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s--Vent Windows | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=window_control color=%s' % (prefix, sys.argv[0], str(i), color))
         print ('%s-----' % prefix)
         print ('%s--Remote start | refresh=true terminal=true bash="%s" param1=%s param2=remote_start_drive color=%s' % (prefix, sys.argv[0], str(i), color))
  
