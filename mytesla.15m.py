@@ -1524,8 +1524,8 @@ def main(argv):
            # API change going to firmware 2018.4
            pass
         print ('%s-----' % prefix)
-        print ('%s--Trigger Homelink | refresh=true terminal=false bash="%s" param1=%s param2=trigger_homelink color=%s' % (prefix, sys.argv[0], str(i), color))
-        print ('%s--Trigger Homelink | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=trigger_homelink color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s--Trigger Homelink | refresh=true terminal=false bash="%s" param1=%s param2=trigger_homelink param3=%s param4=%s color=%s' % (prefix, sys.argv[0], str(i), 'lat:'+str(drive_state['latitude']),'lon:'+str(drive_state['longitude']), color))
+        print ('%s--Trigger Homelink | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=trigger_homelink param3=%s param4=%s color=%s' % (prefix, sys.argv[0], str(i), 'lat:'+str(drive_state['latitude']),'lon:'+str(drive_state['longitude']), color))
         print ('%s-----' % prefix)
         print ('%s--Vent Windows | refresh=true terminal=false bash="%s" param1=%s param2=window_control color=%s' % (prefix, sys.argv[0], str(i), color))
         print ('%s--Vent Windows | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=window_control color=%s' % (prefix, sys.argv[0], str(i), color))
