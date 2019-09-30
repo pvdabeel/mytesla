@@ -1527,8 +1527,11 @@ def main(argv):
         print ('%s--Trigger Homelink | refresh=true terminal=false bash="%s" param1=%s param2=trigger_homelink param3=%s param4=%s color=%s' % (prefix, sys.argv[0], str(i), 'lat:'+str(drive_state['latitude']),'lon:'+str(drive_state['longitude']), color))
         print ('%s--Trigger Homelink | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=trigger_homelink param3=%s param4=%s color=%s' % (prefix, sys.argv[0], str(i), 'lat:'+str(drive_state['latitude']),'lon:'+str(drive_state['longitude']), color))
         print ('%s-----' % prefix)
-        print ('%s--Vent Windows | refresh=true terminal=false bash="%s" param1=%s param2=window_control color=%s' % (prefix, sys.argv[0], str(i), color))
-        print ('%s--Vent Windows | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=window_control color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s--Windows | color=%s' % (prefix, color))
+        print ('%s----Open | refresh=true terminal=false bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:vent', 'lat:0', 'lon:0', color))
+        print ('%s----Open | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:vent', 'lat:0', 'lon:0', color))
+        print ('%s----Close (Not available) | refresh=true terminal=false bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:close', 'lat:0', 'lon:0', info_color))
+        print ('%s----Close (Not available) | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:close', 'lat:0', 'lon:0', info_color))
         print ('%s-----' % prefix)
         print ('%s--Remote start | refresh=true terminal=true bash="%s" param1=%s param2=remote_start_drive color=%s' % (prefix, sys.argv[0], str(i), color))
  
