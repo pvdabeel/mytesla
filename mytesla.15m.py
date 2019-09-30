@@ -1307,10 +1307,13 @@ def main(argv):
         else:
             print ('%s--Turn on airco | refresh=true terminal=false bash="%s" param1=%s param2=auto_conditioning_start color=%s' % (prefix, sys.argv[0], str(i), color))
             print ('%s--Turn on airco | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=auto_conditioning_start color=%s' % (prefix, sys.argv[0], str(i), color))
-            print ('%s--Turn on window defrost | refresh=true terminal=false bash="%s" param1=%s param2=set_preconditioning_max color=%s' % (prefix, sys.argv[0], str(i), color))
-            print ('%s--Turn on window defrost | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_preconditioning_max color=%s' % (prefix, sys.argv[0], str(i), color))
-
-
+        
+        if climate_state['is_front_defroster_on']:
+            print ('%s--Turn off window defrost | refresh=true terminal=false bash="%s" param1=%s param2=set_preconditioning_max param3=%s color=%s' % (prefix, sys.argv[0], str(i), 'on:false', color))
+            print ('%s--Turn off window defrost | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_preconditioning_max param3=%s color=%s' % (prefix, sys.argv[0], str(i), 'on:false', color))
+        else:
+            print ('%s--Turn on window defrost | refresh=true terminal=false bash="%s" param1=%s param2=set_preconditioning_max param3=%s color=%s' % (prefix, sys.argv[0], str(i), 'on:true', color))
+            print ('%s--Turn on window defrost | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_preconditioning_max param3=%s color=%s' % (prefix, sys.argv[0], str(i), 'on:true', color))
 
         print ('%s-----' % prefix)
         print ('%s--Airco set to:\t\t\t%.1f° %s | color=%s' % (prefix, convert_temp(temp_unit,climate_state['driver_temp_setting']), temp_unit, color))
@@ -1494,6 +1497,11 @@ def main(argv):
         print ('%s------Up| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=media_volume_up color=%s' % (prefix, sys.argv[0], str(i), color))
         print ('%s------Down| refresh=true terminal=false bash="%s" param1=%s param2=media_volume_down color=%s' % (prefix, sys.argv[0], str(i), color))
         print ('%s------Down| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=media_volume_down color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s--Windows | color=%s' % (prefix, color))
+        print ('%s----Open | refresh=true terminal=false bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:vent', 'lat:0', 'lon:0', color))
+        print ('%s----Open | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:vent', 'lat:0', 'lon:0', color))
+        print ('%s----Close (Not available) | refresh=true terminal=false bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:close', 'lat:0', 'lon:0', info_color))
+        print ('%s----Close (Not available) | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:close', 'lat:0', 'lon:0', info_color))
         print ('%s-----' % prefix)
         print ('%s--Navigate to address| refresh=true terminal=true bash="%s" param1=%s param2=navigation_request color=%s' % (prefix, sys.argv[0], str(i), color))
         
@@ -1526,12 +1534,6 @@ def main(argv):
         print ('%s-----' % prefix)
         print ('%s--Trigger Homelink | refresh=true terminal=false bash="%s" param1=%s param2=trigger_homelink param3=%s param4=%s color=%s' % (prefix, sys.argv[0], str(i), 'lat:'+str(drive_state['latitude']),'lon:'+str(drive_state['longitude']), color))
         print ('%s--Trigger Homelink | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=trigger_homelink param3=%s param4=%s color=%s' % (prefix, sys.argv[0], str(i), 'lat:'+str(drive_state['latitude']),'lon:'+str(drive_state['longitude']), color))
-        print ('%s-----' % prefix)
-        print ('%s--Windows | color=%s' % (prefix, color))
-        print ('%s----Open | refresh=true terminal=false bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:vent', 'lat:0', 'lon:0', color))
-        print ('%s----Open | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:vent', 'lat:0', 'lon:0', color))
-        print ('%s----Close (Not available) | refresh=true terminal=false bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:close', 'lat:0', 'lon:0', info_color))
-        print ('%s----Close (Not available) | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:close', 'lat:0', 'lon:0', info_color))
         print ('%s-----' % prefix)
         print ('%s--Remote start | refresh=true terminal=true bash="%s" param1=%s param2=remote_start_drive color=%s' % (prefix, sys.argv[0], str(i), color))
  
