@@ -1080,15 +1080,20 @@ def main(argv):
         # SOFTWARE UPDATE MENU 
         # --------------------------------------------------
 
-        if (vehicle_state['software_update']['status'] != ''):
-           print ('%sSoftware update:				%s | refresh=true terminal=false bash="%s" param1=%s param2=schedule_software_update param3=%s color=%s' % (prefix, vehicle_state['software_update']['status'], sys.argv[0], str(i), "offset_sec:0", color))
+        if (vehicle_state['software_update']['status'] == 'available'):
+           print ('%sSoftware update:				%s (version %s - download %s%%) | refresh=true terminal=false bash="%s" param1=%s param2=schedule_software_update param3=%s color=%s' % (prefix, vehicle_state['software_update']['status'], vehicle_state['software_update']['version'], vehicle_state['software_update']['download_perc'], sys.argv[0], str(i), "offset_sec:0", color))
+           print ('%s---' % prefix)
+        elif (vehicle_state['software_update']['status'] == 'scheduled'):
+           print ('%sSoftware update:				%s (version %s) | color=%s' % (prefix, 'Scheduled', vehicle_state['software_update']['version'], color))
+           print ('%s---' % prefix)
+        elif (vehicle_state['software_update']['status'] == 'installing'):
+           print ('%sSoftware update:				%s (version %s - install %s%%) | color=%s' % (prefix, 'Installing', vehicle_state['software_update']['version'], vehicle_state['software_update']['install_perc'], color))
            print ('%s---' % prefix)
 
 
         # --------------------------------------------------
         # SERVICE APPOINTMENT MENU 
         # --------------------------------------------------
-
 
         try: 
            if (appointments['enabled_vins'][0]['next_appt_timestamp'] != None):
