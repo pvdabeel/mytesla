@@ -20,6 +20,10 @@ Want a Tesla with free supercharging Credits? Use my [referral code](http://ts.l
 
 ## Changelog: 
 
+**Update 2019.10.02:**
+- [X] Display window status
+- [X] Show software update progress and version info
+
 **Update 2019.09.30:**
 - [X] Larger google map
 
