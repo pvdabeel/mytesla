@@ -1084,7 +1084,7 @@ def main(argv):
            print ('%sSoftware update:				%s available for installation | refresh=true terminal=false bash="%s" param1=%s param2=schedule_software_update param3=%s color=%s' % (prefix, vehicle_state['software_update']['version'], vehicle_state['software_update']['download_perc'], sys.argv[0], str(i), "offset_sec:0", color))
            print ('%s---' % prefix)
         elif (vehicle_state['software_update']['status'] == 'downloading'):
-           print ('%sSoftware update:				Downloading %s (%s%%) | refresh=true terminal=false bash="%s" param1=%s param2=schedule_software_update param3=%s color=%s' % (prefix, vehicle_state['software_update']['version'], vehicle_state['software_update']['download_perc'], sys.argv[0], str(i), "offset_sec:0", color))
+           print ('%sSoftware update:				Downloading %s (%s%%) | color=%s' % (prefix, vehicle_state['software_update']['version'], vehicle_state['software_update']['download_perc'], color))
            print ('%s---' % prefix)
         elif (vehicle_state['software_update']['status'] == 'scheduled'):
            print ('%sSoftware update:				Preparing to install %s | color=%s' % (prefix, vehicle_state['software_update']['version'], color))
