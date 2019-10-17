@@ -1541,6 +1541,9 @@ def main(argv):
         print ('%s--Wheels: 			%s | color=%s' % (prefix, vehicle_config['wheel_type'], info_color))
         print ('%s-----' % prefix)
         print ('%s--Options | color=%s' % (prefix , info_color))
+        print ('%s----Note: Tesla API currently returning incorrect info| color=%s' % (prefix, color))
+        print ('%s-------' % (prefix))
+        
         for option in vehicle['option_codes'].split(','):
            try:
               option_description = tesla_option_codes[option]
