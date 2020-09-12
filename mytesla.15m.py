@@ -423,6 +423,8 @@ CBLUE   = '\33[34m'
 # Support for OS X Dark Mode
 DARK_MODE=os.getenv('BitBarDarkMode',0)
 
+# Release
+RELNR = '2020.09.12'
 
 # Class that represents the connection to Tesla 
 class TeslaConnection(object):
