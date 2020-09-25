@@ -1168,8 +1168,8 @@ def main(argv):
             print ('%s--Continue charging | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_start color=%s' % (prefix, sys.argv[0], str(i), color))
 
 
-        elif (charge_state['charging_state']=="Completed"): 
-            print ('%sCharger:\t\t\t\t\tCompleted | color=%s' % (prefix, color))
+        elif (charge_state['charging_state']=="Complete"): 
+            print ('%sCharger: \t\t\t\t\tCompleted | color=%s' % (prefix, color))
 
 
         elif (charge_state['charging_state']=="Charging"):
