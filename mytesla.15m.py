@@ -423,8 +423,6 @@ CBLUE   = '\33[34m'
 # Support for OS X Dark Mode
 DARK_MODE=os.getenv('BitBarDarkMode',0)
 
-# Release
-RELNR = '2020.09.12'
 
 # Class that represents the connection to Tesla 
 class TeslaConnection(object):
@@ -1196,7 +1194,7 @@ def main(argv):
 
 
         else:
-            print ('%sCharger:\t\t\t\t\t%s | color=%s' % (prefix, charge_state['charging_state'],color))
+            print ('%sCharger: \t\t\t\t\t%s | color=%s' % (prefix, charge_state['charging_state'],color))
        
         print ('%s---' % prefix)
 
