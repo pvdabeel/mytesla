@@ -1151,17 +1151,17 @@ def main(argv):
         # --------------------------------------------------
 
         if (charge_state['charging_state']=="Disconnected"):
-            print ('%sCharger:\t\t\t\t\tDisconnected | color=%s' % (prefix, color))
+            print ('%sCharger: \t\t\t\t\tDisconnected | color=%s' % (prefix, color))
 
 
         elif (charge_state['charging_state']=='Starting'): 
-            print ('%sCharger:\t\t\t\t\tStarting | color=%s' % (prefix, color))
+            print ('%sCharger: \t\t\t\t\tStarting | color=%s' % (prefix, color))
             print ('%s--Stop charging | refresh=true terminal=false bash="%s" param1=%s param2=charge_stop color=%s' % (prefix, sys.argv[0], str(i), color))
             print ('%s--Stop charging | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_stop color=%s' % (prefix, sys.argv[0], str(i), color))
 
 
         elif (charge_state['charging_state']=="Stopped"): 
-            print ('%sCharger:\t\t\t\t\tStopped | color=%s' % (prefix, color))
+            print ('%sCharger: \t\t\t\t\tStopped | color=%s' % (prefix, color))
             print ('%s--Continue charging | refresh=true terminal=false bash="%s" param1=%s param2=charge_start color=%s' % (prefix, sys.argv[0], str(i), color))
             print ('%s--Continue charging | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_start color=%s' % (prefix, sys.argv[0], str(i), color))
 
