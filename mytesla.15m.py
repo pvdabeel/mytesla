@@ -631,7 +631,13 @@ class TeslaVehicle(dict):
     def wake_up(self):
         """Wake the vehicle"""
         return self.post('wake_up')
-   
+  
+
+    def mobile_access(self):
+        """Check if vehicle mobile access is enabled"""
+        result = self.get('mobile_enabled')
+        return result['response']
+
 
     def nearby_charging_sites(self):
         """Return list of nearby chargers"""
@@ -1027,10 +1033,15 @@ def main(argv):
                  print ('%sVehicle in service. Click to try again. | refresh=true terminal=false bash="echo refresh" color=%s' % (prefix, color))
                  return     
                 
+           vehicle_access = vehicle.mobile_access()
+
+           if vehicle_access == False:
+                 print ('%sVehicle mobile access disabled. Click to try again. | refresh=true terminal=false bash="echo refresh" color=%s' % (prefix, color))
+                 return
 
            # get the data for the vehicle       
            vehicle_info = vehicle.vehicle_data() 
-        except: 
+        except Exception as e: 
            print ('%sError: Failed to get info from Tesla. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
            return         
 
