@@ -830,15 +830,15 @@ def calculate_time_left(hours_to_full_charge):
         return 'Calculating time remaining'
 
     if (remaining_hours == 0):
-       time_left = '%d mins left' % (remaining_minutes)
+       time_left = '\t%d mins left' % (remaining_minutes)
     elif (remaining_hours == 1):
-       time_left = '1 hour %d  mins left' % (remaining_minutes)
+       time_left = '\t1 hour %d  mins left' % (remaining_minutes)
     elif (remaining_minutes == 0):
-       time_left = '%d hours left' % (remaining_hours)
+       time_left = '\t%d hours left' % (remaining_hours)
     elif (remaining_minutes == 1):
-       time_left = '%d hours 1 min left' % (remaining_hours)
+       time_left = '\t%d hours 1 min left' % (remaining_hours)
     else:
-       time_left = '%d hours %d mins left' % (remaining_hours, remaining_minutes)
+       time_left = '\t%d hours %d mins left' % (remaining_hours, remaining_minutes)
 
     return time_left
 
@@ -1077,6 +1077,7 @@ def main(argv):
         # --------------------------------------------------
 
         if 'debug' in argv:
+            print ('>>> vehicle:\n%s\n'        % vehicle)
             print ('>>> vehicle_info:\n%s\n'   % vehicle_info)
             print ('>>> gui_settings:\n%s\n'   % gui_settings)
             print ('>>> charge_state:\n%s\n'   % charge_state)
