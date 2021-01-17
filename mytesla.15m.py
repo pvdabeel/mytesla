@@ -980,6 +980,7 @@ def main(argv):
 
         if sys.argv[2] == "wake_up":
             v.wake_up()
+            time.sleep(15)
         else:
             if (len(sys.argv) == 2) and (sys.argv[2] != 'remote_start_drive'):
                 # argv is of the form: CMD + vehicleid + command 
