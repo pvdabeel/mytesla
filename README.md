@@ -3,6 +3,8 @@
 
 Displays information regarding your Tesla vehicle in the Mac OS X menubar. Allows you to remotely control your Tesla vehicle as well.
 
+Note 30/01/2021: Tesla has changed authentication system. We will update to the new system asap
+
 ![Imgur](https://i.imgur.com/lU0zI06.jpg)
 
 
