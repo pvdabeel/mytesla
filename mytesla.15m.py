@@ -2,14 +2,11 @@
 # -*- coding: utf-8 -*-
 #
 # <bitbar.title>MyTesla</bitbar.title>
-# <bitbar.version>Tesla API v6.0</bitbar.version>
+# <bitbar.version>Tesla API v14.0</bitbar.version>
 # <bitbar.author>pvdabeel@mac.com</bitbar.author>
 # <bitbar.author.github>pvdabeel</bitbar.author.github>
 # <bitbar.desc>Control your Tesla vehicle from the Mac OS X menubar</bitbar.desc>
 # <bitbar.dependencies>python</bitbar.dependencies>
-#
-# Credits: Jason Baker's Tesla bitbar plugin
-#          Greg Glockner teslajson code 
 #
 # Licence: GPL v3
 
@@ -41,10 +38,12 @@ _MAP_SIZE_ = '800x600'
 
 
 try:   # Python 3 dependencies
+    from urlparse import parse_qs
     from urllib.parse import urlencode
     from urllib.request import Request, urlopen, build_opener
     from urllib.request import ProxyHandler, HTTPBasicAuthHandler, HTTPHandler, HTTPError, URLError
 except: # Python 2 dependencies
+    from urlparse import parse_qs
     from urllib import urlencode
     from urllib2 import Request, urlopen, build_opener
     from urllib2 import ProxyHandler, HTTPBasicAuthHandler, HTTPHandler, HTTPError, URLError
@@ -61,10 +60,13 @@ import keyring                                  # Tesla access token is stored i
 import getpass                                  # Getting password without showing chars in terminal.app
 import time
 import os
+import re
 import subprocess
 import pyicloud                                 # Icloud integration - retrieving calendar info 
 import requests
 import binascii
+import random
+import string
 
 import CoreLocation as cl
 
@@ -73,7 +75,7 @@ from datetime   import date
 from tinydb     import TinyDB                   # Keep track of location and vehicle states
 from os.path    import expanduser
 from googlemaps import Client as googleclient   # Reverse lookup of addresses based on coordinates
-
+from hashlib    import sha256
 
 # Location where to store state files
 home         = expanduser("~")
@@ -424,82 +426,219 @@ CBLUE   = '\33[34m'
 DARK_MODE=os.getenv('BitBarDarkMode',0)
 
 
-# Class that represents the connection to Tesla 
-class TeslaConnection(object):
-    """Connection to Tesla Motors API"""
+class TeslaAuthenticator(object):
+    """Manages Tesla authentication. Supports MFA"""
 
-    tesla_client = {
-        'http': {
-            'v1': {
-                'id'     : 'e4a9949fcfa04068f59abb5a658f2bac0a3428e4652315490b659d5ab3f35a9e', 
-                'secret' : 'c75f14bbadc8bee3a7594412c31416f8300256d7668ea7e6e7f06727bfb9d220', 
-                'baseurl': 'https://owner-api.teslamotors.com', 
-                'api'    : '/api/1/'
-            }
-        },
-        'stream': {
-            'v1': {
-                'id'     : 'e4a9949fcfa04068f59abb5a658f2bac0a3428e4652315490b659d5ab3f35a9e', 
-                'secret' : 'c75f14bbadc8bee3a7594412c31416f8300256d7668ea7e6e7f06727bfb9d220', 
-                'baseurl': 'https://streaming.vn.teslamotors.com', 
-                'api'    : '/stream/'
-            }
-        },
-        'wss': {
-            'v1': {
-                'id'     : 'e4a9949fcfa04068f59abb5a658f2bac0a3428e4652315490b659d5ab3f35a9e', 
-                'secret' : 'c75f14bbadc8bee3a7594412c31416f8300256d7668ea7e6e7f06727bfb9d220', 
-                'baseurl': 'https://streaming.vn.teslamotors.com', 
-                'api'    : '/connect/'
-            }
-        }
+    client = {
+        "id"                    : "81527cff06843c8634fdc09e8ac0abefb46ac849f38fe1e431c2ef2106796384",
+        "secret"                : "c7257eb71a564034f9419ee651c7d0e5f7aa6bfbd18bafb5c5c033b093bb2fa3",
+    } 
+
+    headers = {
+        "User-Agent"            : "github.com/pvdabeel/mytesla",
+        "x-tesla-user-agent"    : "github.com/pvdabeel/mytesla",
+        "X-Requested-With"      : "com.teslamotors.tesla" 
     }
 
+    credentials = {}
 
-    def __init__(self,
-            email          = '',
-            password       = '',
-            access_token   = None,
-            proxy_url      = '',
-            proxy_user     = '',
-            proxy_password = '',
-            api            = 'http'):
-        """Initialize connection object
+
+    def __init__(self):
+        return None 
+
+    def dialog_username(self):
+        print ('Enter your tesla.com username:')
+        return raw_input()
+    
+    def dialog_password(self):
+        print ('Enter your tesla.com password:')
+        return getpass.getpass()
+ 
+    def dialog_mfa(self):
+        print ('Enter multi-factor authentication code:')                                   
+        return raw_input()  
+
+
+    def generate_challenge(self,verifier):
+        return base64urlencode(sha256(verifier).hexdigest())
+
+
+    def perform_login(self): 
+
+        session         = requests.Session()
         
-        Required parameters:
-        email: your login for teslamotors.com
-        password: your password for teslamotors.com
+        state           = random_string(12)
+        code_verifier   = random_string(86)
+        code_challenge  = self.generate_challenge(code_verifier) 
+ 
+        #----------------------------#
+        # STEP 1: Get the login page #
+        #----------------------------#
+
+        query = {
+            "client_id"             : "ownerapi",
+            "code_challenge"        : code_challenge,
+            "code_challenge_method" : "S256",
+            "redirect_uri"          : "https://auth.tesla.com/void/callback",
+            "response_type"         : "code",
+            "scope"                 : "openid email offline_access",
+            "state"                 : state }
+
+        response        = session.get("https://auth.tesla.com/oauth2/v3/authorize", params=query, headers=self.headers)
+
+        # resp.ok
+       
+
+        #--------------------------------------#
+        # STEP 2: Obtain an authorization code #
+        #--------------------------------------#
+
+        email           = self.dialog_username()
+        password        = self.dialog_password()
+
+        csrf            = re.search(r'name="_csrf".+value="([^"]+)"', response.text).group(1)
+        transaction_id  = re.search(r'name="transaction_id".+value="([^"]+)"', response.text).group(1)
+ 
+        formdata = {
+            "_csrf"                 : csrf,
+            "_phase"                : "authenticate",
+            "_process"              : "1",
+            "transaction_id"        : transaction_id,
+            "cancel"                : "",
+            "identity"              : email,
+            "credential"            : password } 
+      
+        response        = session.post("https://auth.tesla.com/oauth2/v3/authorize", params=query, data=formdata, headers=self.headers, allow_redirects=False)
+
+        password        = ''
+
+        # resp.ok
+
+
+        #--------------------------------------#
+        # STEP 2a: Multi-Factor authentication #
+        #--------------------------------------#
+
+        is_mfa = True if response.status_code == 200 and "/mfa/verify" in response.text else False
+
+        if is_mfa:
+
+            # Get MFA Factor
+            response    = session.get("https://auth.tesla.com/oauth2/v3/authorize/mfa/factors?transaction_id="+transaction_id, headers=self.headers)
+            factor_id   = response.json()["data"][0]["id"]
+            
+            # Request MFA code from user
+            mfa_code    = self.dialog_mfa()  
+
+            # Perform MFA authentication
+            mfa_data    = {"transaction_id": transaction_id, "factor_id": factor_id, "passcode": mfa_code}
+            response    = session.post("https://auth.tesla.com/oauth2/v3/authorize/mfa/verify", json=mfa_data)
+
+            #if "error" in resp.text or not resp.json()["data"]["approved"] or not resp.json()["data"]["valid"]:
+            
+            mfa_data    = {"transaction_id": transaction_id}
+            response    = session.post("https://auth.tesla.com/oauth2/v3/authorize",params=query, data=mfa_data, headers=self.headers, allow_redirects=False)
+       
+
+        # require: if resp.headers.get("location"):
+           
+        auth_code       = parse_qs(response.headers["location"])["https://auth.tesla.com/void/callback?code"]
+
+
+        #---------------------------------------------#
+        # STEP 3: Exchange auth code for bearer token #
+        #---------------------------------------------#
+
+        payload = {
+            "grant_type"            : "authorization_code",
+            "client_id"             : "ownerapi",
+            "code"                  : auth_code,
+            "code_verifier"         : code_verifier,
+            "redirect_uri"          : "https://auth.tesla.com/void/callback" }
+       
+        response        = session.post("https://auth.tesla.com/oauth2/v3/token", json=payload, headers=self.headers)
         
-        Optional parameters:
-        access_token: API access token
-        proxy_url: URL for proxy server
-        proxy_user: username for proxy server
-        proxy_password: password for proxy server
-        """
-        self.proxy_url      = proxy_url
-        self.proxy_user     = proxy_user
-        self.proxy_password = proxy_password
+        resp_json       = response.json()
+        refresh_token   = resp_json["refresh_token"]
+        bearer_token    = resp_json["access_token"]
 
-        current_client      = self.tesla_client[api]['v1']
+
+        #------------------------------------------------#
+        # STEP 4: Exchange bearer token for access token #
+        #------------------------------------------------#
+
+        self.headers["authorization"] = "bearer " + bearer_token
+
+        payload = {
+            "grant_type"            : "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_id"             : self.client['id'],
+            "client_secret"         : self.client['secret'] }
+
+        response         = session.post("https://owner-api.teslamotors.com/oauth/token", json=payload, headers=self.headers)
+
+        self.credentials = response.json()
+
+        self.save_credentials()
+
+
+    def load_credentials(self):
+        self.credentials    = { 
+            "access_token"  : keyring.get_password("mytesla-bitbar","access_token"),
+            "expires_in"    : keyring.get_password("mytesla-bitbar","expires_in"),
+            "refresh_token" : keyring.get_password("mytesla-bitbar","refresh_token"),
+            "created_at"    : keyring.get_password("mytesla-bitbar","created_at"),
+            "token_type"    : "bearer" }
+
+    def save_credentials(self):
+        keyring.set_password("mytesla-bitbar","access_token",self.credentials["access_token"])
+        keyring.set_password("mytesla-bitbar","expires_in",self.credentials["expires_in"])
+        keyring.set_password("mytesla-bitbar","refresh_token",self.credentials["refresh_token"])
+        keyring.set_password("mytesla-bitbar","created_at",self.credentials["created_at"])
+
+
+    def refresh_credentials(self):
+
+        payload = {
+            "grant_type"            : "refresh_token",
+            "client_id"             : "ownerapi",    
+            "refresh_token"         : self.credentials["refresh_token"],
+            "scope"                 : "openid email offline_access" }
+
+        session         = requests.Session()
+    
+        response        = session.post("https://auth.tesla.com/oauth2/v3/token", json=payload, headers=self.headers)
+
+        resp_json       = resp.json()
+        refresh_token   = resp_json["refresh_token"]
+        bearer_token    = resp_json["access_token"]
         
-        self.baseurl        = current_client['baseurl']
-        self.api            = current_client['api']
+        self.headers["authorization"] = "bearer " + bearer_token
+
+        payload = {                                                             
+            "grant_type"            : "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_id"             : self.client['id'],    
+            "client_secret"         : self.client['secret'] }
+                                                                                
+        response         = session.post("https://owner-api.teslamotors.com/oauth/token", json=payload, headers=self.headers)
+                                                                                
+        self.credentials = resp.json()                                                 
+                                                                                
+        self.save_credentials()
 
 
-        if access_token:
-            # Case 1: TeslaConnection instantiation using access_token
-            self.access_token = access_token 
-            self.__sethead(access_token)
-        else:
-            # Case 2: TeslaConnection instantiation using email and password
-            self.access_token = None
-            self.expiration   = 0 
-            self.oauth = {
-                "grant_type"    : "password",
-                "client_id"     : current_client['id'],
-                "client_secret" : current_client['secret'],
-                "email"         : email,
-                "password"      : password }
+
+class TeslaConnection(object):
+
+    headers = {
+        "User-Agent"            : "github.com/pvdabeel/mytesla",
+        "x-tesla-user-agent"    : "github.com/pvdabeel/mytesla",
+        "X-Requested-With"      : "com.teslamotors.tesla" 
+    }
+
+    
+    def __init__(self,access_token): 
+        self.headers["authorization"] = "bearer " + access_token
+        self.session = requests.Session()
 
 
     def vehicles(self):
@@ -508,96 +647,15 @@ class TeslaConnection(object):
     def appointments(self):
         return self.get('users/service_scheduling_data')['response']
 
-
-    def get_token(self):
-        # Case 1 : access token known and not expired
-        if self.access_token and self.expiration > time.time():
-            return self.access_token
-
-        # Case 2 : access token unknown or expired
-        auth = self.__open("/oauth/token", data=self.oauth)
-        if 'access_token' in auth and auth['access_token']:
-            self.access_token = auth['access_token']
-            self.expiration = int(time.time()) + auth['expires_in'] - 86400
-            return self.access_token
-
-        # Case 3 : could not get access_token, force init
-        return None
-
- 
+     
     def get(self, command):
-        """Utility command to get data from API"""
-        return self.post(command, None)
-   
+        return self.session.get("https://owner-api.teslamotors.com/api/1/"+command, headers=self.headers).json()
 
     def post(self, command, data={}):
-        """Utility command to post data to API"""
-        now = calendar.timegm(datetime.datetime.now().timetuple())
-        if now > self.expiration:
-            auth = self.__open("/oauth/token", data=self.oauth)
-            self.__sethead(auth['access_token'],
-                           auth['created_at'] + auth['expires_in'] - 86400)
-        if _DEBUG_:
-           print ("%s%s%s%s" % (CRED, self.api , command, CEND))
-        result = self.__open("%s%s" % (self.api, command), headers=self.head, data=data)
-        if _DEBUG_:
-           print ("%s%s%s" % (CGREEN, result, CEND))
-        return result
-   
+        return self.session.post("https://owner-api.teslamotors.com/api/1/"+command, data=data, headers=self.headers).json()
 
-    def __sethead(self, access_token, expiration=float('inf')):
-        """Set HTTP header"""
-        self.access_token = access_token
-        self.expiration = expiration
-        self.head = {"Authorization": "Bearer %s" % access_token}
-   
 
-    def __open(self, url, headers={}, data=None, baseurl=""):
-        """Raw urlopen command"""
-        if not baseurl:
-            baseurl = self.baseurl
-        
-        headers['User-Agent']='github.com/pvdabeel/mytesla'
-        
-        # json
-        if type(data) is str:   
-            headers['Content-Type']='application/json'
-            jsondata=data.encode('utf-8')
-            headers['Content-Length']= len(jsondata)
-        
-        req = Request("%s%s" % (baseurl, url), headers=headers)
-        
-        # json
-        if type(data) is str:
-            req.data = jsondata
-        # not json
-        else:
-            try:
-                req.data = urlencode(data).encode('utf-8') # Python 3
-            except:
-                try:
-                    req.add_data(urlencode(data)) # Python 2
-                except:
-                    pass
 
-        # Proxy support
-        if self.proxy_url:
-            if self.proxy_user:
-                proxy = ProxyHandler({'https': 'https://%s:%s@%s' % (self.proxy_user,
-                                                                     self.proxy_password,
-                                                                     self.proxy_url)})
-                auth = HTTPBasicAuthHandler()
-                opener = build_opener(proxy, auth, HTTPHandler)
-            else:
-                handler = ProxyHandler({'https': self.proxy_url})
-                opener = build_opener(handler)
-        else:
-            opener = build_opener()
-       
-        resp = opener.open(req)
-        charset = resp.info().get('charset', 'utf-8')
-        return json.loads(resp.read().decode(charset))
-        
 
 # Class that represents a Tesla vehicle
 class TeslaVehicle(dict):
@@ -747,6 +805,22 @@ class Icloud(dict):
         return self.api.reminders.lists
 
 
+# Create a random string
+def random_string(size):
+    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(size))
+
+
+def base64urlencode(arg):
+    stripped = arg.split("=")[0]
+    filtered = stripped.replace("+", "-").replace("/", "_")
+    return filtered
+
+def base64urldecode(arg):
+    filtered = arg.replace("-", "+").replace("_", "/")
+    padded = filtered + "=" * ((len(filtered) * -1) % 4)
+    return padded
+
+
 # Convertor for temperature
 def convert_temp(temp_unit,temp):
     if temp_unit == 'F':
@@ -866,8 +940,9 @@ def retrieve_google_maps(latitude,longitude):
          my_google_zoom = '&zoom=17'
          my_url1 ='https://maps.googleapis.com/maps/api/staticmap?center='+latitude+','+longitude+my_google_key+my_google_dark_style+my_google_zoom+my_google_size+'&markers=color:red%7C'+latitude+','+longitude
          my_url2 ='https://maps.googleapis.com/maps/api/staticmap?center='+latitude+','+longitude+my_google_key+my_google_zoom+my_google_size+'&maptype=hybrid&markers=color:red%7C'+latitude+','+longitude
-         my_cnt1 = requests.get(my_url1).content
-         my_cnt2 = requests.get(my_url2).content
+         s = requests.Session()
+         my_cnt1 = s.get(my_url1).content
+         my_cnt2 = s.get(my_url2).content
          my_img1 = base64.b64encode(my_cnt1)
          my_img2 = base64.b64encode(my_cnt2)
          location_map.write(my_cnt1)
@@ -887,23 +962,15 @@ def app_print_logo():
 
 
 # --------------------------
-# The main function
+# The init function
 # --------------------------
 
 # The init function: Called to store your username and access_code in OS X Keychain on first launch
 def init():
-    # Here we do the setup
-    # Store access_token in OS X keychain on first run
-    print ('Enter your tesla.com username:')
-    init_username = raw_input()
-    print ('Enter your tesla.com password:')
-    init_password = getpass.getpass()
-    init_access_token = None
-
     try:
-        c = TeslaConnection(init_username,init_password)
-        init_password = ''
-        init_access_token = c.get_token()
+        auth = TeslaAuthenticator()
+        auth.perform_login()
+        return
     except HTTPError as e:
         print ('Error contacting Tesla servers. Try again later.')
         print e
@@ -917,12 +984,7 @@ def init():
         print ('Error: Could not get an access token from Tesla. Try again later.')
         print e
         return
-    keyring.set_password("mytesla-bitbar","username",init_username)
-    keyring.set_password("mytesla-bitbar","access_token",init_access_token)
 
-
-
-USERNAME = keyring.get_password("mytesla-bitbar","username")  
 
 
 # --------------------------
@@ -951,10 +1013,9 @@ def main(argv):
         color = 'black' 
         info_color = '#808080'
 
-    USERNAME = keyring.get_password("mytesla-bitbar","username")
     ACCESS_TOKEN = keyring.get_password("mytesla-bitbar","access_token")
-    
-    if not USERNAME:   
+   
+    if not ACCESS_TOKEN:   
        # restart in terminal calling init 
        app_print_logo()
        print ('Login to tesla.com | refresh=true terminal=true bash="\'%s\'" param1="%s" color=%s' % (sys.argv[0], 'init', color))
