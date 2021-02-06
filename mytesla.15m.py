@@ -676,7 +676,7 @@ class TeslaAuthenticator(object):
 
         password        = ''
 
-        if "error" in response.text or not response.status_code == requests.codes.ok:
+        if response.status_code == 401:
             raise Exception('Authentication failed: wrong username or password')
        
 
