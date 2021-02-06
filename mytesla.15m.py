@@ -15,7 +15,6 @@
 # Execute in terminal.app before running : 
 #    sudo easy_install keyring
 #    sudo easy_install pyicloud
-#    sudo easy_install pyobjc-framework-CoreLocation
 #
 # Ensure you have bitbar installed https://github.com/matryer/bitbar/releases/latest
 # Ensure your bitbar plugins directory does not have a space in the path (known bitbar bug)
@@ -852,6 +851,10 @@ class TeslaVehicle(dict):
         return result['response']
     
 
+    def asleep(self):
+        """Check if vehichle is asleep"""
+        return self['state'] == "asleep"
+
     def wake_up(self):
         """Wake the vehicle"""
         return self.post('wake_up')
@@ -980,17 +983,17 @@ class Icloud(dict):
 def random_string(size):
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(size))
 
-
+# Base64 urlencode function
 def base64urlencode(arg):
     stripped = arg.split("=")[0]
     filtered = stripped.replace("+", "-").replace("/", "_")
     return filtered
 
+# Base64 urldecode function
 def base64urldecode(arg):
     filtered = arg.replace("-", "+").replace("_", "/")
     padded = filtered + "=" * ((len(filtered) * -1) % 4)
     return padded
-
 
 # Convertor for temperature
 def convert_temp(temp_unit,temp):
@@ -1060,7 +1063,6 @@ def sentry_state(state):
         return CGREEN + '(Sentry On)'+ CEND
     else: 
         return CRED + '(Sentry Off)' + CEND
-
 
 # Pretty print charge time left in hours & minutes
 def calculate_time_left(hours_to_full_charge):
@@ -1248,15 +1250,18 @@ def main(argv):
             print vehicle['display_name']
 
 	try:
-           # wake up the vehicle
+           if vehicle['state'] == 'asleep':
+                 print ('%sVehicle sleeping. Click to wake up car. | refresh=true terminal=true bash="%s" param1=%s param2=%s color=%s' % (prefix, sys.argv[0], str(i), "wake_up", color))
+                 return 
+               
            if vehicle['state'] != 'online':
-                 print ('%sVehicle offline. Click to wake up car. | refresh=true terminal=true bash="%s" param1=%s color=%s' % (prefix, sys.argv[0], str(i), "wake_up", color))
+                 print ('%sVehicle is offline. Click to try again. | refresh=true terminal=false bash="echo refresh" color=%s' % (prefix, color))
                  return     
  
            if vehicle['in_service'] == True:
                  print ('%sVehicle in service. Click to try again. | refresh=true terminal=false bash="echo refresh" color=%s' % (prefix, color))
                  return     
-                
+               
            vehicle_access = vehicle.mobile_access()
 
            if vehicle_access == False:
@@ -1272,12 +1277,12 @@ def main(argv):
 	vehicle_name = vehicle['display_name']
 	vehicle_vin  = vehicle['vin'] 
 
-        gui_settings    = vehicle_info['gui_settings']   #vehicle_info[0] # vehicle.data_request('gui_settings')
-        charge_state    = vehicle_info['charge_state']   #vehicle_info[1] # vehicle.data_request('charge_state')
-        climate_state   = vehicle_info['climate_state']  #vehicle_info[2] # vehicle.data_request('climate_state')
-        drive_state     = vehicle_info['drive_state']    #vehicle_info[3] # vehicle.data_request('drive_state')
-        vehicle_state   = vehicle_info['vehicle_state']  #vehicle_info[4] # vehicle.data_request('vehicle_state')
-        vehicle_config  = vehicle_info['vehicle_config'] #vehicle_info[5] # vehicle.data_request('vehicle_config')
+        gui_settings    = vehicle_info['gui_settings']
+        charge_state    = vehicle_info['charge_state']
+        climate_state   = vehicle_info['climate_state']
+        drive_state     = vehicle_info['drive_state']
+        vehicle_state   = vehicle_info['vehicle_state']
+        vehicle_config  = vehicle_info['vehicle_config']
 
         nearby_charging_sites = vehicle.nearby_charging_sites()
 
