@@ -20,6 +20,9 @@ Want a Tesla with free supercharging Credits? Use my [referral code](http://ts.l
 
 ## Changelog: 
 
+**Update 2020.02.06 **
+- [X] Ability to override option_codes for your vehicle (see parameters in file)
+
 **Update 2020.02.04:**
 - [X] Support for auth.tesla.com including Multi-Factor authentication
 - [X] Code cleanup

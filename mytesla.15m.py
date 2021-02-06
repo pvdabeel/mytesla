@@ -36,6 +36,13 @@ _COMPOSER_CACHE_HIGH_ = True
 
 _MAP_SIZE_ = '800x600'
 
+# Tesla API returns wrong options code for cars. Put your option codes here 
+# to override those provided by Tesla API. You can get your option list by
+# logging in to tesla.com. The option codes can be copied from the url used 
+# to show the car image in the overview. Use vehicle ID to have different
+# override options per vehicle
+
+_OVERRIDE_OPTION_CODES_ = { 47021733346298627 : "BP00,AH00,AD15,GLTL,AU01,X042,APF2,APH2,APPF,X028,BTX6,BS00,CC02,BC0B,CH04,CF00,CW00,COBE,X039,IDCF,X026,DRLH,DU00,AF02,FMP6,FG02,FR01,X007,X011,INBPB,PI01,IX01,X001,LP01,LT3B,MI02,X037,MDLX,DV4W,X025,X003,PMBL,PK00,X031,PF00,X044,TM00,BR00,RCX0,REEU,RFPX,OSSB,X014,S02B,ME02,QLPB,SR04,SP01,X021,SC05,SU01,TP03,TRA1,TR01,TIG2,DSH7,TW01,MT10A,UTAB,WT22,WXP2,YFCC,CPF1" }
 
 import base64
 import binascii
@@ -865,11 +872,16 @@ class TeslaVehicle(dict):
         switcher = { 'modelx':'mx', 'models':'ms', 'model3':'m3'} 
         return switcher.get(model,model)
 
+    def option_codes(self): 
+        """Tesla does not return the option codes correctly, so we read them from the override parameter in this file"""
+        try: 
+            return _OVERRIDE_OPTION_CODES_[self['id']]
+        except: 
+            return self['option_codes'] 
 
     def command(self, name, data={}):
         """Run the command for the vehicle"""
         return self.post('command/%s' % name, data)
-
 
     def get(self, command):
         """Utility command to get data from API"""
@@ -883,7 +895,7 @@ class TeslaVehicle(dict):
  
     def compose_url(self, model, size=2048, view='STUD_SIDE', background='1'):
         """Returns composed image url representing the car"""
-        return 'https://static-assets.tesla.com/v1/compositor/?model='+self.model_short(model)+'&view='+view+'&size='+str(size)+'&options='+self['option_codes']+'&bkba_opt='+str(background)+'&context=design_studio_desktop'
+        return 'https://static-assets.tesla.com/v1/compositor/?model='+self.model_short(model)+'&view='+view+'&size='+str(size)+'&options='+self.option_codes()+'&bkba_opt='+str(background)+'&context=design_studio_desktop'
         
 
     def compose_image(self, model, size=512, view='STUD_SIDE', background='1'):
@@ -1294,6 +1306,7 @@ def main(argv):
         # --------------------------------------------------
 
         if 'debug' in argv:
+            print vehicle.option_codes()
             print ('>>> vehicle:\n%s\n'        % vehicle)
             print ('>>> vehicle_info:\n%s\n'   % vehicle_info)
             print ('>>> gui_settings:\n%s\n'   % gui_settings)
@@ -1773,7 +1786,7 @@ def main(argv):
         print ('%s----Note: Tesla API currently returning incorrect info| color=%s' % (prefix, color))
         print ('%s-------' % (prefix))
         
-        for option in vehicle['option_codes'].split(','):
+        for option in vehicle.option_codes().split(','):
            try:
               option_description = tesla_option_codes[option]
            except: 
