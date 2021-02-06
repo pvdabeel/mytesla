@@ -37,48 +37,31 @@ _COMPOSER_CACHE_HIGH_ = True
 _MAP_SIZE_ = '800x600'
 
 
-try:   # Python 3 dependencies
-    from urlparse import parse_qs
-    from urllib.parse import urlencode
-    from urllib.request import Request, urlopen, build_opener
-    from urllib.request import ProxyHandler, HTTPBasicAuthHandler, HTTPHandler, HTTPError, URLError
-except: # Python 2 dependencies
-    from urlparse import parse_qs
-    from urllib import urlencode
-    from urllib2 import Request, urlopen, build_opener
-    from urllib2 import ProxyHandler, HTTPBasicAuthHandler, HTTPHandler, HTTPError, URLError
-
-
-import ast
-import json
-import sys
-import datetime
-import calendar
 import base64
-import math
-import keyring                                  # Tesla access token is stored in OS X keychain
-import getpass                                  # Getting password without showing chars in terminal.app
-import time
-import os
-import re
-import subprocess
-import pyicloud                                 # Icloud integration - retrieving calendar info 
-import requests
 import binascii
+import calendar
+import datetime
+import getpass                                  
+import json
+import keyring                                  
+import math
+import os
+import pyicloud                                 
 import random
+import re
+import requests
 import string
+import sys
+import time
 
-import CoreLocation as cl
-
-from pyicloud   import PyiCloudService          # Icloud integration - schedule events in icloud agenda
-from datetime   import date
-from tinydb     import TinyDB                   # Keep track of location and vehicle states
-from os.path    import expanduser
-from googlemaps import Client as googleclient   # Reverse lookup of addresses based on coordinates
+from googlemaps import Client as googleclient
 from hashlib    import sha256
+from tinydb     import TinyDB
+from urlparse   import parse_qs
+
 
 # Location where to store state files
-home         = expanduser("~")
+home         = os.path.expanduser("~")
 state_dir    = home+'/.state/mytesla'
 
 if not os.path.exists(state_dir):
@@ -766,7 +749,7 @@ class Icloud(dict):
         print ('Enter your iCloud password:')
         icloud_password = getpass.getpass()
         try: 
-           self.api = PyiCloudService(icloud_username,icloud_password)
+           self.api = pyicloud.PyiCloudService(icloud_username,icloud_password)
         except Exception as e:
            print('Error: Failed to authenticate to iCloud')
            print e
@@ -782,7 +765,7 @@ class Icloud(dict):
         icloud_username = keyring.get_password("mytesla-bitbar","icloud_username")
         icloud_password = keyring.get_password("mytesla-bitbar","icloud_password")
         try: 
-           self.api = PyiCloudService(icloud_username,icloud_password)
+           self.api = pyicloud.PyiCloudService(icloud_username,icloud_password)
         except Exception as e:
            self.init()
            return
@@ -1673,17 +1656,5 @@ def main(argv):
         print ('%s--Remote start | refresh=true terminal=true bash="%s" param1=%s param2=remote_start_drive color=%s' % (prefix, sys.argv[0], str(i), color))
  
 
-
-
-       
-
-def run_script(script):
-    return subprocess.Popen([script], stdout=subprocess.PIPE, shell=True).communicate()[0].strip()
-
-def password_dialog():
-    cmd = "osascript -e 'set my_password to display dialog \"Please enter your Tesla password:\" with title \"Tesla password\" with icon file \"Users:pvdabeel:Documents:Bitbar-plugins:icons:tesla.icns\" default answer \"\" buttons {\"Cancel\",\"Login\"} default button 2 giving up after 180 with hidden answer'"
-    print run_script(cmd)
-
 if __name__ == '__main__':
-    #password_dialog()
     main(sys.argv)
