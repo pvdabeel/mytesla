@@ -1082,6 +1082,51 @@ def sentry_state(state):
     else: 
         return CRED + '(Sentry Off)' + CEND
 
+# Pretty print sleeping time 
+def sleeping_since(time=False):
+    """
+    Get a datetime object or a int() Epoch timestamp and return a
+    pretty string like 'an hour ago', 'Yesterday', '3 months ago',
+    'just now', etc
+    """
+    from datetime import datetime
+    now = datetime.now()
+    if type(time) is int:
+        diff = now - datetime.fromtimestamp(time/1000)
+    elif isinstance(time,datetime):
+        diff = now - time
+    elif not time:
+        diff = now - now
+    second_diff = diff.seconds
+    day_diff = diff.days
+
+    if day_diff < 0:
+        return 'Jetlagged'
+
+    if day_diff == 0:
+        if second_diff < 10:
+            return "Started sleeping a few moments ago"
+        if second_diff < 60:
+            return "Started sleeping "+str(second_diff) + " seconds ago"
+        if second_diff < 120:
+            return "Started sleeping a minute ago"
+        if second_diff < 3600:
+            return "Sleeping since "+str(second_diff / 60) + " minutes ago"
+        if second_diff < 7200:
+            return "Sleeping since an hour ago"
+        if second_diff < 86400:
+            return "Sleeping since "+ str(second_diff / 3600) + " hours ago"
+    if day_diff == 1:
+        return "Sleeping since Yesterday"
+    if day_diff < 7:
+        return "Sleeping since "+sstr(day_diff) + " days"
+    if day_diff < 31:
+        return "Sleeping since "+str(day_diff / 7) + " weeks"
+    if day_diff < 365:
+        return "Sleeping since "+str(day_diff / 30) + " months"
+    return "Sleeping since "+str(day_diff / 365) + " year"
+
+
 # Pretty print charge time left in hours & minutes
 def calculate_time_left(hours_to_full_charge):
     mins_to_full_charge = hours_to_full_charge * 60
@@ -1276,9 +1321,13 @@ def main(argv):
            if vehicle['in_service'] == True:
                  print ('%sVehicle in service. Click to try again. | refresh=true terminal=false bash="echo refresh" color=%s' % (prefix, color))
                  return     
-               
+ 
+           # get the data for the vehicle       
+           vehicle_info = vehicle.vehicle_data() 
+   
            if vehicle['state'] == 'asleep':
-                 print ('%sVehicle state:\t\t\t\tSleeping. Click to wake up car. | refresh=true terminal=true bash="%s" param1=%s param2=%s color=%s' % (prefix, sys.argv[0], str(i), "wake_up", color))
+                 print ('%sVehicle state:\t\t\t\t%s. | color=%s' % (prefix, sleeping_since(vehicle_info['drive_state']['timestamp']), color))
+                 print ('%s--Wake up | refresh=true terminal=true bash="%s" param1=%s param2=%s color=%s' % (prefix, sys.argv[0], str(i), "wake_up", color))
                  print ('%s---' % prefix)
            
            elif vehicle['state'] != 'online':
@@ -1289,9 +1338,6 @@ def main(argv):
                  print ('%sVehicle state:\t\t\t\tOnline | color=%s' % (prefix, color))
                  print ('%s---' % prefix)
 
-
-           # get the data for the vehicle       
-           vehicle_info = vehicle.vehicle_data() 
 
         except Exception as e: 
            print ('%sError: Failed to get info from Tesla. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
