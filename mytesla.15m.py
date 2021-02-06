@@ -772,8 +772,7 @@ class TeslaAuthenticator(object):
 
         payload = {                                                             
             "grant_type"            : "urn:ietf:params:oauth:grant-type:jwt-bearer",
-            "client_id"             : self.client['id'],    
-            "client_secret"         : self.client['secret'] }
+            "client_id"             : self.client['id'] }
                                                                                 
         response         = session.post("https://owner-api.teslamotors.com/oauth/token", json=payload, headers=self.headers)
                                                                                 
