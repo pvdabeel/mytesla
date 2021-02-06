@@ -649,7 +649,8 @@ class TeslaAuthenticator(object):
 
         response        = session.get("https://auth.tesla.com/oauth2/v3/authorize", params=query, headers=self.headers)
 
-        # resp.ok
+        if not response.status_code == requests.codes.ok:
+            raise Exception('loginpage','not available')
        
 
         #--------------------------------------#
@@ -675,8 +676,9 @@ class TeslaAuthenticator(object):
 
         password        = ''
 
-        # resp.ok
-
+        if "error" in response.text or not response.status_code == requests.codes.ok:
+            raise Exception('authentication','wrong username or password')
+       
 
         #--------------------------------------#
         # STEP 2a: Multi-Factor authentication #
@@ -697,14 +699,16 @@ class TeslaAuthenticator(object):
             mfa_data    = {"transaction_id": transaction_id, "factor_id": factor_id, "passcode": mfa_code}
             response    = session.post("https://auth.tesla.com/oauth2/v3/authorize/mfa/verify", json=mfa_data)
 
-            #if "error" in resp.text or not resp.json()["data"]["approved"] or not resp.json()["data"]["valid"]:
-            
+            if "error" in response.text or not response.json()["data"]["approved"] or not response.json()["data"]["valid"]:
+                raise Exception('authorization', 'wrong MFA code') 
+
             mfa_data    = {"transaction_id": transaction_id}
             response    = session.post("https://auth.tesla.com/oauth2/v3/authorize",params=query, data=mfa_data, headers=self.headers, allow_redirects=False)
        
 
-        # require: if resp.headers.get("location"):
-           
+        if not response.headers.get("location"):
+            raise Exception('authentication','something went wrong, try again')
+
         auth_code       = parse_qs(response.headers["location"])["https://auth.tesla.com/void/callback?code"]
 
 
