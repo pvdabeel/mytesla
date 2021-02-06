@@ -1202,8 +1202,9 @@ def main(argv):
 
 
         if sys.argv[2] == "wake_up":
+            print ('Waking up your car... this may take up to 30 seconds.')
             v.wake_up()
-            time.sleep(15)
+            time.sleep(30)
         else:
             if (len(sys.argv) == 2) and (sys.argv[2] != 'remote_start_drive'):
                 # argv is of the form: CMD + vehicleid + command 
@@ -1249,8 +1250,7 @@ def main(argv):
 	try:
            # wake up the vehicle
            if vehicle['state'] != 'online':
-                 vehicle.wake_up()
-                 print ('%sVehicle offline. Click to try again. | refresh=true terminal=false bash="echo refresh" color=%s' % (prefix, color))
+                 print ('%sVehicle offline. Click to wake up car. | refresh=true terminal=true bash="%s" param1=%s color=%s' % (prefix, sys.argv[0], str(i), "wake_up", color))
                  return     
  
            if vehicle['in_service'] == True:
