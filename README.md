@@ -21,6 +21,8 @@ Want a Tesla with free supercharging Credits? Use my [referral code](http://ts.l
 ## Changelog: 
 
 **Update 2020.02.06 **
+- [X] Offline mode: application shows last known 'state' when vehicle is sleeping. Added a manual wakup option.
+- [X] Improved location tracking performance
 - [X] Ability to override option_codes for your vehicle (see parameters in file)
 
 **Update 2020.02.04:**
@@ -121,4 +123,5 @@ Greg Glockner teslajson API [code](https://github.com/gglockner/teslajson/).
 2. Execute 'sudo easy_install tinydb==3.9 keyring==8.7 pyicloud pathos pyobjc-framework-CoreLocation googlemaps' in Terminal.app
 3. Ensure your bitbar plugins directory does not have a space in the path (A known bitbar bug)
 4. Copy [mytesla.15m.py](mytesla.15m.py) to your bitbar plugins folder and chmod +x the file from your terminal in that folder
-5. Run bitbar
+5. For advanced users: check the configuration options in the mytesla.15m.py file
+6. Run bitbar

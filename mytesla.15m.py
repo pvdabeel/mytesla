@@ -62,7 +62,7 @@ import time
 
 from googlemaps import Client as googleclient
 from hashlib    import sha256
-from tinydb     import TinyDB
+from tinydb     import TinyDB, Query
 from urlparse   import parse_qs
 
 
@@ -841,7 +841,25 @@ class TeslaVehicle(dict):
 
     def vehicle_data(self):
         """Get vehicle data"""
+        if self.asleep(): 
+            try:
+                # Vehicle asleep, getting info from local cache
+                Q = Query()
+                result = locationdb.search(Q.vehicle==self['id'])[-1]['vehicle_data']
+                return result['response']
+            except:
+                # Local cache failed, waking up vehicle
+                self.post('wake_up')
+                time.sleep(30)
+                pass
+        # Retrieve the vehicle data from Tesla API
         result = self.get('vehicle_data')
+        # Updating local cache
+        if _LOCATION_TRACKING_:
+            locationdb.insert({'vehicle':self['id'],'date':str(datetime.datetime.now()),'vehicle_data':result})
+        else:
+            locationdb.purge()
+            locationdb.insert({'vehicle':self['id'],'date':str(datetime.datetime.now()),'vehicle_data':result})
         return result['response']
     
 
@@ -1250,28 +1268,34 @@ def main(argv):
             print vehicle['display_name']
 
 	try:
-           if vehicle['state'] == 'asleep':
-                 print ('%sVehicle sleeping. Click to wake up car. | refresh=true terminal=true bash="%s" param1=%s param2=%s color=%s' % (prefix, sys.argv[0], str(i), "wake_up", color))
-                 return 
-               
-           if vehicle['state'] != 'online':
-                 print ('%sVehicle is offline. Click to try again. | refresh=true terminal=false bash="echo refresh" color=%s' % (prefix, color))
-                 return     
- 
+           vehicle_access = vehicle.mobile_access()
+           if vehicle_access == False:
+                 print ('%sVehicle mobile access disabled. Click to try again. | refresh=true terminal=false bash="echo refresh" color=%s' % (prefix, color))
+                 return
+         
            if vehicle['in_service'] == True:
                  print ('%sVehicle in service. Click to try again. | refresh=true terminal=false bash="echo refresh" color=%s' % (prefix, color))
                  return     
                
-           vehicle_access = vehicle.mobile_access()
+           if vehicle['state'] == 'asleep':
+                 print ('%sVehicle state:\t\t\t\tSleeping. Click to wake up car. | refresh=true terminal=true bash="%s" param1=%s param2=%s color=%s' % (prefix, sys.argv[0], str(i), "wake_up", color))
+                 print ('%s---' % prefix)
+           
+           elif vehicle['state'] != 'online':
+                 print ('%sVehicle offline. Click to try again. | refresh=true terminal=false bash="echo refresh" color=%s' % (prefix, color))
+                 return     
+ 
+           elif vehicle['state'] == 'online':
+                 print ('%sVehicle state:\t\t\t\tOnline | color=%s' % (prefix, color))
+                 print ('%s---' % prefix)
 
-           if vehicle_access == False:
-                 print ('%sVehicle mobile access disabled. Click to try again. | refresh=true terminal=false bash="echo refresh" color=%s' % (prefix, color))
-                 return
 
            # get the data for the vehicle       
            vehicle_info = vehicle.vehicle_data() 
+
         except Exception as e: 
            print ('%sError: Failed to get info from Tesla. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
+           print e
            return         
 
 	vehicle_name = vehicle['display_name']
@@ -1291,9 +1315,6 @@ def main(argv):
         if gui_settings['gui_distance_units'] == 'mi/hr':
             distance_unit = 'mi'
 
-
-        if _LOCATION_TRACKING_: 
-            locationdb.insert({'date':str(datetime.datetime.now()),'vehicle_info':vehicle_info})
 
         if _COMPOSER_CACHE_HIGH_:
             for view in ['STUD_3QTR','STUD_SIDE','STUD_REAR','STUD_SEAT']:
@@ -1463,7 +1484,7 @@ def main(argv):
         except:
             pass
   
-        print ('%sVehicle State:\t\t\t\t%s %s | color=%s' % (prefix, lock_state(vehicle_state['locked']), sentry_description, color))
+        print ('%sVehicle security:\t\t\t\t%s %s | color=%s' % (prefix, lock_state(vehicle_state['locked']), sentry_description, color))
 
         if bool(vehicle_state['locked']):
             print ('%s--%s | refresh=true terminal=false bash="%s" param1=%s param2=door_unlock color=%s' % (prefix, CRED+'Unlock'+CEND, sys.argv[0], str(i), color))
@@ -1579,9 +1600,9 @@ def main(argv):
         	print ('%s----Open | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_port_door_open color=%s' % (prefix, sys.argv[0], str(i), color))
 
         if bool(drive_state['speed']):
-            print ('%sVehicle Speed:\t\t\t\t%s %s/h| color=%s' % (prefix, convert_distance(distance_unit,drive_state['speed']),distance_unit,color))
+            print ('%sVehicle speed:\t\t\t\t%s %s/h| color=%s' % (prefix, convert_distance(distance_unit,drive_state['speed']),distance_unit,color))
         else:
-            print ('%sVehicle Speed:\t\t\t\tParked| color=%s' % (prefix,color))
+            print ('%sVehicle speed:\t\t\t\tParked| color=%s' % (prefix,color))
  
         
 
@@ -1618,9 +1639,9 @@ def main(argv):
         # --------------------------------------------------
    
         try:
-            print ('%sInside Temp:\t\t\t\t\t%.1f° %s| color=%s' % (prefix, convert_temp(temp_unit,climate_state['inside_temp']),temp_unit,color))
+            print ('%sInside temp:\t\t\t\t\t%.1f° %s| color=%s' % (prefix, convert_temp(temp_unit,climate_state['inside_temp']),temp_unit,color))
         except:
-            print ('%sInside Temp:\t\t\t\t\tUnavailable| color=%s' % (prefix,color))
+            print ('%sInside temp:\t\t\t\t\tUnavailable| color=%s' % (prefix,color))
         if climate_state['is_climate_on']:
             print ('%s--Turn off airco | refresh=true terminal=false bash="%s" param1=%s param2=auto_conditioning_stop color=%s' % (prefix, sys.argv[0], str(i), color))
             print ('%s--Turn off airco | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=auto_conditioning_stop color=%s' % (prefix, sys.argv[0], str(i), color))
