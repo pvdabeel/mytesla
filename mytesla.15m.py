@@ -650,7 +650,7 @@ class TeslaAuthenticator(object):
         response        = session.get("https://auth.tesla.com/oauth2/v3/authorize", params=query, headers=self.headers)
 
         if not response.status_code == requests.codes.ok:
-            raise Exception('loginpage','not available')
+            raise Exception('Loginpage not available. Please try again later.')
        
 
         #--------------------------------------#
@@ -677,7 +677,7 @@ class TeslaAuthenticator(object):
         password        = ''
 
         if "error" in response.text or not response.status_code == requests.codes.ok:
-            raise Exception('authentication','wrong username or password')
+            raise Exception('Authentication failed: wrong username or password')
        
 
         #--------------------------------------#
@@ -700,14 +700,14 @@ class TeslaAuthenticator(object):
             response    = session.post("https://auth.tesla.com/oauth2/v3/authorize/mfa/verify", json=mfa_data)
 
             if "error" in response.text or not response.json()["data"]["approved"] or not response.json()["data"]["valid"]:
-                raise Exception('authorization', 'wrong MFA code') 
+                raise Exception('Authentication failed: wrong MFA code') 
 
             mfa_data    = {"transaction_id": transaction_id}
             response    = session.post("https://auth.tesla.com/oauth2/v3/authorize",params=query, data=mfa_data, headers=self.headers, allow_redirects=False)
        
 
         if not response.headers.get("location"):
-            raise Exception('authentication','something went wrong, try again')
+            raise Exception('Unable to log in at this time. Please try again later.')
 
         auth_code       = parse_qs(response.headers["location"])["https://auth.tesla.com/void/callback?code"]
 
@@ -1142,18 +1142,9 @@ def init():
         auth = TeslaAuthenticator()
         auth.perform_login()
         return
-    except HTTPError as e:
-        print ('Error contacting Tesla servers. Try again later.')
-        print e
+    except Exception as e:
+        print ("Error: %s" % e)
         time.sleep(0.5)
-        return
-    except URLError as e:
-        print ('Error: Unable to connect. Check your connection settings.')
-        print e
-        return
-    except AttributeError as e:
-        print ('Error: Could not get an access token from Tesla. Try again later.')
-        print e
         return
 
 
