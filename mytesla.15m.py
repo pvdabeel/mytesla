@@ -40,7 +40,7 @@ _MAP_SIZE_ = '800x600'
 # to show the car image in the overview. Use vehicle ID to have different
 # override options per vehicle
 
-_OVERRIDE_OPTION_CODES_ = { 47021733346298627 : "BP00,AH00,AD15,GLTL,AU01,X042,APF2,APH2,APPF,X028,BTX6,BS00,CC02,BC0R,CH04,CF00,CW00,COBE,X039,IDCF,X026,DRLH,DU00,AF02,FMP6,FG02,FR01,X007,X011,INBPB,PI01,IX01,X001,LP01,LT3B,MI02,X037,MDLX,DV4W,X025,X003,PMBL,PK00,X031,PF00,X044,TM00,BR00,RCX0,REEU,RFPX,OSSB,X014,S02B,ME02,QLPB,SR04,SP01,X021,SC05,SU01,TP03,TRA1,TR01,TIG2,DSH7,TW01,MT10A,UTAB,WT22,WXP2,YFCC,CPF1" }
+_OVERRIDE_OPTION_CODES_ = { 1669029050 : "BP00,AH00,AD15,GLTL,AU01,X042,APF2,APH2,APPF,X028,BTX6,BS00,CC02,BC0R,CH04,CF00,CW00,COBE,X039,IDCF,X026,DRLH,DU00,AF02,FMP6,FG02,FR01,X007,X011,INBPB,PI01,IX01,X001,LP01,LT3B,MI02,X037,MDLX,DV4W,X025,X003,PMBL,PK00,X031,PF00,X044,TM00,BR00,RCX0,REEU,RFPX,OSSB,X014,S02B,ME02,QLPB,SR04,SP01,X021,SC05,SU01,TP03,TRA1,TR01,TIG2,DSH7,TW01,MT10A,UTAB,WT22,WXP2,YFCC,CPF1" }
 
 import base64
 import binascii
@@ -843,7 +843,7 @@ class TeslaVehicle(dict):
             try:
                 # Vehicle asleep, getting info from local cache
                 Q = Query()
-                result = locationdb.search(Q.vehicle==self['id'])[-1]['vehicle_data']
+                result = locationdb.search(Q.vehicle==self['vehicle_id'])[-1]['vehicle_data']
                 return result['response']
             except:
                 # Local cache failed, waking up vehicle
@@ -854,10 +854,10 @@ class TeslaVehicle(dict):
         result = self.get('vehicle_data')
         # Updating local cache
         if _LOCATION_TRACKING_:
-            locationdb.insert({'vehicle':self['id'],'date':str(datetime.datetime.now()),'vehicle_data':result})
+            locationdb.insert({'vehicle':self['vehicle_id'],'date':str(datetime.datetime.now()),'vehicle_data':result})
         else:
             locationdb.purge()
-            locationdb.insert({'vehicle':self['id'],'date':str(datetime.datetime.now()),'vehicle_data':result})
+            locationdb.insert({'vehicle':self['vehicle_id'],'date':str(datetime.datetime.now()),'vehicle_data':result})
         return result['response']
     
 
@@ -898,7 +898,7 @@ class TeslaVehicle(dict):
     def option_codes(self): 
         """Tesla does not return the option codes correctly, so we read them from the override parameter in this file"""
         try: 
-            return _OVERRIDE_OPTION_CODES_[self['id']]
+            return _OVERRIDE_OPTION_CODES_[self['vehicle_id']]
         except: 
             return self['option_codes'] 
 
