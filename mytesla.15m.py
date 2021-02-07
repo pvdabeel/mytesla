@@ -608,6 +608,7 @@ class TeslaAuthenticator(object):
     def __init__(self):
         return None 
 
+
     def dialog_username(self):
         print ('Enter your tesla.com username:')
         return raw_input()
@@ -821,8 +822,6 @@ class TeslaConnection(object):
 
 
 
-
-# Class that represents a Tesla vehicle
 class TeslaVehicle(dict):
     """TeslaVehicle class, subclassed from dictionary.
     
@@ -830,6 +829,7 @@ class TeslaVehicle(dict):
     data_request and command both require a name to specify the data
     or command, respectively. These names can be found in the
     Tesla JSON API."""
+
     def __init__(self, data, connection):
         """Initialize vehicle class
         
@@ -904,6 +904,7 @@ class TeslaVehicle(dict):
         except: 
             return self['option_codes'] 
 
+
     def command(self, name, data={}):
         """Run the command for the vehicle"""
         return self.post('command/%s' % name, data)
@@ -911,7 +912,6 @@ class TeslaVehicle(dict):
     def get(self, command):
         """Utility command to get data from API"""
         return self.connection.get('vehicles/%i/%s' % (self['id'], command))
-
 
     def post(self, command, data={}):
         """Utility command to post data to API"""
@@ -941,7 +941,7 @@ class TeslaVehicle(dict):
             return base64.b64encode(composed_img.content)
 
 
-# Class that represents a Tesla Calendar
+
 class Icloud(dict):
     """iCloud class, subclassed from dictionary."""
 
@@ -985,11 +985,9 @@ class Icloud(dict):
         """Get iCloud devices"""
         return self.api.devices
 
-
     def calendarevents(self):
         """Get iCloud calendar events"""
         return self.api.calendar.events(date.today(),date.today())
-
 
     def reminders(self):
         """Get iCloud reminders"""
@@ -1042,7 +1040,6 @@ def window_state(windowopen):
         return CYELLOW + 'Vent' + CEND + ' '
     else: 
         return CRED + 'Open' + CEND + ' '
-
 
 # Pretty print battery loss due to cold
 def cold_state(percentage):
@@ -1125,7 +1122,6 @@ def sleeping_since(time=False):
     if day_diff < 365:
         return "Sleeping since "+str(day_diff / 30) + " months"
     return "Sleeping since "+str(day_diff / 365) + " year"
-
 
 # Pretty print charge time left in hours & minutes
 def calculate_time_left(hours_to_full_charge):
