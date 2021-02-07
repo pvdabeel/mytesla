@@ -22,7 +22,8 @@
 
 _DEBUG_ = False 
 
-# Disabled if you don't want your car location to be tracked to a DB
+# Disable if you don't want your car location to be tracked to a local DB
+# DB is located in your home directory, under .state/mytesla/mytesla-locations.json
 
 _LOCATION_TRACKING_ = True
 
