@@ -120,7 +120,7 @@ Greg Glockner teslajson API [code](https://github.com/gglockner/teslajson/).
 ## Installation instructions: 
 
 1. Ensure you have [bitbar](https://github.com/matryer/bitbar/releases/latest) installed.
-2. Execute 'sudo easy_install tinydb==3.9 keyring==8.7 pyicloud pathos pyobjc-framework-CoreLocation googlemaps' in Terminal.app
+2. Execute 'sudo easy_install tinydb==3.9 keyring==8.7 pathos googlemaps' in Terminal.app
 3. Ensure your bitbar plugins directory does not have a space in the path (A known bitbar bug)
 4. Copy [mytesla.15m.py](mytesla.15m.py) to your bitbar plugins folder and chmod +x the file from your terminal in that folder
 5. For advanced users: check the configuration options in the mytesla.15m.py file
