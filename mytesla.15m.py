@@ -14,7 +14,6 @@
 # -------------------------- 
 # Execute in terminal.app before running : 
 #    sudo easy_install keyring
-#    sudo easy_install pyicloud
 #
 # Ensure you have bitbar installed https://github.com/matryer/bitbar/releases/latest
 # Ensure your bitbar plugins directory does not have a space in the path (known bitbar bug)
@@ -52,7 +51,6 @@ import json
 import keyring                                  
 import math
 import os
-import pyicloud                                 
 import random
 import re
 import requests
@@ -941,60 +939,7 @@ class TeslaVehicle(dict):
             return base64.b64encode(composed_img.content)
 
 
-
-class Icloud(dict):
-    """iCloud class, subclassed from dictionary."""
-
-    def __init__(self):
-        """Initialize"""
-        self.api=None
-        return
-
-
-    def init(self):    
-        """Get iCloud credentials and store them in keyring"""
-        print ('Enter your iCloud username:')
-        icloud_username = raw_input()
-        print ('Enter your iCloud password:')
-        icloud_password = getpass.getpass()
-        try: 
-           self.api = pyicloud.PyiCloudService(icloud_username,icloud_password)
-        except Exception as e:
-           print('Error: Failed to authenticate to iCloud')
-           print e
-           return
-        keyring.set_password("mytesla-bitbar","icloud_username",icloud_username)
-        keyring.set_password("mytesla-bitbar","icloud_password",icloud_password)
-        return
-
-
-    def authenticate(self): # TODO: add 2fa auth support
-        # https://pypi.python.org/pypi/pyicloud/0.9.1
-        """Get iCloud credentials and store them in keyring"""
-        icloud_username = keyring.get_password("mytesla-bitbar","icloud_username")
-        icloud_password = keyring.get_password("mytesla-bitbar","icloud_password")
-        try: 
-           self.api = pyicloud.PyiCloudService(icloud_username,icloud_password)
-        except Exception as e:
-           self.init()
-           return
-        return       
-
-
-    def devices(self):
-        """Get iCloud devices"""
-        return self.api.devices
-
-    def calendarevents(self):
-        """Get iCloud calendar events"""
-        return self.api.calendar.events(date.today(),date.today())
-
-    def reminders(self):
-        """Get iCloud reminders"""
-        self.api.reminders.refresh()
-        return self.api.reminders.lists
-
-
+        
 # Create a random string
 def random_string(size):
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(size))
@@ -1148,7 +1093,6 @@ def calculate_time_left(hours_to_full_charge):
 
     return time_left
 
-
 # Function to retrieve goole map & sat images for a given location
 def retrieve_google_maps(latitude,longitude):
    todayDate = datetime.date.today()
@@ -1182,7 +1126,6 @@ def retrieve_google_maps(latitude,longitude):
          location_map.close()
          location_sat.close()
    return [my_img1,my_img2]
-
 
 # Logo for both dark mode and regular mode
 def app_print_logo():
@@ -1221,13 +1164,6 @@ def main(argv):
        init()
        return
   
-    if 'icloud' in argv:
-       ic = Icloud()
-       ic.authenticate()
-       print ic.reminders()
-       return
-
-
     # CASE 2: init was not called, keyring not initialized
     if DARK_MODE:
         color = '#FFDEDEDE'
