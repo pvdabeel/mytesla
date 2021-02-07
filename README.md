@@ -20,7 +20,7 @@ Want a Tesla with free supercharging Credits? Use my [referral code](http://ts.l
 
 ## Changelog: 
 
-**Update 2020.02.06 **
+**Update 2020.02.06:**
 - [X] Offline mode: application shows last known 'state' when vehicle is sleeping. Added a manual wakup option.
 - [X] Improved location tracking performance
 - [X] Ability to override option_codes for your vehicle (see parameters in file)
