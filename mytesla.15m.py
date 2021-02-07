@@ -37,8 +37,9 @@ _MAP_SIZE_ = '800x600'
 # Tesla API returns wrong options code for cars. Put your option codes here 
 # to override those provided by Tesla API. You can get your option list by
 # logging in to tesla.com. The option codes can be copied from the url used 
-# to show the car image in the overview. Use vehicle ID to have different
-# override options per vehicle
+# to show the car image in the car detail page. Use your 'vehicle_id' as key
+# in the 'key : value' list below. You can retrieve your vehicle_id by 
+# executing "mytesla.15m.py debug" on the Terminal.
 
 _OVERRIDE_OPTION_CODES_ = { 1669029050 : "BP00,AH00,AD15,GLTL,AU01,X042,APF2,APH2,APPF,X028,BTX6,BS00,CC02,BC0R,CH04,CF00,CW00,COBE,X039,IDCF,X026,DRLH,DU00,AF02,FMP6,FG02,FR01,X007,X011,INBPB,PI01,IX01,X001,LP01,LT3B,MI02,X037,MDLX,DV4W,X025,X003,PMBL,PK00,X031,PF00,X044,TM00,BR00,RCX0,REEU,RFPX,OSSB,X014,S02B,ME02,QLPB,SR04,SP01,X021,SC05,SU01,TP03,TRA1,TR01,TIG2,DSH7,TW01,MT10A,UTAB,WT22,WXP2,YFCC,CPF1" }
 
