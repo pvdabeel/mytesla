@@ -31,6 +31,10 @@ _LOCATION_TRACKING_ = True
 
 _COMPOSER_CACHE_HIGH_ = True
 
+# Want battery status in menu bar itself
+
+_BATTERY_MENUBAR_ = False
+
 # Google map size
 
 _MAP_SIZE_ = '800x600'
@@ -1130,7 +1134,8 @@ def retrieve_google_maps(latitude,longitude):
    return [my_img1,my_img2]
 
 # Logo for both dark mode and regular mode
-def app_print_logo():
+def app_print_logo(extrainfo=""):
+    print(extrainfo),
     if bool(DARK_MODE):
         print ('|image=iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAAXNSR0IArs4c6QAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAFU2lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNS40LjAiPgogICA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAgICAgICB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iCiAgICAgICAgICAgIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIgogICAgICAgICAgICB4bWxuczpzdFJlZj0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlUmVmIyIKICAgICAgICAgICAgeG1sbnM6dGlmZj0iaHR0cDovL25zLmFkb2JlLmNvbS90aWZmLzEuMC8iCiAgICAgICAgICAgIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyI+CiAgICAgICAgIDxkYzp0aXRsZT4KICAgICAgICAgICAgPHJkZjpBbHQ+CiAgICAgICAgICAgICAgIDxyZGY6bGkgeG1sOmxhbmc9IngtZGVmYXVsdCI+dGVzbGFfVF9CVzwvcmRmOmxpPgogICAgICAgICAgICA8L3JkZjpBbHQ+CiAgICAgICAgIDwvZGM6dGl0bGU+CiAgICAgICAgIDx4bXBNTTpEZXJpdmVkRnJvbSByZGY6cGFyc2VUeXBlPSJSZXNvdXJjZSI+CiAgICAgICAgICAgIDxzdFJlZjppbnN0YW5jZUlEPnhtcC5paWQ6NjFlOGM3OTktZDk2Mi00Y2JlLWFiNDItY2FmYjlmOTYxY2VlPC9zdFJlZjppbnN0YW5jZUlEPgogICAgICAgICAgICA8c3RSZWY6ZG9jdW1lbnRJRD54bXAuZGlkOjYxZThjNzk5LWQ5NjItNGNiZS1hYjQyLWNhZmI5Zjk2MWNlZTwvc3RSZWY6ZG9jdW1lbnRJRD4KICAgICAgICAgPC94bXBNTTpEZXJpdmVkRnJvbT4KICAgICAgICAgPHhtcE1NOkRvY3VtZW50SUQ+eG1wLmRpZDpCNkM1NEUzNDlERTAxMUU3QTRFNEExMTMwMUY5QkJBNTwveG1wTU06RG9jdW1lbnRJRD4KICAgICAgICAgPHhtcE1NOkluc3RhbmNlSUQ+eG1wLmlpZDpCNkM1NEUzMzlERTAxMUU3QTRFNEExMTMwMUY5QkJBNTwveG1wTU06SW5zdGFuY2VJRD4KICAgICAgICAgPHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD51dWlkOjI3MzY3NDg0MTg2QkRGMTE5NjZBQjM5RDc2MkZFOTlGPC94bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ+CiAgICAgICAgIDx0aWZmOk9yaWVudGF0aW9uPjE8L3RpZmY6T3JpZW50YXRpb24+CiAgICAgICAgIDx4bXA6Q3JlYXRvclRvb2w+QWRvYmUgSWxsdXN0cmF0b3IgQ0MgMjAxNSAoTWFjaW50b3NoKTwveG1wOkNyZWF0b3JUb29sPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4KI5WHQwAAANVJREFUOBHtU8ENwjAMTBADdJRuACMwUjdgBEaAEcoEgQlSJmCEcJYS6VzlYVfiV0snn6/na5SqIez17xuIvReUUi7QT8AInIFezRBfwDPG+OgZlIbQL5BrT7Xf0YcK4eJpz7LMKqQ3wDSJEViXBArWJd6pl6U0mORkVyADchUBXVXVRogZuAGDCrEOWExAq2TZO1hM8CzkY06yptbgN60xJ1lTa/BMa8xJ1tQavNAac5I30vblrOtHqxG+2eENnmD5fc3lCf6YU2H0BLtO7DnE7t12Az8xb74dVbfynwAAAABJRU5ErkJggg==')
     else:
@@ -1234,49 +1239,43 @@ def main(argv):
 
 
     # CASE 5: all ok, all other cases
-    app_print_logo()
+    
     prefix = ''
     if len(vehicles) > 1:
         # Create a submenu for every vehicle
         prefix = '--'
 
-    # loop through vehicles, print menu with relevant info       
+    # loop through vehicles, get vehicle data and print menu with relevant info       
     for i, vehicle in enumerate(vehicles):
 
+        # if there is more than one vehicle on the account, just display the logo in the menu bar
+ 
         if prefix:
+            app_print_logo(),
             print vehicle['display_name']
+
+        # get the data 
 
 	try:
            vehicle_access = vehicle.mobile_access()
            if vehicle_access == False:
                  print ('%sVehicle mobile access disabled. Click to try again. | refresh=true terminal=false bash="echo refresh" color=%s' % (prefix, color))
-                 return
+                 continue
          
            if vehicle['in_service'] == True:
                  print ('%sVehicle in service. Click to try again. | refresh=true terminal=false bash="echo refresh" color=%s' % (prefix, color))
-                 return     
+                 continue   
  
            # get the data for the vehicle       
            vehicle_info = vehicle.vehicle_data() 
-   
-           if vehicle['state'] == 'asleep':
-                 print ('%sVehicle state:\t\t\t\t%s. | color=%s' % (prefix, sleeping_since(vehicle_info['drive_state']['timestamp']), color))
-                 print ('%s--Wake up | refresh=true terminal=true bash="%s" param1=%s param2=%s color=%s' % (prefix, sys.argv[0], str(i), "wake_up", color))
-                 print ('%s---' % prefix)
-           
-           elif vehicle['state'] != 'online':
-                 print ('%sVehicle offline. Click to try again. | refresh=true terminal=false bash="echo refresh" color=%s' % (prefix, color))
-                 return     
- 
-           elif vehicle['state'] == 'online':
-                 print ('%sVehicle state:\t\t\t\tOnline | color=%s' % (prefix, color))
-                 print ('%s---' % prefix)
-
+  
 
         except Exception as e: 
            print ('%sError: Failed to get info from Tesla. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
            print e
            return         
+
+        # parse the data
 
 	vehicle_name = vehicle['display_name']
 	vehicle_vin  = vehicle['vin'] 
@@ -1302,8 +1301,27 @@ def main(argv):
                     for size in ['512','1024','2048','4096']:
                         vehicle.compose_image(vehicle_config['car_type'],view=view,size=size,background=background)
 
+        battery_loss_cold = int(charge_state['battery_level']) - int(charge_state['usable_battery_level'])
+        battery_distance  = ""
+
+        if (gui_settings['gui_range_display'] == 'Rated'):
+           battery_distance = convert_distance(distance_unit,charge_state['battery_range'])
+        else: 
+           battery_distance = convert_distance(distance_unit,charge_state['ideal_battery_range'])
+
+
+        # if there is only one vehicle on the account, we can optionall display the logo with extra info in the menu bar
+        
+        if not prefix:
+            if _BATTERY_MENUBAR_:
+                 extrainfo = ('%s%% %s' % (charge_state['battery_level'], cold_state(battery_loss_cold)))
+                 app_print_logo(extrainfo)
+            else:
+                 app_print_logo()
+
+
         # --------------------------------------------------
-        # DEBUG MENU
+        # VEHICLE STATUS MENU
         # --------------------------------------------------
 
         if 'debug' in argv:
@@ -1318,6 +1336,21 @@ def main(argv):
             print ('>>> vehicle_config:\n%s\n' % vehicle_config)
             print ('>>> appointments:\n%s\n'   % appointments)
             return
+
+
+        if vehicle['state'] == 'asleep':
+            print ('%sVehicle state:\t\t\t\t%s. | color=%s' % (prefix, sleeping_since(vehicle_info['drive_state']['timestamp']), color))
+            print ('%s--Wake up | refresh=true terminal=true bash="%s" param1=%s param2=%s color=%s' % (prefix, sys.argv[0], str(i), "wake_up", color))
+            print ('%s---' % prefix)
+           
+        elif vehicle['state'] != 'online':
+            print ('%sVehicle offline. Click to try again. | refresh=true terminal=false bash="echo refresh" color=%s' % (prefix, color))
+            return     
+ 
+        elif vehicle['state'] == 'online':
+            print ('%sVehicle state:\t\t\t\tOnline | color=%s' % (prefix, color))
+            print ('%s---' % prefix)
+
 
         # --------------------------------------------------
         # SOFTWARE UPDATE MENU 
@@ -1354,14 +1387,6 @@ def main(argv):
         # --------------------------------------------------
         # BATTERY MENU 
         # --------------------------------------------------
-
-        battery_loss_cold = int(charge_state['battery_level']) - int(charge_state['usable_battery_level'])
-        battery_distance  = ""
-
-        if (gui_settings['gui_range_display'] == 'Rated'):
-           battery_distance = convert_distance(distance_unit,charge_state['battery_range'])
-        else: 
-           battery_distance = convert_distance(distance_unit,charge_state['ideal_battery_range'])
 
 
         print ('%sBattery:\t\t\t\t\t\t%s%% %s (%s %s) | color=%s' % (prefix, charge_state['battery_level'], cold_state(battery_loss_cold), battery_distance, distance_unit, color))
