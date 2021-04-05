@@ -601,9 +601,9 @@ class TeslaAuthenticator(object):
     } 
 
     headers = {
-        "User-Agent"            : "github.com/pvdabeel/mytesla",
-        "x-tesla-user-agent"    : "github.com/pvdabeel/mytesla",
-        "X-Requested-With"      : "com.teslamotors.tesla" 
+    #    "User-Agent"            : "github.com/pvdabeel/mytesla",
+    #    "x-tesla-user-agent"    : "github.com/pvdabeel/mytesla",
+    #    "X-Requested-With"      : "com.teslamotors.tesla" 
     }
 
     credentials = {}
