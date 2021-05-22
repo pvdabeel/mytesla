@@ -1084,7 +1084,7 @@ def calculate_time_left(hours_to_full_charge):
     time_left = ""
 
     if (mins_to_full_charge == 0):
-        return 'Calculating time remaining'
+        return '\tCalculating time remaining'
 
     if (remaining_hours == 0):
        time_left = '\t%d mins left' % (remaining_minutes)
@@ -1269,7 +1269,6 @@ def main(argv):
            # get the data for the vehicle       
            vehicle_info = vehicle.vehicle_data() 
   
-
         except Exception as e: 
            print ('%sError: Failed to get info from Tesla. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
            print e
