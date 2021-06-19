@@ -124,4 +124,4 @@ Greg Glockner teslajson API [code](https://github.com/gglockner/teslajson/).
 3. Ensure your bitbar plugins directory does not have a space in the path (A known bitbar bug)
 4. Copy [mytesla.15m.py](mytesla.15m.py) to your bitbar plugins folder and chmod +x the file from your terminal in that folder
 5. For advanced users: check the configuration options in the mytesla.15m.py file
-6. Run bitbar
+6. Run bitbar (version 1.9 or <=2.0-beta9, xbar not supported yet)
