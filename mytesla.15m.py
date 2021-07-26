@@ -1067,7 +1067,7 @@ def sleeping_since(time=False):
     if day_diff == 1:
         return "Sleeping since Yesterday"
     if day_diff < 7:
-        return "Sleeping since "+sstr(day_diff) + " days"
+        return "Sleeping since "+str(day_diff) + " days"
     if day_diff < 31:
         return "Sleeping since "+str(day_diff / 7) + " weeks"
     if day_diff < 365:
