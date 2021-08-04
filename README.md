@@ -20,6 +20,11 @@ Want a Tesla with free supercharging Credits? Use my [referral code](http://ts.l
 
 ## Changelog: 
 
+**Update 2021.08.04:**
+- [X] Support for auth.tesla.com captcha
+- [X] Support for showing battery in menu bar
+- [X] Support for white logo in menu bar on Big Sur
+
 **Update 2020.02.06:**
 - [X] Offline mode: application shows last known 'state' when vehicle is sleeping. Added a manual wakup option.
 - [X] Improved location tracking performance
