@@ -39,6 +39,10 @@ _BATTERY_MENUBAR_ = False
 
 _MAP_SIZE_ = '800x600'
 
+# Want white logo instead of dark logo in menubar
+
+_WHITE_LOGO_ = True
+
 # Tesla API returns wrong options code for cars. Put your option codes here 
 # to override those provided by Tesla API. You can get your option list by
 # logging in to tesla.com. The option codes can be copied from the url used 
@@ -591,7 +595,6 @@ CBLUE   = '\33[34m'
 # Support for OS X Dark Mode
 DARK_MODE=os.getenv('BitBarDarkMode',0)
 
-
 class TeslaAuthenticator(object):
     """Manages Tesla authentication. Supports MFA"""
 
@@ -601,9 +604,9 @@ class TeslaAuthenticator(object):
     } 
 
     headers = {
-    #    "User-Agent"            : "github.com/pvdabeel/mytesla",
-    #    "x-tesla-user-agent"    : "github.com/pvdabeel/mytesla",
-    #    "X-Requested-With"      : "com.teslamotors.tesla" 
+         #"User-Agent"            : "github.com/pvdabeel/mytesla",
+         #"x-tesla-user-agent"    : "github.com/pvdabeel/mytesla",
+         #"X-Requested-With"      : "com.teslamotors.tesla" 
     }
 
     credentials = {}
@@ -616,7 +619,7 @@ class TeslaAuthenticator(object):
     def dialog_username(self):
         print ('Enter your tesla.com username:')
         return raw_input()
-    
+ 
     def dialog_password(self):
         print ('Enter your tesla.com password:')
         return getpass.getpass()
@@ -625,6 +628,9 @@ class TeslaAuthenticator(object):
         print ('Enter multi-factor authentication code:')                                   
         return raw_input()  
 
+    def dialog_captcha(self):
+        print ('Enter captcha code (Run \'open /tmp/captcha.svg\' in Terminal.app):')
+        return raw_input()
 
     def generate_challenge(self,verifier):
         return base64urlencode(sha256(verifier).hexdigest())
@@ -667,6 +673,19 @@ class TeslaAuthenticator(object):
         csrf            = re.search(r'name="_csrf".+value="([^"]+)"', response.text).group(1)
         transaction_id  = re.search(r'name="transaction_id".+value="([^"]+)"', response.text).group(1)
  
+        captchacode = ""
+
+        #-------------------#
+        # STEP 2a: Captcha  #
+        #-------------------#
+
+        if (response.content.find('captcha') > 0):
+            img = session.get("https://auth.tesla.com/captcha", headers=self.headers)
+            cap_file = open("/tmp/captcha.svg","wb")
+            cap_file.write(img.content)
+            cap_file.close()
+            captchacode = self.dialog_captcha()
+ 
         formdata = {
             "_csrf"                 : csrf,
             "_phase"                : "authenticate",
@@ -674,7 +693,8 @@ class TeslaAuthenticator(object):
             "transaction_id"        : transaction_id,
             "cancel"                : "",
             "identity"              : email,
-            "credential"            : password } 
+            "credential"            : password,
+            "captcha"               : captchacode } 
       
         response        = session.post("https://auth.tesla.com/oauth2/v3/authorize", params=query, data=formdata, headers=self.headers, allow_redirects=False)
 
@@ -682,10 +702,15 @@ class TeslaAuthenticator(object):
 
         if response.status_code == 401:
             raise Exception('Authentication failed: wrong username or password')
-       
+ 
+        password        = ''
+
+        if response.status_code == 401:
+            raise Exception('Authentication failed: wrong username or password')
+            
 
         #--------------------------------------#
-        # STEP 2a: Multi-Factor authentication #
+        # STEP 2b: Multi-Factor authentication #
         #--------------------------------------#
 
         is_mfa = True if response.status_code == 200 and "/mfa/verify" in response.text else False
@@ -711,6 +736,7 @@ class TeslaAuthenticator(object):
        
 
         if not response.headers.get("location"):
+            print response.headers
             raise Exception('Unable to log in at this time. Please try again later.')
 
         auth_code       = parse_qs(response.headers["location"])["https://auth.tesla.com/void/callback?code"]
@@ -1136,7 +1162,7 @@ def retrieve_google_maps(latitude,longitude):
 # Logo for both dark mode and regular mode
 def app_print_logo(extrainfo=""):
     print(extrainfo),
-    if bool(DARK_MODE):
+    if bool(DARK_MODE) or bool(_WHITE_LOGO_):
         print ('|image=iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAAXNSR0IArs4c6QAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAFU2lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNS40LjAiPgogICA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAgICAgICB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iCiAgICAgICAgICAgIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIgogICAgICAgICAgICB4bWxuczpzdFJlZj0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlUmVmIyIKICAgICAgICAgICAgeG1sbnM6dGlmZj0iaHR0cDovL25zLmFkb2JlLmNvbS90aWZmLzEuMC8iCiAgICAgICAgICAgIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyI+CiAgICAgICAgIDxkYzp0aXRsZT4KICAgICAgICAgICAgPHJkZjpBbHQ+CiAgICAgICAgICAgICAgIDxyZGY6bGkgeG1sOmxhbmc9IngtZGVmYXVsdCI+dGVzbGFfVF9CVzwvcmRmOmxpPgogICAgICAgICAgICA8L3JkZjpBbHQ+CiAgICAgICAgIDwvZGM6dGl0bGU+CiAgICAgICAgIDx4bXBNTTpEZXJpdmVkRnJvbSByZGY6cGFyc2VUeXBlPSJSZXNvdXJjZSI+CiAgICAgICAgICAgIDxzdFJlZjppbnN0YW5jZUlEPnhtcC5paWQ6NjFlOGM3OTktZDk2Mi00Y2JlLWFiNDItY2FmYjlmOTYxY2VlPC9zdFJlZjppbnN0YW5jZUlEPgogICAgICAgICAgICA8c3RSZWY6ZG9jdW1lbnRJRD54bXAuZGlkOjYxZThjNzk5LWQ5NjItNGNiZS1hYjQyLWNhZmI5Zjk2MWNlZTwvc3RSZWY6ZG9jdW1lbnRJRD4KICAgICAgICAgPC94bXBNTTpEZXJpdmVkRnJvbT4KICAgICAgICAgPHhtcE1NOkRvY3VtZW50SUQ+eG1wLmRpZDpCNkM1NEUzNDlERTAxMUU3QTRFNEExMTMwMUY5QkJBNTwveG1wTU06RG9jdW1lbnRJRD4KICAgICAgICAgPHhtcE1NOkluc3RhbmNlSUQ+eG1wLmlpZDpCNkM1NEUzMzlERTAxMUU3QTRFNEExMTMwMUY5QkJBNTwveG1wTU06SW5zdGFuY2VJRD4KICAgICAgICAgPHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD51dWlkOjI3MzY3NDg0MTg2QkRGMTE5NjZBQjM5RDc2MkZFOTlGPC94bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ+CiAgICAgICAgIDx0aWZmOk9yaWVudGF0aW9uPjE8L3RpZmY6T3JpZW50YXRpb24+CiAgICAgICAgIDx4bXA6Q3JlYXRvclRvb2w+QWRvYmUgSWxsdXN0cmF0b3IgQ0MgMjAxNSAoTWFjaW50b3NoKTwveG1wOkNyZWF0b3JUb29sPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4KI5WHQwAAANVJREFUOBHtU8ENwjAMTBADdJRuACMwUjdgBEaAEcoEgQlSJmCEcJYS6VzlYVfiV0snn6/na5SqIez17xuIvReUUi7QT8AInIFezRBfwDPG+OgZlIbQL5BrT7Xf0YcK4eJpz7LMKqQ3wDSJEViXBArWJd6pl6U0mORkVyADchUBXVXVRogZuAGDCrEOWExAq2TZO1hM8CzkY06yptbgN60xJ1lTa/BMa8xJ1tQavNAac5I30vblrOtHqxG+2eENnmD5fc3lCf6YU2H0BLtO7DnE7t12Az8xb74dVbfynwAAAABJRU5ErkJggg==')
     else:
         print ('|image=iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA/xpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ1dWlkOjI3MzY3NDg0MTg2QkRGMTE5NjZBQjM5RDc2MkZFOTlGIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOkI2QzU0RTM0OURFMDExRTdBNEU0QTExMzAxRjlCQkE1IiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOkI2QzU0RTMzOURFMDExRTdBNEU0QTExMzAxRjlCQkE1IiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIElsbHVzdHJhdG9yIENDIDIwMTUgKE1hY2ludG9zaCkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo2MWU4Yzc5OS1kOTYyLTRjYmUtYWI0Mi1jYWZiOWY5NjFjZWUiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6NjFlOGM3OTktZDk2Mi00Y2JlLWFiNDItY2FmYjlmOTYxY2VlIi8+IDxkYzp0aXRsZT4gPHJkZjpBbHQ+IDxyZGY6bGkgeG1sOmxhbmc9IngtZGVmYXVsdCI+dGVzbGFfVF9CVzwvcmRmOmxpPiA8L3JkZjpBbHQ+IDwvZGM6dGl0bGU+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+ux4+7QAAALlJREFUeNpi/P//PwMtABMDjcDQM5gFmyAjI2MAkLIHYgMgdsCh9wAQXwDig8B42oAhC4o8ZAwE74H4PpQ+D6XXA7EAFK9HkwOrxTAHi8ENUA3/0fB6KEYXB6ltIMZgkKv6oS4xgIqhGAYVM4CqmQ/SQ9BgbBjqbZjB54nRQ2yqeICDTXFyu4iDTbHBB3CwKTaY5KBgJLYQAmaa/9B0z0h2ziMiOKhq8AVaGfxwULiYcbQGobnBAAEGADCCwy7PWQ+qAAAAAElFTkSuQmCC')
