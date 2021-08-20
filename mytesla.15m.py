@@ -1294,7 +1294,11 @@ def main(argv):
  
            # get the data for the vehicle       
            vehicle_info = vehicle.vehicle_data() 
-  
+ 
+           if vehicle_info == None:
+               print ('%sError: Failed to vehicle info from Tesla. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
+               return
+
         except Exception as e: 
            print ('%sError: Failed to get info from Tesla. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
            print e
@@ -1304,7 +1308,7 @@ def main(argv):
 
 	vehicle_name = vehicle['display_name']
 	vehicle_vin  = vehicle['vin'] 
-
+ 
         gui_settings    = vehicle_info['gui_settings']
         charge_state    = vehicle_info['charge_state']
         climate_state   = vehicle_info['climate_state']
