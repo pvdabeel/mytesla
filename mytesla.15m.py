@@ -1296,7 +1296,8 @@ def main(argv):
            vehicle_info = vehicle.vehicle_data() 
  
            if vehicle_info == None:
-               print ('%sError: Failed to vehicle info from Tesla. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
+               app_print_logo()
+               print ('%sError: Failed to get vehicle info from Tesla. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
                return
 
         except Exception as e: 
