@@ -736,9 +736,16 @@ class TeslaAuthenticator(object):
        
 
         if not response.headers.get("location"):
-            print response.headers
-            print "Tesla is now requiring a reCaptcha. We are working on a fix."
-            print "https://github.com/timdorr/tesla-api/issues/431"
+            #print response.headers
+            print "Tesla is now requiring a reCaptcha. We are working on implementing this."
+            print "In the meanwhile, generate an access token using:"
+            print ""
+            print "  https://github.com/adriankumpf/tesla_auth"
+            print ""
+            print "Once generate open your MacOS keychain application, and look for mytesla-bitbar." 
+            print "Manually update the access_token, delete the expires_in" 
+            print "This should be ok for 45 days" 
+            print ""
             raise Exception('Unable to log in at this time. Please try again later.')
 
         auth_code       = parse_qs(response.headers["location"])["https://auth.tesla.com/void/callback?code"]
