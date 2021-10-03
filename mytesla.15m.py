@@ -737,6 +737,8 @@ class TeslaAuthenticator(object):
 
         if not response.headers.get("location"):
             print response.headers
+            print "Tesla is now requiring a reCaptcha. We are working on a fix."
+            print "https://github.com/timdorr/tesla-api/issues/431"
             raise Exception('Unable to log in at this time. Please try again later.')
 
         auth_code       = parse_qs(response.headers["location"])["https://auth.tesla.com/void/callback?code"]
