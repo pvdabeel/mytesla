@@ -1036,6 +1036,13 @@ def cold_state(percentage):
     else:
         return ''
 
+# Pretty print tempereature setting
+def color_setting(current,option,color,info_color):
+    if (current == option): 
+        return color 
+    else: 
+        return info_color
+
 # Pretty print seat heater setting
 def seat_state(temp):
     if (temp == 0):
@@ -1431,17 +1438,20 @@ def main(argv):
 
 
         print ('%sBattery:\t\t\t\t\t\t%s%% %s (%s %s) | color=%s' % (prefix, charge_state['battery_level'], cold_state(battery_loss_cold), battery_distance, distance_unit, color))
-        print ('%s--Charge Level set to:\t\t\t%s%% | color=%s' % (prefix, charge_state['charge_limit_soc'], color))
-        print ('%s---- 80%% | refresh=true terminal=false shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:80", info_color))
-        print ('%s---- 80%% | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:80", info_color))
-        print ('%s---- 85%% | refresh=true terminal=false shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:85", info_color))
-        print ('%s---- 85%% | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:85", info_color))
-        print ('%s---- 90%% (Default)| refresh=true terminal=false shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:90", color))
-        print ('%s---- 90%% (Default)| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:90", color))
-        print ('%s---- 95%% | refresh=true terminal=false shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:95", info_color))
-        print ('%s---- 95%% | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:95", info_color))
-        print ('%s---- 100%% (Trip only)| refresh=true terminal=false shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:100", info_color))
-        print ('%s---- 100%% (Trip only)| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:100", info_color))
+
+        current_charge_setting = charge_state['charge_limit_soc']
+
+        print ('%s--Charge Level set to:\t\t\t%s%% | color=%s' % (prefix, current_charge_setting, color))
+        print ('%s---- 80%% | refresh=true terminal=false shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:80", color_setting(current_charge_setting,80,color,info_color)))
+        print ('%s---- 80%% | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:80", color_setting(current_charge_setting,80,color,info_color)))
+        print ('%s---- 85%% | refresh=true terminal=false shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:85", color_setting(current_charge_setting,85,color,info_color)))
+        print ('%s---- 85%% | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:85", color_setting(current_charge_setting,85,color,info_color)))
+        print ('%s---- 90%% (Default)| refresh=true terminal=false shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:90", color_setting(current_charge_setting,90,color,info_color)))
+        print ('%s---- 90%% (Default)| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:90", color_setting(current_charge_setting,90,color,info_color)))
+        print ('%s---- 95%% | refresh=true terminal=false shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:95", color_setting(current_charge_setting,95,color,info_color)))
+        print ('%s---- 95%% | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:95", color_setting(current_charge_setting,95,color,info_color)))
+        print ('%s---- 100%% (Trip only)| refresh=true terminal=false shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:100", color_setting(current_charge_setting,100,color,info_color)))
+        print ('%s---- 100%% (Trip only)| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:100", color_setting(current_charge_setting,100,color,info_color)))
 
 
         print ('%s-----' % prefix)
@@ -1704,24 +1714,15 @@ def main(argv):
             print ('%s--Turn on window defrost | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_preconditioning_max param3=%s color=%s' % (prefix, cmd_path, str(i), 'on:true', color))
 
         print ('%s-----' % prefix)
-        print ('%s--Airco set to:\t\t\t%.1f° %s | color=%s' % (prefix, convert_temp(temp_unit,climate_state['driver_temp_setting']), temp_unit, color))
-        print ('%s---- 18° %s| refresh=true terminal=false shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:18","passenger_temp:18", color))
-        print ('%s---- 18° %s| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:18","passenger_temp:18", color))
-        print ('%s---- 19° %s| refresh=true terminal=false shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:19","passenger_temp:19", color))
-        print ('%s---- 19° %s| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:19","passenger_temp:19", color))
-        print ('%s---- 20° %s| refresh=true terminal=false shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:20","passenger_temp:20", color))
-        print ('%s---- 20° %s| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:20","passenger_temp:20", color))
-        print ('%s---- 21° %s| refresh=true terminal=false shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:21","passenger_temp:21", color))
-        print ('%s---- 21° %s| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:21","passenger_temp:21", color))
-        print ('%s---- 22° %s| refresh=true terminal=false shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:22","passenger_temp:22", color))
-        print ('%s---- 22° %s| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:22","passenger_temp:22", color))
-        print ('%s---- 23° %s| refresh=true terminal=false shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:23","passenger_temp:23", color))
-        print ('%s---- 23° %s| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:23","passenger_temp:23", color))
-        print ('%s---- 24° %s| refresh=true terminal=false shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:24","passenger_temp:24", color))
-        print ('%s---- 24° %s| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:24","passenger_temp:24", color))
-        print ('%s---- 25° %s| refresh=true terminal=false shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:25","passenger_temp:25", color))
-        print ('%s---- 25° %s| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:25","passenger_temp:25", color))
 
+        current_temp_setting = convert_temp(temp_unit,climate_state['driver_temp_setting'])
+
+        print ('%s--Airco set to:\t\t\t%.1f° %s | color=%s' % (prefix, current_temp_setting, temp_unit, color))
+        
+        for temperature in range(18,26): 
+            print ('%s---- %s° %s| refresh=true terminal=false shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, convert_temp(temp_unit,temperature), temp_unit, cmd_path, str(i), "driver_temp:"+str(temperature),"passenger_temp:"+str(temperature), color_setting(current_temp_setting,temperature,color,info_color)))
+            print ('%s---- %s° %s| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, convert_temp(temp_unit,temperature), temp_unit, cmd_path, str(i), "driver_temp:"+str(temperature),"passenger_temp:"+str(temperature), color_setting(current_temp_setting,temperature,color,info_color)))
+        
 
         # TODO: Dog Mode API unpublished - to be verified
 
