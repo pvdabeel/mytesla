@@ -20,6 +20,10 @@ Want a Tesla with free supercharging Credits? Use my [referral code](http://ts.l
 
 ## Changelog: 
 
+**Update 2021.11.02:**
+- [X] Support for xbar, deprecating bitbar
+- [X] Provide option to directly provide access_code during initialization
+
 **Update 2021.08.04:**
 - [X] Support for auth.tesla.com captcha
 - [X] Support for showing battery in menu bar
@@ -117,16 +121,14 @@ Want a Tesla with free supercharging Credits? Use my [referral code](http://ts.l
 
 ## Credits: 
 
-Jason Baker's Tesla bitbar [plugin](https://github.com/therippa/tesla-bitbar/).
 Greg Glockner teslajson API [code](https://github.com/gglockner/teslajson/).
 
 ## Licence: GPL v3
 
 ## Installation instructions: 
 
-1. Ensure you have [bitbar](https://github.com/matryer/bitbar/releases/latest) installed.
+1. Ensure you have [xbar](https://github.com/matryer/xbar/releases/latest) installed.
 2. Execute 'sudo easy_install tinydb==3.9 keyring==8.7 pathos googlemaps' in Terminal.app
-3. Ensure your bitbar plugins directory does not have a space in the path (A known bitbar bug)
-4. Copy [mytesla.15m.py](mytesla.15m.py) to your bitbar plugins folder and chmod +x the file from your terminal in that folder
-5. For advanced users: check the configuration options in the mytesla.15m.py file
-6. Run bitbar (version 1.9 or <=2.0-beta9, xbar not supported yet)
+3. Copy [mytesla.15m.py](mytesla.15m.py) to your xbar plugins folder and chmod +x the file from your terminal in that folder
+4. For advanced users: check the configuration options in the mytesla.15m.py file
+5. Run xbar (version 2.1.7-beta or higher). 
