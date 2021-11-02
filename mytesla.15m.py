@@ -5,7 +5,7 @@
 # <xbar.version>Tesla API v14.0</xbar.version>
 # <xbar.author>pvdabeel@mac.com</xbar.author>
 # <xbar.author.github>pvdabeel</xbar.author.github>
-# <xbar.desc>Control your Tesla vehicle from the Mac OS X menubar</xbar.desc>
+# <xbar.desc>Control your Tesla vehicle from the MacOS menubar</xbar.desc>
 # <xbar.dependencies>python</xbar.dependencies>
 #
 # Licence: GPL v3
@@ -595,7 +595,8 @@ CYELLOW = '\33[33m'
 CBLUE   = '\33[36m'
 
 # Support for OS X Dark Mode
-DARK_MODE=os.getenv('XBARDarkMode',0)
+DARK_MODE=True if os.getenv('XBARDarkMode','false') == 'true' else False
+
 
 class TeslaAuthenticator(object):
     """Manages Tesla authentication. Supports MFA"""
@@ -1241,12 +1242,13 @@ def main(argv):
        return
   
     # CASE 2: init was not called, keyring not initialized
-    if DARK_MODE:
-        color = '#FFDEDEDE'
-        info_color = '#808080'
-    else:
-        color = 'black' 
-        info_color = '#808080'
+    if bool(DARK_MODE):                                                               
+        color = '#FFFFFE' 
+        info_color = '#C0C0C0' 
+    else:                                                                       
+        color = '#00000E'                                                         
+        info_color = '#616161'  
+
 
     ACCESS_TOKEN = keyring.get_password("mytesla-xbar","access_token")
    
@@ -1412,7 +1414,7 @@ def main(argv):
 
 
         if vehicle['state'] == 'asleep':
-            print ('%sVehicle state:\t\t\t\t\t%s. | color=%s' % (prefix, sleeping_since(vehicle_info['drive_state']['timestamp']), color))
+            print ('%sVehicle state:\t\t\t\t\t%s. | color=%s' % (prefix, sleeping_since(vehicle_info['drive_state']['timestamp'], color)))
             print ('%s--Wake up | refresh=true terminal=true shell="%s" param1=%s param2=%s color=%s' % (prefix, cmd_path, str(i), "wake_up", color))
             print ('%s---' % prefix)
            
@@ -1588,10 +1590,10 @@ def main(argv):
         # Door overview
 
         print ('%s-----' % prefix)
-        print ('%s--Driver front door:\t\t\t\t%s| color=%s' % (prefix, door_state(vehicle_state['df']),info_color))
-        print ('%s--Driver rear door:\t\t\t\t%s| color=%s' % (prefix, door_state(vehicle_state['dr']),info_color))
-        print ('%s--Passenger front door:\t\t\t%s| color=%s' % (prefix, door_state(vehicle_state['pf']),info_color))
-        print ('%s--Passenger rear door:\t\t\t%s| color=%s' % (prefix, door_state(vehicle_state['pr']),info_color))
+        print ('%s--Driver front door:\t\t\t\t%s | color=%s' % (prefix, door_state(vehicle_state['df']),info_color))
+        print ('%s--Driver rear door:\t\t\t\t%s | color=%s' % (prefix, door_state(vehicle_state['dr']),info_color))
+        print ('%s--Passenger front door:\t\t\t%s | color=%s' % (prefix, door_state(vehicle_state['pf']),info_color))
+        print ('%s--Passenger rear door:\t\t\t%s | color=%s' % (prefix, door_state(vehicle_state['pr']),info_color))
         print ('%s-----' % prefix)
 
 
