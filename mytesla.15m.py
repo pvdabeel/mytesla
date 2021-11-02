@@ -1048,7 +1048,7 @@ def seat_state(temp):
     if (temp == 0):
         return 'Off'
     else:
-        return CRED  + 'On, level: ' + str(temp) + CEND
+        return 'On, level: ' + str(temp)
 
 # Pretty print charge port state 
 def port_state(portopen,engaged):
@@ -1738,66 +1738,23 @@ def main(argv):
 
         print ('%s-----' % prefix)
         print ('%s--Seat heating | color=%s' % (prefix, color))
-        try:
-           print ('%s----Driver:\t\t\t%s | color=%s' % (prefix, seat_state(climate_state['seat_heater_left']), color))
-           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', cmd_path, str(i), "heater:0","level:0", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', cmd_path, str(i), "heater:0","level:0", color))
-           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',cmd_path, str(i), "heater:0","level:1", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',cmd_path, str(i), "heater:0","level:1", color))
-           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', cmd_path, str(i), "heater:0","2", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', cmd_path, str(i), "heater:0","level:2", color))
-           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', cmd_path, str(i), "heater:0","level:3", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', cmd_path, str(i), "heater:0","level:3", color))
-        except:
-           pass
-        try:    
-           print ('%s----Passenger:\t\t%s | color=%s' % (prefix, seat_state(climate_state['seat_heater_right']), color))
-           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', cmd_path, str(i), "heater:1","level:0", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', cmd_path, str(i), "heater:1","level:0", color))
-           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',cmd_path, str(i), "heater:1","level:1", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',cmd_path, str(i), "heater:1","level:1", color))
-           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', cmd_path, str(i), "heater:1","level:2", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', cmd_path, str(i), "heater:1","level:2", color))
-           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', cmd_path, str(i), "heater:1","level:3", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', cmd_path, str(i), "heater:1","level:3", color))
-        except: 
-           pass
-        try:
-           print ('%s----Rear left:\t\t%s | color=%s' % (prefix, seat_state(climate_state['seat_heater_rear_left']), color))
-           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', cmd_path, str(i), "heater:2","level:0", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', cmd_path, str(i), "heater:2","level:0", color))
-           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',cmd_path, str(i), "heater:2","level:1", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',cmd_path, str(i), "heater:2","level:1", color))
-           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', cmd_path, str(i), "heater:2","level:2", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', cmd_path, str(i), "heater:2","level:2", color))
-           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', cmd_path, str(i), "heater:2","level:3", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', cmd_path, str(i), "heater:2","level:3", color))
-        except:
-           pass
-        try:
-           print ('%s----Rear center:\t\t%s | color=%s' % (prefix, seat_state(climate_state['seat_heater_rear_center']),color))
-           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', cmd_path, str(i), "heater:3","level:0", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', cmd_path, str(i), "heater:3","level:0", color))
-           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',cmd_path, str(i), "heater:3","level:1", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',cmd_path, str(i), "heater:3","level:1", color))
-           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', cmd_path, str(i), "heater:3","level:2", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', cmd_path, str(i), "heater:3","level:2", color))
-           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', cmd_path, str(i), "heater:3","level:3", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', cmd_path, str(i), "heater:3","level:3", color))
-        except: 
-           pass
-        try:
-           print ('%s----Rear right:\t\t%s | color=%s' % (prefix, seat_state(climate_state['seat_heater_rear_right']),color))
-           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', cmd_path, str(i), "heater:4","level:0", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', cmd_path, str(i), "heater:4","level:0", color))
-           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',cmd_path, str(i), "heater:4","level:1", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',cmd_path, str(i), "heater:4","level:1", color))
-           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', cmd_path, str(i), "heater:4","level:2", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', cmd_path, str(i), "heater:4","level:2", color))
-           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', cmd_path, str(i), "heater:4","level:3", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', cmd_path, str(i), "heater:4","level:3", color))
-        except: 
-           pass
+          
+
+        for seat_nr, seat_name, seat_api in [(0,'Driver:\t','seat_heater_left'),
+                                             (1,'Passenger:','seat_heater_right'),
+                                             (2,'Rear left:','seat_heater_rear_left'),
+                                             (3,'Rear center:','seat_heater_rear_center'),
+                                             (4,'Rear right:','seat_heater_rear_right')]:
+            try:
+                current_seat_setting = climate_state[seat_api]
+                print ('%s----%s\t\t\t%s | color=%s' % (prefix, seat_name, seat_state(current_seat_setting), color))
+                for seat_setting in range(0,4):
+                    print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, seat_state(seat_setting), cmd_path, str(i), "heater:"+str(seat_nr),"level:"+str(seat_setting), color_setting(current_seat_setting,seat_setting,color,info_color)))
+                    print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, seat_state(seat_setting), cmd_path, str(i), "heater:"+str(seat_nr),"level:"+str(seat_setting), color_setting(current_seat_setting,seat_setting,color,info_color)))
+            except: 
+                pass
+
+
         try:
            if climate_state['steering_wheel_heater']: 
               print ('%s--Steering heating:\tOn| color=%s' % (prefix, color))
