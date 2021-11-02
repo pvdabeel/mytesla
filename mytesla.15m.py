@@ -17,7 +17,7 @@
 #
 # Ensure you have xbar installed https://github.com/matryer/xbar/releases/latest
 # Copy this file to your xbar plugins folder and chmod +x the file from your terminal in that folder
-# Run bitbar
+# Run xbar
 
 _DEBUG_ = False 
 
@@ -619,20 +619,29 @@ class TeslaAuthenticator(object):
 
 
     def dialog_username(self):
-        print ('Enter your tesla.com username:')
+        print (CRED+'Enter your tesla.com username:'+CEND)
         return raw_input()
  
     def dialog_password(self):
-        print ('Enter your tesla.com password:')
+        print (CRED+'Enter your tesla.com password:'+CEND)
         return getpass.getpass()
  
     def dialog_mfa(self):
-        print ('Enter multi-factor authentication code:')                                   
+        print (CRED+'Enter multi-factor authentication code:'+CEND)
         return raw_input()  
 
     def dialog_captcha(self):
-        print ('Enter captcha code (Run \'open /tmp/captcha.svg\' in Terminal.app):')
+        print (CRED+'Enter captcha code (Run \'open /tmp/captcha.svg\' in Terminal.app):'+CEND)
         return raw_input()
+
+    def dialog_access_token(self):
+        print (CRED+'Enter Tesla access code:'+CEND)
+        return raw_input()
+
+    def dialog_refresh_token(self):
+        print (CRED+'Enter Tesla refresh code:'+CEND)
+        return raw_input()
+
 
     def generate_challenge(self,verifier):
         return base64urlencode(sha256(verifier).hexdigest())
@@ -739,16 +748,27 @@ class TeslaAuthenticator(object):
 
         if not response.headers.get("location"):
             #print response.headers
-            print "Tesla is now requiring a reCaptcha. We are working on implementing this."
-            print "In the meanwhile, generate an access token using:"
+            #raise Exception('Unable to log in at this time. Please try again later.')
+
+            print ""
+            print "Tesla is now requiring you to solve a reCaptcha puzzle. We are working on implementing support."
+            print "In the meanwhile, please generate a Tesla access token using:"
             print ""
             print "  https://github.com/adriankumpf/tesla_auth"
             print ""
-            print "Once generate open your MacOS keychain application, and look for mytesla-bitbar." 
-            print "Manually update the access_token, delete the expires_in" 
-            print "This should be ok for 45 days" 
+            print "Input the Tesla access token below to continue." 
             print ""
-            raise Exception('Unable to log in at this time. Please try again later.')
+
+            access_token  = self.dialog_access_token()
+            refresh_token = self.dialog_refresh_token()
+            
+            print ""
+            print "Manually setting the access and refresh codes in Mac OS X Keychain." 
+            print ""
+
+            self.override_credentials(access_token,refresh_token)
+
+            return
 
         auth_code       = parse_qs(response.headers["location"])["https://auth.tesla.com/void/callback?code"]
 
@@ -791,18 +811,23 @@ class TeslaAuthenticator(object):
 
     def load_credentials(self):
         self.credentials    = { 
-            "access_token"  : keyring.get_password("mytesla-bitbar","access_token"),
-            "expires_in"    : keyring.get_password("mytesla-bitbar","expires_in"),
-            "refresh_token" : keyring.get_password("mytesla-bitbar","refresh_token"),
-            "created_at"    : keyring.get_password("mytesla-bitbar","created_at"),
+            "access_token"  : keyring.get_password("mytesla-xbar","access_token"),
+            "expires_in"    : keyring.get_password("mytesla-xbar","expires_in"),
+            "refresh_token" : keyring.get_password("mytesla-xbar","refresh_token"),
+            "created_at"    : keyring.get_password("mytesla-xbar","created_at"),
             "token_type"    : "bearer" }
 
     def save_credentials(self):
-        keyring.set_password("mytesla-bitbar","access_token",self.credentials["access_token"])
-        keyring.set_password("mytesla-bitbar","expires_in",self.credentials["expires_in"])
-        keyring.set_password("mytesla-bitbar","refresh_token",self.credentials["refresh_token"])
-        keyring.set_password("mytesla-bitbar","created_at",self.credentials["created_at"])
+        keyring.set_password("mytesla-xbar","access_token",self.credentials["access_token"])
+        keyring.set_password("mytesla-xbar","expires_in",self.credentials["expires_in"])
+        keyring.set_password("mytesla-xbar","refresh_token",self.credentials["refresh_token"])
+        keyring.set_password("mytesla-xbar","created_at",self.credentials["created_at"])
 
+
+    def override_credentials(self,access_token,refresh_token):
+        keyring.set_password("mytesla-xbar","access_token",access_token)
+        keyring.set_password("mytesla-xbar","refresh_token",refresh_token)
+       
 
     def refresh_credentials(self):
 
@@ -1223,12 +1248,12 @@ def main(argv):
         color = 'black' 
         info_color = '#808080'
 
-    ACCESS_TOKEN = keyring.get_password("mytesla-bitbar","access_token")
+    ACCESS_TOKEN = keyring.get_password("mytesla-xbar","access_token")
    
     if not ACCESS_TOKEN:   
        # restart in terminal calling init 
        app_print_logo()
-       print ('Login to tesla.com | refresh=true terminal=true shell="\'%s\'" param1="%s" color=%s' % (cmd_path, 'init', color))
+       print ('Login to tesla.com | refresh=true terminal=true shell="%s" param1="%s" color=%s' % (cmd_path, 'init', color))
        return
 
 
@@ -1240,7 +1265,7 @@ def main(argv):
        appointments = c.appointments()
     except: 
        app_print_logo()
-       print ('Login to tesla.com | refresh=true terminal=true shell="\'%s\'" param1="%s" color=%s' % (cmd_path, 'init', color))
+       print ('Login to tesla.com | refresh=true terminal=true shell="%s" param1="%s" color=%s' % (cmd_path, 'init', color))
        return
 
 
