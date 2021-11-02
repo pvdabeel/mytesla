@@ -1,12 +1,12 @@
 #!/usr/bin/env PYTHONIOENCODING=UTF-8 /usr/bin/python 
 # -*- coding: utf-8 -*-
 #
-# <bitbar.title>MyTesla</bitbar.title>
-# <bitbar.version>Tesla API v14.0</bitbar.version>
-# <bitbar.author>pvdabeel@mac.com</bitbar.author>
-# <bitbar.author.github>pvdabeel</bitbar.author.github>
-# <bitbar.desc>Control your Tesla vehicle from the Mac OS X menubar</bitbar.desc>
-# <bitbar.dependencies>python</bitbar.dependencies>
+# <xbar.title>MyTesla</xbar.title>
+# <xbar.version>Tesla API v14.0</xbar.version>
+# <xbar.author>pvdabeel@mac.com</xbar.author>
+# <xbar.author.github>pvdabeel</xbar.author.github>
+# <xbar.desc>Control your Tesla vehicle from the Mac OS X menubar</xbar.desc>
+# <xbar.dependencies>python</xbar.dependencies>
 #
 # Licence: GPL v3
 
@@ -15,9 +15,8 @@
 # Execute in terminal.app before running : 
 #    sudo easy_install keyring
 #
-# Ensure you have bitbar installed https://github.com/matryer/bitbar/releases/latest
-# Ensure your bitbar plugins directory does not have a space in the path (known bitbar bug)
-# Copy this file to your bitbar plugins folder and chmod +x the file from your terminal in that folder
+# Ensure you have xbar installed https://github.com/matryer/xbar/releases/latest
+# Copy this file to your xbar plugins folder and chmod +x the file from your terminal in that folder
 # Run bitbar
 
 _DEBUG_ = False 
@@ -81,6 +80,9 @@ state_dir    = home+'/.state/mytesla'
 if not os.path.exists(state_dir):
     os.makedirs(state_dir)
 
+# The full path to this file                                                    
+                                                                                
+cmd_path = os.path.realpath(__file__) 
 
 # Location tracking database
 locationdb = TinyDB(state_dir+'/mytesla-locations.json')
@@ -590,10 +592,10 @@ CEND    = '\33[0m'
 CRED    = '\33[31m'
 CGREEN  = '\33[32m'
 CYELLOW = '\33[33m'
-CBLUE   = '\33[34m'
+CBLUE   = '\33[36m'
 
 # Support for OS X Dark Mode
-DARK_MODE=os.getenv('BitBarDarkMode',0)
+DARK_MODE=os.getenv('XBARDarkMode',0)
 
 class TeslaAuthenticator(object):
     """Manages Tesla authentication. Supports MFA"""
@@ -1219,7 +1221,7 @@ def main(argv):
     if not ACCESS_TOKEN:   
        # restart in terminal calling init 
        app_print_logo()
-       print ('Login to tesla.com | refresh=true terminal=true bash="\'%s\'" param1="%s" color=%s' % (sys.argv[0], 'init', color))
+       print ('Login to tesla.com | refresh=true terminal=true shell="\'%s\'" param1="%s" color=%s' % (cmd_path, 'init', color))
        return
 
 
@@ -1231,7 +1233,7 @@ def main(argv):
        appointments = c.appointments()
     except: 
        app_print_logo()
-       print ('Login to tesla.com | refresh=true terminal=true bash="\'%s\'" param1="%s" color=%s' % (sys.argv[0], 'init', color))
+       print ('Login to tesla.com | refresh=true terminal=true shell="\'%s\'" param1="%s" color=%s' % (cmd_path, 'init', color))
        return
 
 
@@ -1294,11 +1296,11 @@ def main(argv):
 	try:
            vehicle_access = vehicle.mobile_access()
            if vehicle_access == False:
-                 print ('%sVehicle mobile access disabled. Click to try again. | refresh=true terminal=false bash="echo refresh" color=%s' % (prefix, color))
+                 print ('%sVehicle mobile access disabled. Click to try again. | refresh=true terminal=false shell="true" color=%s' % (prefix, color))
                  continue
          
            if vehicle['in_service'] == True:
-                 print ('%sVehicle in service. Click to try again. | refresh=true terminal=false bash="echo refresh" color=%s' % (prefix, color))
+                 print ('%sVehicle in service. Click to try again. | refresh=true terminal=false shell="true" color=%s' % (prefix, color))
                  continue   
  
            # get the data for the vehicle       
@@ -1306,11 +1308,11 @@ def main(argv):
  
            if vehicle_info == None:
                app_print_logo()
-               print ('%sError: Failed to get vehicle info from Tesla. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
+               print ('%sError: Failed to get vehicle info from Tesla. Click to try again. | refresh=true terminal=false shell="true" color=%s' % (prefix, color))
                return
 
         except Exception as e: 
-           print ('%sError: Failed to get info from Tesla. Click to try again. | refresh=true terminal=false bash="true" color=%s' % (prefix, color))
+           print ('%sError: Failed to get info from Tesla. Click to try again. | refresh=true terminal=false shell="true" color=%s' % (prefix, color))
            print e
            return         
 
@@ -1378,16 +1380,16 @@ def main(argv):
 
 
         if vehicle['state'] == 'asleep':
-            print ('%sVehicle state:\t\t\t\t%s. | color=%s' % (prefix, sleeping_since(vehicle_info['drive_state']['timestamp']), color))
-            print ('%s--Wake up | refresh=true terminal=true bash="%s" param1=%s param2=%s color=%s' % (prefix, sys.argv[0], str(i), "wake_up", color))
+            print ('%sVehicle state:\t\t\t\t\t%s. | color=%s' % (prefix, sleeping_since(vehicle_info['drive_state']['timestamp']), color))
+            print ('%s--Wake up | refresh=true terminal=true shell="%s" param1=%s param2=%s color=%s' % (prefix, cmd_path, str(i), "wake_up", color))
             print ('%s---' % prefix)
            
         elif vehicle['state'] != 'online':
-            print ('%sVehicle offline. Click to try again. | refresh=true terminal=false bash="echo refresh" color=%s' % (prefix, color))
+            print ('%sVehicle offline. Click to try again. | refresh=true terminal=false shell="echo refresh" color=%s' % (prefix, color))
             return     
  
         elif vehicle['state'] == 'online':
-            print ('%sVehicle state:\t\t\t\tOnline | color=%s' % (prefix, color))
+            print ('%sVehicle state:\t\t\t\t\tOnline | color=%s' % (prefix, color))
             print ('%s---' % prefix)
 
 
@@ -1397,7 +1399,7 @@ def main(argv):
 
         if (vehicle_state['software_update']['status'] == 'available'):
            print ('%sSoftware update:				%s available for installation | color=%s' % (prefix, vehicle_state['software_update']['version'], color))
-           print ('%s--Install | refresh=true terminal=false bash="%s" param1=%s param2=schedule_software_update param3=%s color=%s' % (prefix, sys.argv[0], str(i), "offset_sec:0", color))
+           print ('%s--Install | refresh=true terminal=false shell="%s" param1=%s param2=schedule_software_update param3=%s color=%s' % (prefix, cmd_path, str(i), "offset_sec:0", color))
            print ('%s---' % prefix)
         elif (vehicle_state['software_update']['status'] == 'downloading'):
            print ('%sSoftware update:				Downloading %s (%s%%) | color=%s' % (prefix, vehicle_state['software_update']['version'], vehicle_state['software_update']['download_perc'], color))
@@ -1430,16 +1432,16 @@ def main(argv):
 
         print ('%sBattery:\t\t\t\t\t\t%s%% %s (%s %s) | color=%s' % (prefix, charge_state['battery_level'], cold_state(battery_loss_cold), battery_distance, distance_unit, color))
         print ('%s--Charge Level set to:\t\t\t%s%% | color=%s' % (prefix, charge_state['charge_limit_soc'], color))
-        print ('%s---- 80%% | refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:80", info_color))
-        print ('%s---- 80%% | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:80", info_color))
-        print ('%s---- 85%% | refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:85", info_color))
-        print ('%s---- 85%% | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:85", info_color))
-        print ('%s---- 90%% (Default)| refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:90", color))
-        print ('%s---- 90%% (Default)| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:90", color))
-        print ('%s---- 95%% | refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:95", info_color))
-        print ('%s---- 95%% | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:95", info_color))
-        print ('%s---- 100%% (Trip only)| refresh=true terminal=false bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:100", info_color))
-        print ('%s---- 100%% (Trip only)| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:100", info_color))
+        print ('%s---- 80%% | refresh=true terminal=false shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:80", info_color))
+        print ('%s---- 80%% | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:80", info_color))
+        print ('%s---- 85%% | refresh=true terminal=false shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:85", info_color))
+        print ('%s---- 85%% | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:85", info_color))
+        print ('%s---- 90%% (Default)| refresh=true terminal=false shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:90", color))
+        print ('%s---- 90%% (Default)| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:90", color))
+        print ('%s---- 95%% | refresh=true terminal=false shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:95", info_color))
+        print ('%s---- 95%% | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:95", info_color))
+        print ('%s---- 100%% (Trip only)| refresh=true terminal=false shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:100", info_color))
+        print ('%s---- 100%% (Trip only)| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:100", info_color))
 
 
         print ('%s-----' % prefix)
@@ -1464,14 +1466,14 @@ def main(argv):
 
         elif (charge_state['charging_state']=='Starting'): 
             print ('%sCharger: \t\t\t\t\tStarting | color=%s' % (prefix, color))
-            print ('%s--Stop charging | refresh=true terminal=false bash="%s" param1=%s param2=charge_stop color=%s' % (prefix, sys.argv[0], str(i), color))
-            print ('%s--Stop charging | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_stop color=%s' % (prefix, sys.argv[0], str(i), color))
+            print ('%s--Stop charging | refresh=true terminal=false shell="%s" param1=%s param2=charge_stop color=%s' % (prefix, cmd_path, str(i), color))
+            print ('%s--Stop charging | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=charge_stop color=%s' % (prefix, cmd_path, str(i), color))
 
 
         elif (charge_state['charging_state']=="Stopped"): 
             print ('%sCharger: \t\t\t\t\tStopped | color=%s' % (prefix, color))
-            print ('%s--Continue charging | refresh=true terminal=false bash="%s" param1=%s param2=charge_start color=%s' % (prefix, sys.argv[0], str(i), color))
-            print ('%s--Continue charging | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_start color=%s' % (prefix, sys.argv[0], str(i), color))
+            print ('%s--Continue charging | refresh=true terminal=false shell="%s" param1=%s param2=charge_start color=%s' % (prefix, cmd_path, str(i), color))
+            print ('%s--Continue charging | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=charge_start color=%s' % (prefix, cmd_path, str(i), color))
 
 
         elif (charge_state['charging_state']=="Complete"): 
@@ -1486,8 +1488,8 @@ def main(argv):
                charger_description = "Supercharger:" 
 
             print ('%s%s\t\t\t\t%s (%s %s/h) | color=%s' % (prefix, charger_description, time_left, convert_distance(distance_unit,charge_state['charge_rate']), distance_unit, color))
-            print ('%s--Stop charging | refresh=true terminal=false bash="%s" param1=%s param2=charge_stop color=%s' % (prefix, sys.argv[0], str(i), color))
-            print ('%s--Stop charging | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_stop color=%s' % (prefix, sys.argv[0], str(i), color))
+            print ('%s--Stop charging | refresh=true terminal=false shell="%s" param1=%s param2=charge_stop color=%s' % (prefix, cmd_path, str(i), color))
+            print ('%s--Stop charging | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=charge_stop color=%s' % (prefix, cmd_path, str(i), color))
  
             print ('%s-----' % prefix)
 
@@ -1532,20 +1534,20 @@ def main(argv):
         print ('%sVehicle security:\t\t\t\t%s %s | color=%s' % (prefix, lock_state(vehicle_state['locked']), sentry_description, color))
 
         if bool(vehicle_state['locked']):
-            print ('%s--%s | refresh=true terminal=false bash="%s" param1=%s param2=door_unlock color=%s' % (prefix, CRED+'Unlock'+CEND, sys.argv[0], str(i), color))
-            print ('%s--%s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=door_unlock color=%s' % (prefix, CRED+'Unlock'+CEND, sys.argv[0], str(i), color))
+            print ('%s--%s | refresh=true terminal=false shell="%s" param1=%s param2=door_unlock color=%s' % (prefix, CRED+'Unlock'+CEND, cmd_path, str(i), color))
+            print ('%s--%s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=door_unlock color=%s' % (prefix, CRED+'Unlock'+CEND, cmd_path, str(i), color))
             if bool(sentry_available): 
                 print ('%s-----' % (prefix))
                 if (sentry_state == 'off'):
-                   print ('%s--%s | refresh=true terminal=false bash="%s" param1=%s param2=set_sentry_mode param3="on:true" color=%s' % (prefix, CGREEN+'Turn on Sentry'+CEND, sys.argv[0], str(i), color))
-                   print ('%s--%s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_sentry_mode param3="on:true" color=%s' % (prefix, CGREEN+'Turn on Sentry'+CEND, sys.argv[0], str(i), color))
+                   print ('%s--%s | refresh=true terminal=false shell="%s" param1=%s param2=set_sentry_mode param3="on:true" color=%s' % (prefix, CGREEN+'Turn on Sentry'+CEND, cmd_path, str(i), color))
+                   print ('%s--%s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_sentry_mode param3="on:true" color=%s' % (prefix, CGREEN+'Turn on Sentry'+CEND, cmd_path, str(i), color))
                 else:
-                   print ('%s--%s | refresh=true terminal=false bash="%s" param1=%s param2=set_sentry_mode param3="on:false" color=%s' % (prefix, CRED+'Turn off Sentry'+CEND, sys.argv[0], str(i), color))
-                   print ('%s--%s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_sentry_mode param3="on:false" color=%s' % (prefix, CRED+'Turn off Sentry'+CEND, sys.argv[0], str(i), color))
+                   print ('%s--%s | refresh=true terminal=false shell="%s" param1=%s param2=set_sentry_mode param3="on:false" color=%s' % (prefix, CRED+'Turn off Sentry'+CEND, cmd_path, str(i), color))
+                   print ('%s--%s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_sentry_mode param3="on:false" color=%s' % (prefix, CRED+'Turn off Sentry'+CEND, cmd_path, str(i), color))
  
         else:
-            print ('%s--%s | refresh=true terminal=false bash="%s" param1=%s param2=door_lock color=%s' % (prefix, CGREEN+'Lock'+CEND, sys.argv[0], str(i), color))
-            print ('%s--%s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=door_lock color=%s' % (prefix, CGREEN+'Lock'+CEND, sys.argv[0], str(i), color))
+            print ('%s--%s | refresh=true terminal=false shell="%s" param1=%s param2=door_lock color=%s' % (prefix, CGREEN+'Lock'+CEND, cmd_path, str(i), color))
+            print ('%s--%s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=door_lock color=%s' % (prefix, CGREEN+'Lock'+CEND, cmd_path, str(i), color))
 
 
         # Door overview
@@ -1562,33 +1564,33 @@ def main(argv):
         
         print ('%s--Driver front window:\t\t\t%s| color=%s' % (prefix, window_state(vehicle_state['fd_window']),info_color))
         if (vehicle_state['fd_window'] == 0):
-            print ('%s----Open | refresh=true terminal=false bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:vent', 'lat:0', 'lon:0', color))
-            print ('%s----Open | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:vent', 'lat:0', 'lon:0', color))
+            print ('%s----Open | refresh=true terminal=false shell="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, cmd_path, str(i), 'command:vent', 'lat:0', 'lon:0', color))
+            print ('%s----Open | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, cmd_path, str(i), 'command:vent', 'lat:0', 'lon:0', color))
         else:
-            print ('%s----Close (Not available) | refresh=true terminal=false bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:close', 'lat:0', 'lon:0', info_color))
-            print ('%s----Close (Not available) | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:close', 'lat:0', 'lon:0', info_color))
+            print ('%s----Close (Not available) | refresh=true terminal=false shell="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, cmd_path, str(i), 'command:close', 'lat:0', 'lon:0', info_color))
+            print ('%s----Close (Not available) | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, cmd_path, str(i), 'command:close', 'lat:0', 'lon:0', info_color))
         print ('%s--Driver rear window:\t\t\t%s| color=%s' % (prefix, window_state(vehicle_state['rd_window']),info_color))
         if (vehicle_state['fd_window'] == 0):
-            print ('%s----Open | refresh=true terminal=false bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:vent', 'lat:0', 'lon:0', color))
-            print ('%s----Open | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:vent', 'lat:0', 'lon:0', color))
+            print ('%s----Open | refresh=true terminal=false shell="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, cmd_path, str(i), 'command:vent', 'lat:0', 'lon:0', color))
+            print ('%s----Open | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, cmd_path, str(i), 'command:vent', 'lat:0', 'lon:0', color))
         else:
-            print ('%s----Close (Not available) | refresh=true terminal=false bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:close', 'lat:0', 'lon:0', info_color))
-            print ('%s----Close (Not available) | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:close', 'lat:0', 'lon:0', info_color))
+            print ('%s----Close (Not available) | refresh=true terminal=false shell="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, cmd_path, str(i), 'command:close', 'lat:0', 'lon:0', info_color))
+            print ('%s----Close (Not available) | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, cmd_path, str(i), 'command:close', 'lat:0', 'lon:0', info_color))
  
         print ('%s--Passenger front window:\t\t%s| color=%s' % (prefix, window_state(vehicle_state['fp_window']),info_color))
         if (vehicle_state['fp_window'] == 0):
-            print ('%s----Open | refresh=true terminal=false bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:vent', 'lat:0', 'lon:0', color))
-            print ('%s----Open | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:vent', 'lat:0', 'lon:0', color))
+            print ('%s----Open | refresh=true terminal=false shell="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, cmd_path, str(i), 'command:vent', 'lat:0', 'lon:0', color))
+            print ('%s----Open | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, cmd_path, str(i), 'command:vent', 'lat:0', 'lon:0', color))
         else:
-            print ('%s----Close (Not available) | refresh=true terminal=false bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:close', 'lat:0', 'lon:0', info_color))
-            print ('%s----Close (Not available) | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:close', 'lat:0', 'lon:0', info_color))
+            print ('%s----Close (Not available) | refresh=true terminal=false shell="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, cmd_path, str(i), 'command:close', 'lat:0', 'lon:0', info_color))
+            print ('%s----Close (Not available) | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, cmd_path, str(i), 'command:close', 'lat:0', 'lon:0', info_color))
         print ('%s--Passenger rear window:\t\t%s| color=%s' % (prefix, window_state(vehicle_state['rp_window']),info_color))
         if (vehicle_state['rp_window'] == 0):
-            print ('%s----Open | refresh=true terminal=false bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:vent', 'lat:0', 'lon:0', color))
-            print ('%s----Open | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:vent', 'lat:0', 'lon:0', color))
+            print ('%s----Open | refresh=true terminal=false shell="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, cmd_path, str(i), 'command:vent', 'lat:0', 'lon:0', color))
+            print ('%s----Open | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, cmd_path, str(i), 'command:vent', 'lat:0', 'lon:0', color))
         else:
-            print ('%s----Close (Not available) | refresh=true terminal=false bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:close', 'lat:0', 'lon:0', info_color))
-            print ('%s----Close (Not available) | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, sys.argv[0], str(i), 'command:close', 'lat:0', 'lon:0', info_color))
+            print ('%s----Close (Not available) | refresh=true terminal=false shell="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, cmd_path, str(i), 'command:close', 'lat:0', 'lon:0', info_color))
+            print ('%s----Close (Not available) | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=window_control param3=%s param4=%s param5=%s color=%s' % (prefix, cmd_path, str(i), 'command:close', 'lat:0', 'lon:0', info_color))
         print ('%s-----' % prefix)
 
 
@@ -1598,14 +1600,14 @@ def main(argv):
            if bool(vehicle_config['sun_roof_installed']):
               print ('%s-----' % prefix)
               print ('%s--Sun roof open: %s%% | color=%s' % (prefix, vehicle_state['sun_roof_percent_open'], color))
-              print ('%s---- 0%% (Closed)| refresh=true terminal=false bash="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:0", color))
-              print ('%s---- 0%% (Closed)| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:0", color))
-              print ('%s---- 15%% (Vent)| refresh=true terminal=false bash="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:15", color))
-              print ('%s---- 15%% (Vent)| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:15", color))
-              print ('%s---- 80%% (Comfort)| refresh=true terminal=false bash="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:80", color))
-              print ('%s---- 80%% (Comfort)| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:80", color))
-              print ('%s---- 100%% (Open)| refresh=true terminal=false bash="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:100", color))
-              print ('%s---- 100%% (Open)| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, sys.argv[0], str(i), "percent:100", color))
+              print ('%s---- 0%% (Closed)| refresh=true terminal=false shell="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:0", color))
+              print ('%s---- 0%% (Closed)| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:0", color))
+              print ('%s---- 15%% (Vent)| refresh=true terminal=false shell="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:15", color))
+              print ('%s---- 15%% (Vent)| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:15", color))
+              print ('%s---- 80%% (Comfort)| refresh=true terminal=false shell="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:80", color))
+              print ('%s---- 80%% (Comfort)| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:80", color))
+              print ('%s---- 100%% (Open)| refresh=true terminal=false shell="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:100", color))
+              print ('%s---- 100%% (Open)| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:100", color))
         except:
            # API change going to firmware 2018.4
            pass
@@ -1615,19 +1617,19 @@ def main(argv):
 
         print ('%s--Front trunk:\t\t\t\t\t%s| color=%s' % (prefix, door_state(vehicle_state['ft']),color))
         if (bool(vehicle_state['ft'])):
-        	print ('%s----Close | refresh=true terminal=false bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:front", color))
-        	print ('%s----Close | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:front", color))
+        	print ('%s----Close | refresh=true terminal=false shell="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, cmd_path, str(i), "which_trunk:front", color))
+        	print ('%s----Close | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, cmd_path, str(i), "which_trunk:front", color))
         else: 
-        	print ('%s----Open | refresh=true terminal=false bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:front", color))
-        	print ('%s----Open | refresh=true alternate=true terminal=true  bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:front", color))
+        	print ('%s----Open | refresh=true terminal=false shell="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, cmd_path, str(i), "which_trunk:front", color))
+        	print ('%s----Open | refresh=true alternate=true terminal=true  shell="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, cmd_path, str(i), "which_trunk:front", color))
 
         print ('%s--Rear trunk:\t\t\t\t\t%s| color=%s' % (prefix, door_state(vehicle_state['rt']),info_color))
         if (bool(vehicle_state['rt'])):
-        	print ('%s----Close | refresh=true terminal=false bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
-        	print ('%s----Close | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
+        	print ('%s----Close | refresh=true terminal=false shell="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, cmd_path, str(i), "which_trunk:rear", color))
+        	print ('%s----Close | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, cmd_path, str(i), "which_trunk:rear", color))
         else: 
-        	print ('%s----Open | refresh=true terminal=false bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
-        	print ('%s----Open | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, sys.argv[0], str(i), "which_trunk:rear", color))
+        	print ('%s----Open | refresh=true terminal=false shell="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, cmd_path, str(i), "which_trunk:rear", color))
+        	print ('%s----Open | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, cmd_path, str(i), "which_trunk:rear", color))
 
        	charge_port_defrost = ""
         try:
@@ -1638,11 +1640,11 @@ def main(argv):
  
         print ('%s--Charge port:\t\t\t\t\t%s %s| color=%s' % (prefix, port_state(charge_state['charge_port_door_open'],charge_state['charge_port_latch']), charge_port_defrost, color))
         if (bool(charge_state['charge_port_door_open'])) and (not(charge_state['charge_port_latch'] == 'Engaged')):
-                print ('%s----Close | refresh=true terminal=false bash="%s" param1=%s param2=charge_port_door_close color=%s' % (prefix, sys.argv[0], str(i), color))
-        	print ('%s----Close | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_port_door_close color=%s' % (prefix, sys.argv[0], str(i), color))
+                print ('%s----Close | refresh=true terminal=false shell="%s" param1=%s param2=charge_port_door_close color=%s' % (prefix, cmd_path, str(i), color))
+        	print ('%s----Close | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=charge_port_door_close color=%s' % (prefix, cmd_path, str(i), color))
         if (not(bool(charge_state['charge_port_door_open']))):
-        	print ('%s----Open | refresh=true terminal=false bash="%s" param1=%s param2=charge_port_door_open color=%s' % (prefix, sys.argv[0], str(i), color))
-        	print ('%s----Open | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=charge_port_door_open color=%s' % (prefix, sys.argv[0], str(i), color))
+        	print ('%s----Open | refresh=true terminal=false shell="%s" param1=%s param2=charge_port_door_open color=%s' % (prefix, cmd_path, str(i), color))
+        	print ('%s----Open | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=charge_port_door_open color=%s' % (prefix, cmd_path, str(i), color))
 
         if bool(drive_state['speed']):
             print ('%sVehicle speed:\t\t\t\t%s %s/h| color=%s' % (prefix, convert_distance(distance_unit,drive_state['speed']),distance_unit,color))
@@ -1659,8 +1661,8 @@ def main(argv):
         print ('%s-----' % prefix)
         print ('%s--Address:\t\t%s| color=%s' % (prefix, car_location_address, color))
         print ('%s-----' % prefix)
-        print ('%s--Lat:\t\t\t\t%s| color=%s' % (prefix, drive_state['latitude'], info_color))
-        print ('%s--Lon:\t\t\t\t%s| color=%s' % (prefix, drive_state['longitude'], info_color))
+        print ('%s--Lat:\t\t\t%s| color=%s' % (prefix, drive_state['latitude'], info_color))
+        print ('%s--Lon:\t\t\t%s| color=%s' % (prefix, drive_state['longitude'], info_color))
         print ('%s--Heading:\t\t%s°| color=%s' % (prefix, drive_state['heading'], info_color))
 
         print ('%s---' % prefix)
@@ -1688,122 +1690,122 @@ def main(argv):
         except:
             print ('%sInside temp:\t\t\t\t\tUnavailable| color=%s' % (prefix,color))
         if climate_state['is_climate_on']:
-            print ('%s--Turn off airco | refresh=true terminal=false bash="%s" param1=%s param2=auto_conditioning_stop color=%s' % (prefix, sys.argv[0], str(i), color))
-            print ('%s--Turn off airco | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=auto_conditioning_stop color=%s' % (prefix, sys.argv[0], str(i), color))
+            print ('%s--Turn off airco | refresh=true terminal=false shell="%s" param1=%s param2=auto_conditioning_stop color=%s' % (prefix, cmd_path, str(i), color))
+            print ('%s--Turn off airco | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=auto_conditioning_stop color=%s' % (prefix, cmd_path, str(i), color))
         else:
-            print ('%s--Turn on airco | refresh=true terminal=false bash="%s" param1=%s param2=auto_conditioning_start color=%s' % (prefix, sys.argv[0], str(i), color))
-            print ('%s--Turn on airco | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=auto_conditioning_start color=%s' % (prefix, sys.argv[0], str(i), color))
+            print ('%s--Turn on airco | refresh=true terminal=false shell="%s" param1=%s param2=auto_conditioning_start color=%s' % (prefix, cmd_path, str(i), color))
+            print ('%s--Turn on airco | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=auto_conditioning_start color=%s' % (prefix, cmd_path, str(i), color))
         
         if climate_state['is_front_defroster_on']:
-            print ('%s--Turn off window defrost | refresh=true terminal=false bash="%s" param1=%s param2=set_preconditioning_max param3=%s color=%s' % (prefix, sys.argv[0], str(i), 'on:false', color))
-            print ('%s--Turn off window defrost | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_preconditioning_max param3=%s color=%s' % (prefix, sys.argv[0], str(i), 'on:false', color))
+            print ('%s--Turn off window defrost | refresh=true terminal=false shell="%s" param1=%s param2=set_preconditioning_max param3=%s color=%s' % (prefix, cmd_path, str(i), 'on:false', color))
+            print ('%s--Turn off window defrost | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_preconditioning_max param3=%s color=%s' % (prefix, cmd_path, str(i), 'on:false', color))
         else:
-            print ('%s--Turn on window defrost | refresh=true terminal=false bash="%s" param1=%s param2=set_preconditioning_max param3=%s color=%s' % (prefix, sys.argv[0], str(i), 'on:true', color))
-            print ('%s--Turn on window defrost | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_preconditioning_max param3=%s color=%s' % (prefix, sys.argv[0], str(i), 'on:true', color))
+            print ('%s--Turn on window defrost | refresh=true terminal=false shell="%s" param1=%s param2=set_preconditioning_max param3=%s color=%s' % (prefix, cmd_path, str(i), 'on:true', color))
+            print ('%s--Turn on window defrost | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_preconditioning_max param3=%s color=%s' % (prefix, cmd_path, str(i), 'on:true', color))
 
         print ('%s-----' % prefix)
         print ('%s--Airco set to:\t\t\t%.1f° %s | color=%s' % (prefix, convert_temp(temp_unit,climate_state['driver_temp_setting']), temp_unit, color))
-        print ('%s---- 18° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:18","passenger_temp:18", color))
-        print ('%s---- 18° %s| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:18","passenger_temp:18", color))
-        print ('%s---- 19° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:19","passenger_temp:19", color))
-        print ('%s---- 19° %s| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:19","passenger_temp:19", color))
-        print ('%s---- 20° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:20","passenger_temp:20", color))
-        print ('%s---- 20° %s| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:20","passenger_temp:20", color))
-        print ('%s---- 21° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:21","passenger_temp:21", color))
-        print ('%s---- 21° %s| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:21","passenger_temp:21", color))
-        print ('%s---- 22° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:22","passenger_temp:22", color))
-        print ('%s---- 22° %s| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:22","passenger_temp:22", color))
-        print ('%s---- 23° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:23","passenger_temp:23", color))
-        print ('%s---- 23° %s| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:23","passenger_temp:23", color))
-        print ('%s---- 24° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:24","passenger_temp:24", color))
-        print ('%s---- 24° %s| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:24","passenger_temp:24", color))
-        print ('%s---- 25° %s| refresh=true terminal=false bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:25","passenger_temp:25", color))
-        print ('%s---- 25° %s| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, sys.argv[0], str(i), "driver_temp:25","passenger_temp:25", color))
+        print ('%s---- 18° %s| refresh=true terminal=false shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:18","passenger_temp:18", color))
+        print ('%s---- 18° %s| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:18","passenger_temp:18", color))
+        print ('%s---- 19° %s| refresh=true terminal=false shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:19","passenger_temp:19", color))
+        print ('%s---- 19° %s| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:19","passenger_temp:19", color))
+        print ('%s---- 20° %s| refresh=true terminal=false shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:20","passenger_temp:20", color))
+        print ('%s---- 20° %s| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:20","passenger_temp:20", color))
+        print ('%s---- 21° %s| refresh=true terminal=false shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:21","passenger_temp:21", color))
+        print ('%s---- 21° %s| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:21","passenger_temp:21", color))
+        print ('%s---- 22° %s| refresh=true terminal=false shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:22","passenger_temp:22", color))
+        print ('%s---- 22° %s| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:22","passenger_temp:22", color))
+        print ('%s---- 23° %s| refresh=true terminal=false shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:23","passenger_temp:23", color))
+        print ('%s---- 23° %s| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:23","passenger_temp:23", color))
+        print ('%s---- 24° %s| refresh=true terminal=false shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:24","passenger_temp:24", color))
+        print ('%s---- 24° %s| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:24","passenger_temp:24", color))
+        print ('%s---- 25° %s| refresh=true terminal=false shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:25","passenger_temp:25", color))
+        print ('%s---- 25° %s| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_temps param3=%s param4=%s color=%s' % (prefix, temp_unit, cmd_path, str(i), "driver_temp:25","passenger_temp:25", color))
 
 
         # TODO: Dog Mode API unpublished - to be verified
 
         if climate_state['climate_keeper_mode'] == 'dog':
             print ('%s--Dog Mode:\t\t\tOn | color=%s' % (prefix, color))
-            print ('%s----Turn off | refresh=true terminal=false bash="%s" param1=%s param2=set_climate_keeper param3="on:false" color=%s' % (prefix, sys.argv[0], str(i), color))
-            print ('%s----Turn off | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_climate_keeper param3="on:false" color=%s' % (prefix, sys.argv[0], str(i), color))
+            print ('%s----Turn off | refresh=true terminal=false shell="%s" param1=%s param2=set_climate_keeper param3="on:false" color=%s' % (prefix, cmd_path, str(i), color))
+            print ('%s----Turn off | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_climate_keeper param3="on:false" color=%s' % (prefix, cmd_path, str(i), color))
         else:
             print ('%s--Dog Mode:\t\t\tOff | color=%s' % (prefix, color))
-            print ('%s----Turn on | refresh=true terminal=false bash="%s" param1=%s param2=set_climate_keeper param3="on:true" color=%s' % (prefix, sys.argv[0], str(i), color))
-            print ('%s----Turn on | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=set_climate_keeper param3="on:true" color=%s' % (prefix, sys.argv[0], str(i), color))
+            print ('%s----Turn on | refresh=true terminal=false shell="%s" param1=%s param2=set_climate_keeper param3="on:true" color=%s' % (prefix, cmd_path, str(i), color))
+            print ('%s----Turn on | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_climate_keeper param3="on:true" color=%s' % (prefix, cmd_path, str(i), color))
 
 
         print ('%s-----' % prefix)
         print ('%s--Seat heating | color=%s' % (prefix, color))
         try:
            print ('%s----Driver:\t\t\t%s | color=%s' % (prefix, seat_state(climate_state['seat_heater_left']), color))
-           print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', sys.argv[0], str(i), "heater:0","level:0", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', sys.argv[0], str(i), "heater:0","level:0", color))
-           print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',sys.argv[0], str(i), "heater:0","level:1", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',sys.argv[0], str(i), "heater:0","level:1", color))
-           print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', sys.argv[0], str(i), "heater:0","2", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', sys.argv[0], str(i), "heater:0","level:2", color))
-           print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', sys.argv[0], str(i), "heater:0","level:3", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', sys.argv[0], str(i), "heater:0","level:3", color))
+           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', cmd_path, str(i), "heater:0","level:0", color))
+           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', cmd_path, str(i), "heater:0","level:0", color))
+           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',cmd_path, str(i), "heater:0","level:1", color))
+           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',cmd_path, str(i), "heater:0","level:1", color))
+           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', cmd_path, str(i), "heater:0","2", color))
+           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', cmd_path, str(i), "heater:0","level:2", color))
+           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', cmd_path, str(i), "heater:0","level:3", color))
+           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', cmd_path, str(i), "heater:0","level:3", color))
         except:
            pass
         try:    
            print ('%s----Passenger:\t\t%s | color=%s' % (prefix, seat_state(climate_state['seat_heater_right']), color))
-           print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', sys.argv[0], str(i), "heater:1","level:0", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', sys.argv[0], str(i), "heater:1","level:0", color))
-           print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',sys.argv[0], str(i), "heater:1","level:1", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',sys.argv[0], str(i), "heater:1","level:1", color))
-           print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', sys.argv[0], str(i), "heater:1","level:2", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', sys.argv[0], str(i), "heater:1","level:2", color))
-           print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', sys.argv[0], str(i), "heater:1","level:3", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', sys.argv[0], str(i), "heater:1","level:3", color))
+           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', cmd_path, str(i), "heater:1","level:0", color))
+           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', cmd_path, str(i), "heater:1","level:0", color))
+           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',cmd_path, str(i), "heater:1","level:1", color))
+           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',cmd_path, str(i), "heater:1","level:1", color))
+           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', cmd_path, str(i), "heater:1","level:2", color))
+           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', cmd_path, str(i), "heater:1","level:2", color))
+           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', cmd_path, str(i), "heater:1","level:3", color))
+           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', cmd_path, str(i), "heater:1","level:3", color))
         except: 
            pass
         try:
            print ('%s----Rear left:\t\t%s | color=%s' % (prefix, seat_state(climate_state['seat_heater_rear_left']), color))
-           print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', sys.argv[0], str(i), "heater:2","level:0", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', sys.argv[0], str(i), "heater:2","level:0", color))
-           print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',sys.argv[0], str(i), "heater:2","level:1", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',sys.argv[0], str(i), "heater:2","level:1", color))
-           print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', sys.argv[0], str(i), "heater:2","level:2", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', sys.argv[0], str(i), "heater:2","level:2", color))
-           print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', sys.argv[0], str(i), "heater:2","level:3", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', sys.argv[0], str(i), "heater:2","level:3", color))
+           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', cmd_path, str(i), "heater:2","level:0", color))
+           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', cmd_path, str(i), "heater:2","level:0", color))
+           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',cmd_path, str(i), "heater:2","level:1", color))
+           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',cmd_path, str(i), "heater:2","level:1", color))
+           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', cmd_path, str(i), "heater:2","level:2", color))
+           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', cmd_path, str(i), "heater:2","level:2", color))
+           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', cmd_path, str(i), "heater:2","level:3", color))
+           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', cmd_path, str(i), "heater:2","level:3", color))
         except:
            pass
         try:
            print ('%s----Rear center:\t\t%s | color=%s' % (prefix, seat_state(climate_state['seat_heater_rear_center']),color))
-           print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', sys.argv[0], str(i), "heater:3","level:0", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', sys.argv[0], str(i), "heater:3","level:0", color))
-           print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',sys.argv[0], str(i), "heater:3","level:1", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',sys.argv[0], str(i), "heater:3","level:1", color))
-           print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', sys.argv[0], str(i), "heater:3","level:2", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', sys.argv[0], str(i), "heater:3","level:2", color))
-           print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', sys.argv[0], str(i), "heater:3","level:3", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', sys.argv[0], str(i), "heater:3","level:3", color))
+           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', cmd_path, str(i), "heater:3","level:0", color))
+           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', cmd_path, str(i), "heater:3","level:0", color))
+           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',cmd_path, str(i), "heater:3","level:1", color))
+           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',cmd_path, str(i), "heater:3","level:1", color))
+           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', cmd_path, str(i), "heater:3","level:2", color))
+           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', cmd_path, str(i), "heater:3","level:2", color))
+           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', cmd_path, str(i), "heater:3","level:3", color))
+           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', cmd_path, str(i), "heater:3","level:3", color))
         except: 
            pass
         try:
            print ('%s----Rear right:\t\t%s | color=%s' % (prefix, seat_state(climate_state['seat_heater_rear_right']),color))
-           print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', sys.argv[0], str(i), "heater:4","level:0", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', sys.argv[0], str(i), "heater:4","level:0", color))
-           print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',sys.argv[0], str(i), "heater:4","level:1", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',sys.argv[0], str(i), "heater:4","level:1", color))
-           print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', sys.argv[0], str(i), "heater:4","level:2", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', sys.argv[0], str(i), "heater:4","level:2", color))
-           print ('%s------ %s | refresh=true terminal=false bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', sys.argv[0], str(i), "heater:4","level:3", color))
-           print ('%s------ %s | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', sys.argv[0], str(i), "heater:4","level:3", color))
+           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', cmd_path, str(i), "heater:4","level:0", color))
+           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '0', cmd_path, str(i), "heater:4","level:0", color))
+           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',cmd_path, str(i), "heater:4","level:1", color))
+           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '1',cmd_path, str(i), "heater:4","level:1", color))
+           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', cmd_path, str(i), "heater:4","level:2", color))
+           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '2', cmd_path, str(i), "heater:4","level:2", color))
+           print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', cmd_path, str(i), "heater:4","level:3", color))
+           print ('%s------ %s | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, '3', cmd_path, str(i), "heater:4","level:3", color))
         except: 
            pass
         try:
            if climate_state['steering_wheel_heater']: 
               print ('%s--Steering heating:\tOn| color=%s' % (prefix, color))
-              print ('%s----Turn off | refresh=true terminal=false bash="%s" param1=%s param2=remote_steering_wheel_heater_request param3="on:false" color=%s' % (prefix, sys.argv[0], str(i), color))
-              print ('%s----Turn off | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_steering_wheel_heater_request param3="on:false" color=%s' % (prefix, sys.argv[0], str(i), color))
+              print ('%s----Turn off | refresh=true terminal=false shell="%s" param1=%s param2=remote_steering_wheel_heater_request param3="on:false" color=%s' % (prefix, cmd_path, str(i), color))
+              print ('%s----Turn off | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_steering_wheel_heater_request param3="on:false" color=%s' % (prefix, cmd_path, str(i), color))
            else:
               print ('%s--Steering heating:\tOff| color=%s' % (prefix, color))
-              print ('%s----Turn off | refresh=true terminal=false bash="%s" param1=%s param2=remote_steering_wheel_heater_request param3="on:true" color=%s' % (prefix, sys.argv[0], str(i), color))
-              print ('%s----Turn off | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=remote_steering_wheel_heater_request param3="on:true" color=%s' % (prefix, sys.argv[0], str(i), color))
+              print ('%s----Turn off | refresh=true terminal=false shell="%s" param1=%s param2=remote_steering_wheel_heater_request param3="on:true" color=%s' % (prefix, cmd_path, str(i), color))
+              print ('%s----Turn off | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_steering_wheel_heater_request param3="on:true" color=%s' % (prefix, cmd_path, str(i), color))
         except:
            pass
 
@@ -1835,8 +1837,8 @@ def main(argv):
         print ('%s--|image=%s alternate=true href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],view='STUD_REAR'), vehicle.compose_url(vehicle_config['car_type']), color))
         print ('%s-----' % prefix)
         print ('%s--Name: 			%s | color=%s' % (prefix, vehicle_name, color))
-        print ('%s--VIN: 			%s | terminal=true bash="echo %s | pbcopy" color=%s' % (prefix, vehicle_vin, vehicle_vin, color))
-        print ('%s--Firmware:		%s | terminal=true bash="echo %s | pbcopy" color=%s' % (prefix, vehicle_state['car_version'],vehicle_state['car_version'], color))
+        print ('%s--VIN: 			%s | terminal=true shell="echo %s | pbcopy" color=%s' % (prefix, vehicle_vin, vehicle_vin, color))
+        print ('%s--Firmware:		%s | terminal=true shell="echo %s | pbcopy" color=%s' % (prefix, vehicle_state['car_version'],vehicle_state['car_version'], color))
         print ('%s-----' % prefix)
         print ('%s--Model:			%s | color=%s' % (prefix, vehicle_config['car_type'], info_color))
         print ('%s--Type: 			%s | color=%s' % (prefix, vehicle_config['trim_badging'], info_color))
@@ -1868,43 +1870,43 @@ def main(argv):
 
 
         print ('%sVehicle commands| color=%s' % (prefix,color))
-        print ('%s--Flash lights | refresh=true terminal=false bash="%s" param1=%s param2=flash_lights color=%s' % (prefix, sys.argv[0], str(i), color))
-        print ('%s--Flash lights | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=flash_lights color=%s' % (prefix, sys.argv[0], str(i), color))
-        print ('%s--Honk horn | refresh=true terminal=false bash="%s" param1=%s param2=honk_horn color=%s' % (prefix, sys.argv[0], str(i), color))
-        print ('%s--Honk horn | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=honk_horn color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s--Flash lights | refresh=true terminal=false shell="%s" param1=%s param2=flash_lights color=%s' % (prefix, cmd_path, str(i), color))
+        print ('%s--Flash lights | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=flash_lights color=%s' % (prefix, cmd_path, str(i), color))
+        print ('%s--Honk horn | refresh=true terminal=false shell="%s" param1=%s param2=honk_horn color=%s' % (prefix, cmd_path, str(i), color))
+        print ('%s--Honk horn | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=honk_horn color=%s' % (prefix, cmd_path, str(i), color))
         print ('%s--Media| color=%s' % (prefix,color))
-        print ('%s----Toggle playback| refresh=true terminal=false bash="%s" param1=%s param2=media_toggle_playback color=%s' % (prefix, sys.argv[0], str(i), color))
-        print ('%s----Toggle playback| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=media_toggle_playback color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s----Toggle playback| refresh=true terminal=false shell="%s" param1=%s param2=media_toggle_playback color=%s' % (prefix, cmd_path, str(i), color))
+        print ('%s----Toggle playback| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=media_toggle_playback color=%s' % (prefix, cmd_path, str(i), color))
         print ('%s-------' % prefix)
         print ('%s----Track| color=%s' % (prefix,color))
-        print ('%s------Previous| refresh=true terminal=false bash="%s" param1=%s param2=media_prev_track color=%s' % (prefix, sys.argv[0], str(i), color))
-        print ('%s------Previous| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=media_prev_track color=%s' % (prefix, sys.argv[0], str(i), color))
-        print ('%s------Next| refresh=true terminal=false bash="%s" param1=%s param2=media_next_track color=%s' % (prefix, sys.argv[0], str(i), color))
-        print ('%s------Next| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=media_next_track color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s------Previous| refresh=true terminal=false shell="%s" param1=%s param2=media_prev_track color=%s' % (prefix, cmd_path, str(i), color))
+        print ('%s------Previous| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=media_prev_track color=%s' % (prefix, cmd_path, str(i), color))
+        print ('%s------Next| refresh=true terminal=false shell="%s" param1=%s param2=media_next_track color=%s' % (prefix, cmd_path, str(i), color))
+        print ('%s------Next| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=media_next_track color=%s' % (prefix, cmd_path, str(i), color))
         print ('%s----Volume| color=%s' % (prefix,color))
-        print ('%s------Up| refresh=true terminal=false bash="%s" param1=%s param2=media_volume_up color=%s' % (prefix, sys.argv[0], str(i), color))
-        print ('%s------Up| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=media_volume_up color=%s' % (prefix, sys.argv[0], str(i), color))
-        print ('%s------Down| refresh=true terminal=false bash="%s" param1=%s param2=media_volume_down color=%s' % (prefix, sys.argv[0], str(i), color))
-        print ('%s------Down| refresh=true alternate=true terminal=true bash="%s" param1=%s param2=media_volume_down color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s------Up| refresh=true terminal=false shell="%s" param1=%s param2=media_volume_up color=%s' % (prefix, cmd_path, str(i), color))
+        print ('%s------Up| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=media_volume_up color=%s' % (prefix, cmd_path, str(i), color))
+        print ('%s------Down| refresh=true terminal=false shell="%s" param1=%s param2=media_volume_down color=%s' % (prefix, cmd_path, str(i), color))
+        print ('%s------Down| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=media_volume_down color=%s' % (prefix, cmd_path, str(i), color))
         print ('%s-----' % prefix)
-        print ('%s--Navigate to address| refresh=true terminal=true bash="%s" param1=%s param2=navigation_request color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s--Navigate to address| refresh=true terminal=true shell="%s" param1=%s param2=navigation_request color=%s' % (prefix, cmd_path, str(i), color))
         
         if nearby_charging_sites:
            print ('%s--Navigate to nearby charger | color=%s' % (prefix, color))
            print ('%s----Tesla Superchargers | color=%s' % (prefix, color))
            for site, charger in enumerate(nearby_charging_sites['superchargers']): 
-              print ('%s------%.2f %s\t(%s/%s)\t%s | refresh=true terminal=false bash="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['available_stalls'],charger['total_stalls'], charger['name'], sys.argv[0], str(i), binascii.hexlify('Tesla Supercharger '+charger['name']), color))
-              print ('%s------%.2f %s\t(%s/%s)\t%s | alternate=true refresh=true terminal=true bash="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['available_stalls'],charger['total_stalls'], charger['name'], sys.argv[0], str(i), binascii.hexlify('Tesla Supercharger '+charger['name']), color))
+              print ('%s------%.2f %s \t(%s/%s)\t%s | refresh=true terminal=false shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['available_stalls'],charger['total_stalls'], charger['name'], cmd_path, str(i), binascii.hexlify('Tesla Supercharger '+charger['name']), color))
+              print ('%s------%.2f %s \t(%s/%s)\t%s | alternate=true refresh=true terminal=true shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['available_stalls'],charger['total_stalls'], charger['name'], cmd_path, str(i), binascii.hexlify('Tesla Supercharger '+charger['name']), color))
            print ('%s----Destination Chargers | color=%s' % (prefix, color))
            for site, charger in enumerate(nearby_charging_sites['destination_charging']): 
-              print ('%s------%.2f %s\t%s\t | refresh=true terminal=false bash="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['name'].encode('utf-8', 'ignore'), sys.argv[0], str(i), binascii.hexlify(charger['name'].encode('utf-8','ignore')), color))
-              print ('%s------%.2f %s\t%s\t | alternate=true refresh=true terminal=true bash="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['name'].encode('utf-8', 'ignore'), sys.argv[0], str(i), binascii.hexlify(charger['name'].encode('utf-8','ignore')), color))
+              print ('%s------%.2f %s \t%s\t | refresh=true terminal=false shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['name'].encode('utf-8', 'ignore'), cmd_path, str(i), binascii.hexlify(charger['name'].encode('utf-8','ignore')), color))
+              print ('%s------%.2f %s \t%s\t | alternate=true refresh=true terminal=true shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['name'].encode('utf-8', 'ignore'), cmd_path, str(i), binascii.hexlify(charger['name'].encode('utf-8','ignore')), color))
 
         print ('%s-----' % prefix)
-        print ('%s--Trigger Homelink | refresh=true terminal=false bash="%s" param1=%s param2=trigger_homelink param3=%s param4=%s color=%s' % (prefix, sys.argv[0], str(i), 'lat:'+str(drive_state['latitude']),'lon:'+str(drive_state['longitude']), color))
-        print ('%s--Trigger Homelink | refresh=true alternate=true terminal=true bash="%s" param1=%s param2=trigger_homelink param3=%s param4=%s color=%s' % (prefix, sys.argv[0], str(i), 'lat:'+str(drive_state['latitude']),'lon:'+str(drive_state['longitude']), color))
+        print ('%s--Trigger Homelink | refresh=true terminal=false shell="%s" param1=%s param2=trigger_homelink param3=%s param4=%s color=%s' % (prefix, cmd_path, str(i), 'lat:'+str(drive_state['latitude']),'lon:'+str(drive_state['longitude']), color))
+        print ('%s--Trigger Homelink | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=trigger_homelink param3=%s param4=%s color=%s' % (prefix, cmd_path, str(i), 'lat:'+str(drive_state['latitude']),'lon:'+str(drive_state['longitude']), color))
         print ('%s-----' % prefix)
-        print ('%s--Remote start | refresh=true terminal=true bash="%s" param1=%s param2=remote_start_drive color=%s' % (prefix, sys.argv[0], str(i), color))
+        print ('%s--Remote start | refresh=true terminal=true shell="%s" param1=%s param2=remote_start_drive color=%s' % (prefix, cmd_path, str(i), color))
  
 
 if __name__ == '__main__':
