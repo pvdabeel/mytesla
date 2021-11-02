@@ -3,16 +3,16 @@
 
 Displays information regarding your Tesla vehicle in the Mac OS X menubar. Allows you to remotely control your Tesla vehicle as well.
 
-![Imgur](https://i.imgur.com/lU0zI06.jpg)
+![Imgur](https://i.imgur.com/5xMhwXM.jpg)
 
 
 | Browse Vehicle options | Browse Vehicle images | Control charging |
 | --- | --- | --- |
-| ![Imgur](https://i.imgur.com/HUwBbKMm.jpg) | ![Imgur](https://i.imgur.com/1Wg4gMGm.jpg) | ![Imgur](https://i.imgur.com/lU0zI06m.jpg) | 
+| ![Imgur](https://i.imgur.com/EJ6sT7E.jpg) | ![Imgur](https://i.imgur.com/o0wx7nD.jpg) | ![Imgur](https://i.imgur.com/5xMhwXM.jpg) | 
 
 | Control Airco | Control Media | Control Navigation |
 | --- | --- | --- |
-| ![Imgur](https://i.imgur.com/T3FwZntm.jpg) | ![Imgur](https://i.imgur.com/KROaNT1m.jpg) | ![Imgur](https://i.imgur.com/M5VSe4Um.jpg) |
+| ![Imgur](https://i.imgur.com/i1tRRsL.jpg) | ![Imgur](https://i.imgur.com/R36v4f9.jpg) | ![Imgur](https://i.imgur.com/ciLkZu8.jpg) |
 
 
 Want a Tesla with free supercharging Credits? Use my [referral code](http://ts.la/pieter9690)
