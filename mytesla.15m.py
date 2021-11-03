@@ -764,7 +764,7 @@ class TeslaAuthenticator(object):
             refresh_token = self.dialog_refresh_token()
             
             print ""
-            print "Manually setting the access and refresh codes in Mac OS X Keychain." 
+            print "Manually setting the access and refresh codes in MacOS Keychain." 
             print ""
 
             self.override_credentials(access_token,refresh_token)
