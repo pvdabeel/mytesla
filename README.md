@@ -1,7 +1,7 @@
 
 # MyTesla - MacOS Menubar plugin
 
-Displays information regarding your Tesla vehicle in the Mac OS menubar. Allows you to remotely control your Tesla vehicle as well.
+Displays information regarding your Tesla vehicle in the MacOS menubar. Allows you to remotely control your Tesla vehicle as well.
 
 ![Imgur](https://i.imgur.com/5xMhwXM.jpg)
 
