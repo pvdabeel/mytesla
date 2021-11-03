@@ -1414,7 +1414,7 @@ def main(argv):
 
 
         if vehicle['state'] == 'asleep':
-            print ('%sVehicle state:\t\t\t\t\t%s. | color=%s' % (prefix, sleeping_since(vehicle_info['drive_state']['timestamp'], color)))
+            print ('%sVehicle state:\t\t\t\t\t%s. | color=%s' % (prefix, sleeping_since(vehicle_info['drive_state']['timestamp']), color))
             print ('%s--Wake up | refresh=true terminal=true shell="%s" param1=%s param2=%s color=%s' % (prefix, cmd_path, str(i), "wake_up", color))
             print ('%s---' % prefix)
            
