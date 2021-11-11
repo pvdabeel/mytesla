@@ -1531,9 +1531,15 @@ def main(argv):
             print ('%s-----' % prefix)
 
             if bool(charge_state['charger_pilot_current']):
-               print ('%s--Maximum current:\t%s A| color=%s' % (prefix, charge_state['charger_pilot_current'],info_color))
+               print ('%s--Maximum current:\t\t%s A| color=%s' % (prefix, charge_state['charger_pilot_current'],info_color))
+               
+               current_charger_amps = charge_state['charge_current_request_max']
+
+               for charger_amps in range(6,25):
+                   print ('%s---- %sA | refresh=true terminal=false shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, charger_amps, cmd_path, str(i), charger_amps, color_setting(current_charger_amps,charger_amps,color,info_color)))
+                   print ('%s---- %sA | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, charger_amps, cmd_path, str(i), charger_amps, color_setting(current_charger_amps,charger_amps,color,info_color)))
             else:
-               print ('%s--Maximum current:\tNo information| color=%s' % (prefix,info_color))
+               print ('%s--Maximum current:\t\tNo information| color=%s' % (prefix,info_color))
             print ('%s--Actual current:\t\t%s A| color=%s' % (prefix, charge_state['charger_actual_current'],info_color))
             print ('%s--Power:\t\t\t\t%s Kw| color=%s' % (prefix, charge_state['charger_power'],info_color))
             print ('%s--Voltage:\t\t\t\t%s V| color=%s' % (prefix, charge_state['charger_voltage'],info_color))
