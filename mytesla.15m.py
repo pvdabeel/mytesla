@@ -757,6 +757,7 @@ class TeslaAuthenticator(object):
             print ""
             print "  https://github.com/adriankumpf/tesla_auth"
             print ""
+            print "Use the -o argument when calling this application to get a long lived access token"
             print "Input the Tesla access token below to continue." 
             print ""
 
