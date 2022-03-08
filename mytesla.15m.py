@@ -1378,6 +1378,7 @@ def main(argv):
                         vehicle.compose_image(vehicle_config['car_type'],view=view,size=size,background=background)
 
         battery_loss_cold = int(charge_state['battery_level']) - int(charge_state['usable_battery_level'])
+        battery_loss_cold = 0
         battery_distance  = ""
 
         if (gui_settings['gui_range_display'] == 'Rated'):
@@ -1841,6 +1842,10 @@ def main(argv):
            pass 
         print ('%s--Color: 			%s | color=%s' % (prefix, vehicle_config['exterior_color'], info_color))
         print ('%s--Wheels: 			%s | color=%s' % (prefix, vehicle_config['wheel_type'], info_color))
+        print ('%s----Front Left:		%s | color=%s' % (prefix, vehicle_state['tpms_pressure_fl'], color))
+        print ('%s----Front Right: 		%s | color=%s' % (prefix, vehicle_state['tpms_pressure_fr'], color))
+        print ('%s----Rear Left: 		%s | color=%s' % (prefix, vehicle_state['tpms_pressure_rl'], color))
+        print ('%s----Rear Right: 		%s | color=%s' % (prefix, vehicle_state['tpms_pressure_rr'], color))
         print ('%s-----' % prefix)
         print ('%s--Options | color=%s' % (prefix , info_color))
         print ('%s----Note: Tesla API currently returning incorrect info| color=%s' % (prefix, color))
