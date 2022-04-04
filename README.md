@@ -127,6 +127,7 @@ Greg Glockner teslajson API [code](https://github.com/gglockner/teslajson/).
 
 ## Installation instructions: 
 
+0. Download [python](http://www.python.org) version 2.7
 1. Ensure you have [xbar](https://github.com/matryer/xbar/releases/latest) installed.
 2. Execute 'sudo easy_install tinydb==3.9 keyring==8.7 pathos googlemaps' in Terminal.app
 3. Copy [mytesla.15m.py](mytesla.15m.py) to your xbar plugins folder and chmod +x the file from your terminal in that folder
