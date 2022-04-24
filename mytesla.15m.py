@@ -1,4 +1,4 @@
-#!/usr/bin/env PYTHONIOENCODING=UTF-8 /Library/Frameworks/Python.framework/Versions/2.7/bin/python
+#!/usr/bin/env PYTHONIOENCODING=UTF-8 /Library/Frameworks/Python.framework/Versions/2.7/bin/python 
 # -*- coding: utf-8 -*-
 #
 # <xbar.title>MyTesla</xbar.title>
@@ -829,6 +829,7 @@ class TeslaAuthenticator(object):
     def override_credentials(self,access_token,refresh_token):
         keyring.set_password("mytesla-xbar","access_token",access_token)
         keyring.set_password("mytesla-xbar","refresh_token",refresh_token)
+
        
 
     def refresh_credentials(self):
@@ -939,7 +940,7 @@ class TeslaVehicle(dict):
 
     def asleep(self):
         """Check if vehichle is asleep"""
-        return self['state'] == "asleep"
+        return self['state'] != "online"
 
     def wake_up(self):
         """Wake the vehicle"""
@@ -1267,9 +1268,18 @@ def main(argv):
        vehicles = c.vehicles()
        appointments = c.appointments()
     except: 
-       app_print_logo()
-       print ('Login to tesla.com | refresh=true terminal=true shell="%s" param1="%s" color=%s' % (cmd_path, 'init', color))
-       return
+       try:
+          ACCESS_TOKEN = keyring.get_password("mytesla-xbar","access_token")
+          #print('debug: %s' % ACCESS_TOKEN)
+          refresh_credentials()
+          #print('debug: %s' % ACCESS_TOKEN)
+          ACCESS_TOKEN = keyring.get_password("mytesla-xbar","access_token")
+          vehicles = c.vehicles()
+          appointments = c.appointments()
+       except: 
+          app_print_logo()
+          print ('Login to tesla.com | refresh=true terminal=true shell="%s" param1="%s" color=%s' % (cmd_path, 'init', color))
+          return
 
 
     # CASE 4: all ok, specific command for a specific vehicle received
