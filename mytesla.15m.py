@@ -1141,6 +1141,51 @@ def sleeping_since(time=False):
         return "Sleeping since "+str(day_diff / 30) + " months"
     return "Sleeping since "+str(day_diff / 365) + " year"
 
+# Pretty print sleeping time 
+def offline_since(time=False):
+    """
+    Get a datetime object or a int() Epoch timestamp and return a
+    pretty string like 'an hour ago', 'Yesterday', '3 months ago',
+    'just now', etc
+    """
+    from datetime import datetime
+    now = datetime.now()
+    if type(time) is int:
+        diff = now - datetime.fromtimestamp(time/1000)
+    elif isinstance(time,datetime):
+        diff = now - time
+    elif not time:
+        diff = now - now
+    second_diff = diff.seconds
+    day_diff = diff.days
+
+    if day_diff < 0:
+        return 'Jetlagged'
+
+    if day_diff == 0:
+        if second_diff < 10:
+            return "Went offline a few moments ago"
+        if second_diff < 60:
+            return "Went offline "+str(second_diff) + " seconds ago"
+        if second_diff < 120:
+            return "Went offline a minute ago"
+        if second_diff < 3600:
+            return "Offline since "+str(second_diff / 60) + " minutes ago"
+        if second_diff < 7200:
+            return "Offline since an hour ago"
+        if second_diff < 86400:
+            return "Offline since "+ str(second_diff / 3600) + " hours ago"
+    if day_diff == 1:
+        return "Offline since Yesterday"
+    if day_diff < 7:
+        return "Offline since "+str(day_diff) + " days"
+    if day_diff < 31:
+        return "Offline since "+str(day_diff / 7) + " weeks"
+    if day_diff < 365:
+        return "Offline since "+str(day_diff / 30) + " months"
+    return "Offline since "+str(day_diff / 365) + " year"
+
+
 # Pretty print charge time left in hours & minutes
 def calculate_time_left(hours_to_full_charge):
     mins_to_full_charge = hours_to_full_charge * 60
@@ -1446,8 +1491,8 @@ def main(argv):
             print ('%s---' % prefix)
            
         elif vehicle['state'] == 'offline':
-            print ('%sVehicle offline. Click to try again. | refresh=true terminal=false shell="echo refresh" color=%s' % (prefix, color))
-            print ('%s--Connect | refresh=true terminal=true shell="%s" param1=%s param2=%s color=%s' % (prefix, cmd_path, str(i), "wake_up", color))
+            print ('%sVehicle state:\t\t\t\t\t%s. | color=%s' % (prefix, offline_since(vehicle_info['drive_state']['timestamp']), color))
+            print ('%s--Force wake up | refresh=true terminal=true shell="%s" param1=%s param2=%s color=%s' % (prefix, cmd_path, str(i), "wake_up", color))
             return     
  
         elif vehicle['state'] == 'online':
