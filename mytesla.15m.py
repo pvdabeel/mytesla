@@ -71,7 +71,8 @@ from googlemaps import Client as googleclient
 from hashlib    import sha256
 from tinydb     import TinyDB, Query
 from urlparse   import parse_qs
-
+from datetime   import date
+from datetime   import datetime
 
 # Location where to store state files
 home         = os.path.expanduser("~")
@@ -818,40 +819,33 @@ class TeslaAuthenticator(object):
             "token_type"    : "bearer" }
 
     def save_credentials(self):
+        created_at = int(time.mktime(datetime.now().timetuple()))
         keyring.set_password("mytesla-xbar","access_token",self.credentials["access_token"])
         keyring.set_password("mytesla-xbar","expires_in",self.credentials["expires_in"])
         keyring.set_password("mytesla-xbar","refresh_token",self.credentials["refresh_token"])
+        keyring.set_password("mytesla-xbar","created_at",created_at)
 
 
     def override_credentials(self,access_token,refresh_token):
+        created_at = int(time.mktime(datetime.now().timetuple()))
+        expires_in = int(28800)
         keyring.set_password("mytesla-xbar","access_token",access_token)
+        keyring.set_password("mytesla-xbar","expires_in",expires_in)
         keyring.set_password("mytesla-xbar","refresh_token",refresh_token)
+        keyring.set_password("mytesla-xbar","created_at",created_at)
 
 
     def refresh_credentials(self):
         payload = {
             "grant_type"            : "refresh_token",
-            "client_id"             : "ownerapi",    
+            "client_id"             : "ownerapi",
+            "client_secret"         : self.client["secret"],
             "refresh_token"         : self.credentials["refresh_token"],
             "scope"                 : "openid email offline_access" }
 
         session         = requests.Session()
         response        = session.post("https://auth.tesla.com/oauth2/v3/token", json=payload, headers=self.headers)
 
-        resp_json       = response.json()
-
-        refresh_token   = resp_json["refresh_token"]
-        bearer_token    = resp_json["access_token"]
-        expires_in      = resp_json["expires_in"]
-
-        # self.headers["authorization"] = "bearer " + bearer_token
-
-        #payload = {                                                             
-        #    "grant_type"            : "urn:ietf:params:oauth:grant-type:jwt-bearer",
-        #    "client_id"             : self.client['id'] }
-                                                                                
-        #response         = session.post("https://owner-api.teslamotors.com/oauth/token", json=payload, headers=self.headers)
-                               
         self.credentials = response.json()                                                 
         self.save_credentials()
 
@@ -920,10 +914,10 @@ class TeslaVehicle(dict):
         result = self.get('vehicle_data')
         # Updating local cache
         if _LOCATION_TRACKING_:
-            locationdb.insert({'vehicle':self['vehicle_id'],'date':str(datetime.datetime.now()),'vehicle_data':result})
+            locationdb.insert({'vehicle':self['vehicle_id'],'date':str(datetime.now()),'vehicle_data':result})
         else:
             locationdb.purge()
-            locationdb.insert({'vehicle':self['vehicle_id'],'date':str(datetime.datetime.now()),'vehicle_data':result})
+            locationdb.insert({'vehicle':self['vehicle_id'],'date':str(datetime.now()),'vehicle_data':result})
         return result['response']
     
 
@@ -1104,7 +1098,6 @@ def sleeping_since(time=False):
     pretty string like 'an hour ago', 'Yesterday', '3 months ago',
     'just now', etc
     """
-    from datetime import datetime
     now = datetime.now()
     if type(time) is int:
         diff = now - datetime.fromtimestamp(time/1000)
@@ -1148,7 +1141,6 @@ def offline_since(time=False):
     pretty string like 'an hour ago', 'Yesterday', '3 months ago',
     'just now', etc
     """
-    from datetime import datetime
     now = datetime.now()
     if type(time) is int:
         diff = now - datetime.fromtimestamp(time/1000)
@@ -1213,7 +1205,7 @@ def calculate_time_left(hours_to_full_charge):
 
 # Function to retrieve goole map & sat images for a given location
 def retrieve_google_maps(latitude,longitude):
-   todayDate = datetime.date.today()
+   todayDate = date.today()
     
    try:
       with open(state_dir+'/mytesla-location-map-'+todayDate.strftime("%Y%m")+'-'+latitude+'-'+longitude+'.png') as location_map:
@@ -1322,10 +1314,8 @@ def main(argv):
        print ('Login to tesla.com | refresh=true terminal=true shell="%s" param1="%s" color=%s' % (cmd_path, 'init', color))
        return
 
-    EXPIRES_IN = keyring.get_password("mytesla-xbar","expires_in")
-
-    if EXPIRES_IN < 12000:
-       refresh()
+    # refresh token
+    refresh() 
 
     ACCESS_TOKEN = keyring.get_password("mytesla-xbar","access_token")
 
@@ -1492,8 +1482,8 @@ def main(argv):
            
         elif vehicle['state'] == 'offline':
             print ('%sVehicle state:\t\t\t\t\t%s. | color=%s' % (prefix, offline_since(vehicle_info['drive_state']['timestamp']), color))
-            print ('%s--Force wake up | refresh=true terminal=true shell="%s" param1=%s param2=%s color=%s' % (prefix, cmd_path, str(i), "wake_up", color))
-            return     
+            print ('%s--Connect | refresh=true terminal=true shell="%s" param1=%s param2=%s color=%s' % (prefix, cmd_path, str(i), "wake_up", color))
+            print ('%s---' % prefix)
  
         elif vehicle['state'] == 'online':
             print ('%sVehicle state:\t\t\t\t\tOnline | color=%s' % (prefix, color))
@@ -1525,7 +1515,7 @@ def main(argv):
 
         try: 
            if (appointments['enabled_vins'][0]['next_appt_timestamp'] != None):
-              next_appt = datetime.datetime.strptime(appointments['enabled_vins'][0]['next_appt_timestamp'],"%Y-%m-%dT%H:%M:%S")
+              next_appt = datetime.strptime(appointments['enabled_vins'][0]['next_appt_timestamp'],"%Y-%m-%dT%H:%M:%S")
               print ('%sService appoinment:\t\t\t%s | color=%s' % (prefix, next_appt.strftime("%b %d %Y, %H:%M"), color))
               print ('%s---' % prefix)
         except: 
