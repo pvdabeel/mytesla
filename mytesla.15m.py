@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # <xbar.title>MyTesla</xbar.title>
-# <xbar.version>Tesla API v14.0</xbar.version>
+# <xbar.version>Tesla API v40.0</xbar.version>
 # <xbar.author>pvdabeel@mac.com</xbar.author>
 # <xbar.author.github>pvdabeel</xbar.author.github>
 # <xbar.desc>Control your Tesla vehicle from the MacOS menubar</xbar.desc>
@@ -757,7 +757,6 @@ class TeslaAuthenticator(object):
             print ""
             print "  https://github.com/adriankumpf/tesla_auth"
             print ""
-            print "Use the -o argument when calling this application to get a long lived access token"
             print "Input the Tesla access token below to continue." 
             print ""
 
@@ -816,24 +815,20 @@ class TeslaAuthenticator(object):
             "access_token"  : keyring.get_password("mytesla-xbar","access_token"),
             "expires_in"    : keyring.get_password("mytesla-xbar","expires_in"),
             "refresh_token" : keyring.get_password("mytesla-xbar","refresh_token"),
-            "created_at"    : keyring.get_password("mytesla-xbar","created_at"),
             "token_type"    : "bearer" }
 
     def save_credentials(self):
         keyring.set_password("mytesla-xbar","access_token",self.credentials["access_token"])
         keyring.set_password("mytesla-xbar","expires_in",self.credentials["expires_in"])
         keyring.set_password("mytesla-xbar","refresh_token",self.credentials["refresh_token"])
-        keyring.set_password("mytesla-xbar","created_at",self.credentials["created_at"])
 
 
     def override_credentials(self,access_token,refresh_token):
         keyring.set_password("mytesla-xbar","access_token",access_token)
         keyring.set_password("mytesla-xbar","refresh_token",refresh_token)
 
-       
 
     def refresh_credentials(self):
-
         payload = {
             "grant_type"            : "refresh_token",
             "client_id"             : "ownerapi",    
@@ -841,23 +836,23 @@ class TeslaAuthenticator(object):
             "scope"                 : "openid email offline_access" }
 
         session         = requests.Session()
-    
         response        = session.post("https://auth.tesla.com/oauth2/v3/token", json=payload, headers=self.headers)
 
-        resp_json       = resp.json()
+        resp_json       = response.json()
+
         refresh_token   = resp_json["refresh_token"]
         bearer_token    = resp_json["access_token"]
-        
-        self.headers["authorization"] = "bearer " + bearer_token
+        expires_in      = resp_json["expires_in"]
 
-        payload = {                                                             
-            "grant_type"            : "urn:ietf:params:oauth:grant-type:jwt-bearer",
-            "client_id"             : self.client['id'] }
+        # self.headers["authorization"] = "bearer " + bearer_token
+
+        #payload = {                                                             
+        #    "grant_type"            : "urn:ietf:params:oauth:grant-type:jwt-bearer",
+        #    "client_id"             : self.client['id'] }
                                                                                 
-        response         = session.post("https://owner-api.teslamotors.com/oauth/token", json=payload, headers=self.headers)
-                                                                                
-        self.credentials = resp.json()                                                 
-                                                                                
+        #response         = session.post("https://owner-api.teslamotors.com/oauth/token", json=payload, headers=self.headers)
+                               
+        self.credentials = response.json()                                                 
         self.save_credentials()
 
 
@@ -1231,6 +1226,22 @@ def init():
         return
 
 
+# --------------------------
+# The refresh function 
+# --------------------------
+
+# The refresh function: called to refresh your access token using the refresh token in OS X Keychain
+def refresh():
+    try:
+        auth = TeslaAuthenticator()
+        auth.load_credentials()
+        auth.refresh_credentials()
+        return
+    except Exception as e:
+        print ("Error: %s" % e)
+        time.sleep(0.5)
+        return
+
 
 # --------------------------
 # The main function
@@ -1238,11 +1249,17 @@ def init():
 
 def main(argv):
 
-    # CASE 1: init was called 
+    # CASE 1a: init was called 
     if 'init' in argv:
        init()
        return
   
+    # CASE 1b: refresh was called
+    if 'refresh' in argv:
+       refresh()
+       return
+ 
+
     # CASE 2: init was not called, keyring not initialized
     if bool(DARK_MODE):                                                               
         color = '#FFFFFE' 
@@ -1260,26 +1277,24 @@ def main(argv):
        print ('Login to tesla.com | refresh=true terminal=true shell="%s" param1="%s" color=%s' % (cmd_path, 'init', color))
        return
 
+    EXPIRES_IN = keyring.get_password("mytesla-xbar","expires_in")
 
-    # CASE 3: init was not called, keyring initialized, no connection (access code not valid)
+    if EXPIRES_IN < 12000:
+       refresh()
+
+    ACCESS_TOKEN = keyring.get_password("mytesla-xbar","access_token")
+
+
+    # CASE 3: init was not called, keyring initialized, access code available and refreshed
     try:
        # create connection to tesla account
        c = TeslaConnection(access_token = ACCESS_TOKEN)
        vehicles = c.vehicles()
        appointments = c.appointments()
     except: 
-       try:
-          ACCESS_TOKEN = keyring.get_password("mytesla-xbar","access_token")
-          #print('debug: %s' % ACCESS_TOKEN)
-          refresh_credentials()
-          #print('debug: %s' % ACCESS_TOKEN)
-          ACCESS_TOKEN = keyring.get_password("mytesla-xbar","access_token")
-          vehicles = c.vehicles()
-          appointments = c.appointments()
-       except: 
-          app_print_logo()
-          print ('Login to tesla.com | refresh=true terminal=true shell="%s" param1="%s" color=%s' % (cmd_path, 'init', color))
-          return
+       app_print_logo()
+       print ('Login to tesla.com | refresh=true terminal=true shell="%s" param1="%s" color=%s' % (cmd_path, 'init', color))
+       return
 
 
     # CASE 4: all ok, specific command for a specific vehicle received
@@ -1430,8 +1445,10 @@ def main(argv):
             print ('%s--Wake up | refresh=true terminal=true shell="%s" param1=%s param2=%s color=%s' % (prefix, cmd_path, str(i), "wake_up", color))
             print ('%s---' % prefix)
            
-        elif vehicle['state'] != 'online':
+        elif vehicle['state'] == 'offline':
+            print vehicle['state']
             print ('%sVehicle offline. Click to try again. | refresh=true terminal=false shell="echo refresh" color=%s' % (prefix, color))
+            print ('%s--Connect | refresh=true terminal=true shell="%s" param1=%s param2=%s color=%s' % (prefix, cmd_path, str(i), "wake_up", color))
             return     
  
         elif vehicle['state'] == 'online':

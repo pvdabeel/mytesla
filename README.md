@@ -20,6 +20,9 @@ Want a Tesla with free supercharging Credits? Use my [referral code](http://ts.l
 
 ## Changelog: 
 
+**Update 2022.05.21:**
+- [X] Automatically refreshes Tesla's new style 8-hr API tokens
+
 **Update 2021.11.02:**
 - [X] Support for xbar, deprecating bitbar
 - [X] Provide option to directly provide access_code during initialization
