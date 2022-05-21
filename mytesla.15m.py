@@ -1446,7 +1446,6 @@ def main(argv):
             print ('%s---' % prefix)
            
         elif vehicle['state'] == 'offline':
-            print vehicle['state']
             print ('%sVehicle offline. Click to try again. | refresh=true terminal=false shell="echo refresh" color=%s' % (prefix, color))
             print ('%s--Connect | refresh=true terminal=true shell="%s" param1=%s param2=%s color=%s' % (prefix, cmd_path, str(i), "wake_up", color))
             return     
