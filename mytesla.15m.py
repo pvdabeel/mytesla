@@ -899,9 +899,9 @@ class TeslaVehicle(dict):
 
     def vehicle_data(self):
         """Get vehicle data"""
-        if self.asleep(): 
+        if self.asleep() or self.offline(): 
             try:
-                # Vehicle asleep, getting info from local cache
+                # Vehicle asleep or offline, getting info from local cache
                 Q = Query()
                 result = locationdb.search(Q.vehicle==self['vehicle_id'])[-1]['vehicle_data']
                 return result['response']
@@ -929,7 +929,11 @@ class TeslaVehicle(dict):
 
     def asleep(self):
         """Check if vehichle is asleep"""
-        return self['state'] != "online"
+        return self['state'] == "asleep"
+
+    def offline(self):
+        """Check if vehicle is offline"""
+        return self['state'] == "offline"
 
     def wake_up(self):
         """Wake the vehicle"""
