@@ -49,7 +49,7 @@ _WHITE_LOGO_ = True
 # in the 'key : value' list below. You can retrieve your vehicle_id by 
 # executing "mytesla.15m.py debug" on the Terminal.
 
-_OVERRIDE_OPTION_CODES_ = { 1669029050 : "BP00,AH00,AD15,GLTL,AU01,X042,APF2,APH2,APPF,X028,BTX6,BS00,CC02,BC0R,CH04,CF00,CW00,COBE,X039,IDCF,X026,DRLH,DU00,AF02,FMP6,FG02,FR01,X007,X011,INBPB,PI01,IX01,X001,LP01,LT3B,MI02,X037,MDLX,DV4W,X025,X003,PMBL,PK00,X031,PF00,X044,TM00,BR00,RCX0,REEU,RFPX,OSSB,X014,S02B,ME02,QLPB,SR04,SP01,X021,SC05,SU01,TP03,TRA1,TR01,TIG2,DSH7,TW01,MT10A,UTAB,WT22,WXP2,YFCC,CPF1" }
+_OVERRIDE_OPTION_CODES_ = { 1669029050 : "BP00,AH00,AD15,GLTL,AU01,X042,APF2,APH2,APPF,X028,BTX6,BS00,CC02,BC0R,CH04,CF00,CW00,COBE,X039,IDCF,X026,DRLH,DU00,AF02,FMP6,FG02,FR01,X007,X011,INBPB,PI01,IX01,X001,LP01,LT3B,MI02,X037,MDLX,DV4W,X025,X003,PMBL,PK00,X031,PF00,X044,TM00,BR00,RCX0,REEU,RFPX,OSSB,X014,S02B,ME02,QLPB,SR04,SP01,X021,SC05,SU01,TP03,TRA1,TR01,TIG2,DSH7,TW01,MT10A,UTAB,WT22,WXP2,YFCC,CPF1", 1382791597 : "MDLX,MTX04,PBSB,WTUT,INBC3W,PI01,APF2,APBS,CC02,SC04,ACL1,CPF0" }
 
 import base64
 import binascii
@@ -1381,13 +1381,15 @@ def main(argv):
         # Create a submenu for every vehicle
         prefix = '--'
 
+    app_print_logo()
+
     # loop through vehicles, get vehicle data and print menu with relevant info       
     for i, vehicle in enumerate(vehicles):
 
         # if there is more than one vehicle on the account, just display the logo in the menu bar
  
         if prefix:
-            app_print_logo(),
+            #app_print_logo(),
             print vehicle['display_name']
 
         # get the data 
@@ -1842,7 +1844,7 @@ def main(argv):
 
         for seat_nr, seat_name, seat_api in [(0,'Driver:\t','seat_heater_left'),
                                              (1,'Passenger:','seat_heater_right'),
-                                             (2,'Rear left:','seat_heater_rear_left'),
+                                             (2,'Rear left\t:','seat_heater_rear_left'),
                                              (3,'Rear center:','seat_heater_rear_center'),
                                              (4,'Rear right:','seat_heater_rear_right')]:
             try:
@@ -1857,13 +1859,13 @@ def main(argv):
 
         try:
            if climate_state['steering_wheel_heater']: 
-              print ('%s--Steering heating:\tOn| color=%s' % (prefix, color))
+              print ('%s--Steering heating:\t\tOn| color=%s' % (prefix, color))
               print ('%s----Turn off | refresh=true terminal=false shell="%s" param1=%s param2=remote_steering_wheel_heater_request param3="on:false" color=%s' % (prefix, cmd_path, str(i), color))
               print ('%s----Turn off | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_steering_wheel_heater_request param3="on:false" color=%s' % (prefix, cmd_path, str(i), color))
            else:
-              print ('%s--Steering heating:\tOff| color=%s' % (prefix, color))
-              print ('%s----Turn off | refresh=true terminal=false shell="%s" param1=%s param2=remote_steering_wheel_heater_request param3="on:true" color=%s' % (prefix, cmd_path, str(i), color))
-              print ('%s----Turn off | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_steering_wheel_heater_request param3="on:true" color=%s' % (prefix, cmd_path, str(i), color))
+              print ('%s--Steering heating:\t\tOff| color=%s' % (prefix, color))
+              print ('%s----Turn on | refresh=true terminal=false shell="%s" param1=%s param2=remote_steering_wheel_heater_request param3="on:true" color=%s' % (prefix, cmd_path, str(i), color))
+              print ('%s----Turn on | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_steering_wheel_heater_request param3="on:true" color=%s' % (prefix, cmd_path, str(i), color))
         except:
            pass
 
