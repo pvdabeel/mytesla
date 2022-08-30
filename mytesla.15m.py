@@ -1381,7 +1381,7 @@ def main(argv):
         # Create a submenu for every vehicle
         prefix = '--'
 
-    app_print_logo()
+    #app_print_logo()
 
     # loop through vehicles, get vehicle data and print menu with relevant info       
     for i, vehicle in enumerate(vehicles):
@@ -1478,7 +1478,7 @@ def main(argv):
             print ('>>> vehicle_state:\n%s\n'  % vehicle_state)
             print ('>>> vehicle_config:\n%s\n' % vehicle_config)
             print ('>>> appointments:\n%s\n'   % appointments)
-            return
+            continue
 
 
         if vehicle['state'] == 'asleep':
@@ -1955,14 +1955,19 @@ def main(argv):
         print ('%s-----' % prefix)
         print ('%s--Navigate to address| refresh=true terminal=true shell="%s" param1=%s param2=navigation_request color=%s' % (prefix, cmd_path, str(i), color))
         
+        
         if nearby_charging_sites:
            print ('%s--Navigate to nearby charger | color=%s' % (prefix, color))
            print ('%s----Tesla Superchargers | color=%s' % (prefix, color))
            for site, charger in enumerate(nearby_charging_sites['superchargers']): 
+              if (charger == {}):
+                  continue
               print ('%s------%.2f %s \t(%s/%s)\t%s | refresh=true terminal=false shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['available_stalls'],charger['total_stalls'], charger['name'], cmd_path, str(i), binascii.hexlify('Tesla Supercharger '+charger['name']), color))
               print ('%s------%.2f %s \t(%s/%s)\t%s | alternate=true refresh=true terminal=true shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['available_stalls'],charger['total_stalls'], charger['name'], cmd_path, str(i), binascii.hexlify('Tesla Supercharger '+charger['name']), color))
            print ('%s----Destination Chargers | color=%s' % (prefix, color))
            for site, charger in enumerate(nearby_charging_sites['destination_charging']): 
+              if (charger == {}):
+                  continue
               print ('%s------%.2f %s \t%s\t | refresh=true terminal=false shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['name'].encode('utf-8', 'ignore'), cmd_path, str(i), binascii.hexlify(charger['name'].encode('utf-8','ignore')), color))
               print ('%s------%.2f %s \t%s\t | alternate=true refresh=true terminal=true shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['name'].encode('utf-8', 'ignore'), cmd_path, str(i), binascii.hexlify(charger['name'].encode('utf-8','ignore')), color))
 
