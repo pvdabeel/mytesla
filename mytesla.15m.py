@@ -49,7 +49,8 @@ _WHITE_LOGO_ = True
 # in the 'key : value' list below. You can retrieve your vehicle_id by 
 # executing "mytesla.15m.py debug" on the Terminal.
 
-_OVERRIDE_OPTION_CODES_ = { 1669029050 : "BP00,AH00,AD15,GLTL,AU01,X042,APF2,APH2,APPF,X028,BTX6,BS00,CC02,BC0R,CH04,CF00,CW00,COBE,X039,IDCF,X026,DRLH,DU00,AF02,FMP6,FG02,FR01,X007,X011,INBPB,PI01,IX01,X001,LP01,LT3B,MI02,X037,MDLX,DV4W,X025,X003,PMBL,PK00,X031,PF00,X044,TM00,BR00,RCX0,REEU,RFPX,OSSB,X014,S02B,ME02,QLPB,SR04,SP01,X021,SC05,SU01,TP03,TRA1,TR01,TIG2,DSH7,TW01,MT10A,UTAB,WT22,WXP2,YFCC,CPF1", 1382791597 : "MDLX,MTX04,PBSB,WTUT,INBC3W,PI01,APF2,APBS,CC02,SC04,ACL1,CPF0" }
+_OVERRIDE_OPTION_CODES_ = { 1669029050 : "BP00,AH00,AD15,GLTL,AU01,X042,APF2,APH2,APPF,X028,BTX6,BS00,CC02,BC0R,CH04,CF00,CW00,COBE,X039,IDCF,X026,DRLH,DU00,AF02,FMP6,FG02,FR01,X007,X011,INBPB,PI01,IX01,X001,LP01,LT3B,MI02,X037,MDLX,DV4W,X025,X003,PMBL,PK00,X031,PF00,X044,TM00,BR00,RCX0,REEU,RFPX,OSSB,X014,S02B,ME02,QLPB,SR04,SP01,X021,SC05,SU01,TP03,TRA1,TR01,TIG2,DSH7,TW01,MT10A,UTAB,WT22,WXP2,YFCC,CPF1", 1382791597 : "MDLX,MTX04,PBSB,WTUT,INBC3W,PI01,APF2,APBS,CC02,SC04,ACL1,CPF1,TW01" }
+
 
 import base64
 import binascii
@@ -980,12 +981,12 @@ class TeslaVehicle(dict):
         return self.connection.post('vehicles/%i/%s' % (self['id'], command), data)
 
  
-    def compose_url(self, model, size=2048, view='STUD_SIDE', background='1'):
+    def compose_url(self, model, size=2048, view='STUD_SIDE_V2', background='1'):
         """Returns composed image url representing the car"""
         return 'https://static-assets.tesla.com/v1/compositor/?model='+self.model_short(model)+'&view='+view+'&size='+str(size)+'&options='+self.option_codes()+'&bkba_opt='+str(background)+'&context=design_studio_desktop'
         
 
-    def compose_image(self, model, size=512, view='STUD_SIDE', background='1'):
+    def compose_image(self, model, size=512, view='STUD_SIDE_V2', background='1'):
         """Returns composed image representing the car"""
         try:
             with open(state_dir+'/mytesla-composed-'+str(self['vehicle_id'])+'-'+str(size)+'-'+str(view)+'-'+str(background)+'.png') as composed_img_cache:
@@ -1438,7 +1439,7 @@ def main(argv):
 
 
         if _COMPOSER_CACHE_HIGH_:
-            for view in ['STUD_3QTR','STUD_SIDE','STUD_REAR','STUD_SEAT']:
+            for view in ['STUD_3QTR_V2','STUD_SIDE_V2','STUD_REAR','STUD_SEAT_V2']:
                 for background in ['1','2','3','4']:
                     for size in ['512','1024','2048','4096']:
                         vehicle.compose_image(vehicle_config['car_type'],view=view,size=size,background=background)
@@ -1925,7 +1926,7 @@ def main(argv):
               option_description = 'Unknown'
            print ('%s----%s:\t\t %s | color=%s' % (prefix, option, option_description,info_color))
         print ('%s--Images| color=%s' % (prefix , info_color))
-        for view in ['STUD_3QTR','STUD_SIDE','STUD_REAR','STUD_SEAT']:
+        for view in ['STUD_3QTR_V2','STUD_SIDE_V2','STUD_REAR','STUD_SEAT_V2']:
            print ('%s----|image=%s href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='4'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='4'), color))
            print ('%s----|image=%s alternate=true href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='2'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='1'), color))
 
