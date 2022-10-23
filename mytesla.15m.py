@@ -1843,11 +1843,13 @@ def main(argv):
         print ('%s--Seat heating | color=%s' % (prefix, color))
           
 
-        for seat_nr, seat_name, seat_api in [(0,'Driver:\t','seat_heater_left'),
-                                             (1,'Passenger:','seat_heater_right'),
-                                             (2,'Rear left\t:','seat_heater_rear_left'),
-                                             (3,'Rear center:','seat_heater_rear_center'),
-                                             (4,'Rear right:','seat_heater_rear_right')]:
+        for seat_nr, seat_name, seat_api in [(0,'Driver:\t\t','seat_heater_left'),
+                                             (1,'Passenger:\t','seat_heater_right'),
+                                             (2,'Rear left:\t\t','seat_heater_rear_left'),
+                                             (3,'Rear center:\t','seat_heater_rear_center'),
+                                             (4,'Rear right:\t','seat_heater_rear_right'),
+                                             (5,'Third row left:','seat_heater_third_row_left'),
+                                             (6,'Third row right:','seat_heater_third_row_right')]:
             try:
                 current_seat_setting = climate_state[seat_api]
                 print ('%s----%s\t\t\t%s | color=%s' % (prefix, seat_name, seat_state(current_seat_setting), color))
@@ -1910,10 +1912,10 @@ def main(argv):
            pass 
         print ('%s--Color: 			%s | color=%s' % (prefix, vehicle_config['exterior_color'], info_color))
         print ('%s--Wheels: 			%s | color=%s' % (prefix, vehicle_config['wheel_type'], info_color))
-        print ('%s----Front Left:		%s | color=%s' % (prefix, vehicle_state['tpms_pressure_fl'], color))
-        print ('%s----Front Right: 		%s | color=%s' % (prefix, vehicle_state['tpms_pressure_fr'], color))
-        print ('%s----Rear Left: 		%s | color=%s' % (prefix, vehicle_state['tpms_pressure_rl'], color))
-        print ('%s----Rear Right: 		%s | color=%s' % (prefix, vehicle_state['tpms_pressure_rr'], color))
+        print ('%s----Front Left:		%s bar | color=%s' % (prefix, vehicle_state['tpms_pressure_fl'], color))
+        print ('%s----Front Right: 		%s bar | color=%s' % (prefix, vehicle_state['tpms_pressure_fr'], color))
+        print ('%s----Rear Left: 		%s bar | color=%s' % (prefix, vehicle_state['tpms_pressure_rl'], color))
+        print ('%s----Rear Right: 		%s bar | color=%s' % (prefix, vehicle_state['tpms_pressure_rr'], color))
         print ('%s-----' % prefix)
         print ('%s--Options | color=%s' % (prefix , info_color))
         print ('%s----Note: Tesla API currently returning incorrect info| color=%s' % (prefix, color))
