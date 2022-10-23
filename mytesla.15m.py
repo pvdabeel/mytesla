@@ -983,8 +983,8 @@ class TeslaVehicle(dict):
  
     def compose_url(self, model, size=2048, view='STUD_SIDE_V2', background='1'):
         """Returns composed image url representing the car"""
-        return 'https://static-assets.tesla.com/v1/compositor/?model='+self.model_short(model)+'&view='+view+'&size='+str(size)+'&options='+self.option_codes()+'&bkba_opt='+str(background)+'&context=design_studio_desktop'
-        
+        return 'https://static-assets.tesla.com/configurator/compositor?model='+self.model_short(model)+'&view='+view+'&size='+str(size)+'&options='+self.option_codes()+'&bkba_opt='+str(background)+'&context=design_studio_2'
+
 
     def compose_image(self, model, size=512, view='STUD_SIDE_V2', background='1'):
         """Returns composed image representing the car"""
@@ -1439,8 +1439,8 @@ def main(argv):
 
 
         if _COMPOSER_CACHE_HIGH_:
-            for view in ['STUD_3QTR_V2','STUD_SIDE_V2','STUD_REAR','STUD_SEAT_V2']:
-                for background in ['1','2','3','4']:
+            for view in ['STUD_3QTR_V2','STUD_SIDE_V2','STUD_REAR','STUD_SEAT_V2','STUD_WHEEL_V2']:
+                for background in ['1','2']:
                     for size in ['512','1024','2048','4096']:
                         vehicle.compose_image(vehicle_config['car_type'],view=view,size=size,background=background)
 
@@ -1895,7 +1895,7 @@ def main(argv):
 
         print ('%sVehicle info| color=%s' % (prefix,color))
         print ('%s--|image=%s href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type']), vehicle.compose_url(vehicle_config['car_type']), color))
-        print ('%s--|image=%s alternate=true href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],view='STUD_REAR'), vehicle.compose_url(vehicle_config['car_type']), color))
+        print ('%s--|image=%s alternate=true href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],view='STUD_WHEEL_V2'), vehicle.compose_url(vehicle_config['car_type']), color))
         print ('%s-----' % prefix)
         print ('%s--Name: 			%s | color=%s' % (prefix, vehicle_name, color))
         print ('%s--VIN: 			%s | terminal=true shell="echo %s | pbcopy" color=%s' % (prefix, vehicle_vin, vehicle_vin, color))
@@ -1926,9 +1926,9 @@ def main(argv):
               option_description = 'Unknown'
            print ('%s----%s:\t\t %s | color=%s' % (prefix, option, option_description,info_color))
         print ('%s--Images| color=%s' % (prefix , info_color))
-        for view in ['STUD_3QTR_V2','STUD_SIDE_V2','STUD_REAR','STUD_SEAT_V2']:
-           print ('%s----|image=%s href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='4'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='4'), color))
-           print ('%s----|image=%s alternate=true href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='2'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='1'), color))
+        for view in ['STUD_3QTR_V2','STUD_SIDE_V2','STUD_REAR','STUD_WHEEL_V2','STUD_SEAT_V2']:
+           print ('%s----|image=%s href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='1'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='1'), color))
+           print ('%s----|image=%s alternate=true href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='2'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='2'), color))
 
         print ('%s-----' % prefix)
         print ('%s--Odometer: 		%s %s | color=%s' % (prefix, convert_distance(distance_unit,vehicle_state['odometer']), distance_unit, color))
