@@ -1917,8 +1917,8 @@ def main(argv):
         print ('%s----Rear Left: 		%s bar | color=%s' % (prefix, vehicle_state['tpms_pressure_rl'], color))
         print ('%s----Rear Right: 		%s bar | color=%s' % (prefix, vehicle_state['tpms_pressure_rr'], color))
         print ('%s-----' % prefix)
-        print ('%s--Options | color=%s' % (prefix , info_color))
-        print ('%s----Note: Tesla API currently returning incorrect info| color=%s' % (prefix, color))
+        print ('%s--Options | color=%s' % (prefix , color))
+        print ('%s----Note:\t\tTesla API currently returning incorrect info| color=%s' % (prefix, color))
         print ('%s-------' % (prefix))
         
         for option in vehicle.option_codes().split(','):
@@ -1927,7 +1927,7 @@ def main(argv):
            except: 
               option_description = 'Unknown'
            print ('%s----%s:\t\t %s | color=%s' % (prefix, option, option_description,info_color))
-        print ('%s--Images| color=%s' % (prefix , info_color))
+        print ('%s--Images| color=%s' % (prefix , color))
         for view in ['STUD_3QTR_V2','STUD_SIDE_V2','STUD_REAR','STUD_WHEEL_V2','STUD_SEAT_V2']:
            print ('%s----|image=%s href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='1'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='1'), color))
            print ('%s----|image=%s alternate=true href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='2'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='2'), color))
@@ -1941,9 +1941,15 @@ def main(argv):
         print ('%s--Flash lights | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=flash_lights color=%s' % (prefix, cmd_path, str(i), color))
         print ('%s--Honk horn | refresh=true terminal=false shell="%s" param1=%s param2=honk_horn color=%s' % (prefix, cmd_path, str(i), color))
         print ('%s--Honk horn | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=honk_horn color=%s' % (prefix, cmd_path, str(i), color))
+        print ('%s----- | color=%s' % (prefix,color))
         print ('%s--Media| color=%s' % (prefix,color))
-        print ('%s----Toggle playback| refresh=true terminal=false shell="%s" param1=%s param2=media_toggle_playback color=%s' % (prefix, cmd_path, str(i), color))
-        print ('%s----Toggle playback| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=media_toggle_playback color=%s' % (prefix, cmd_path, str(i), color))
+        print ('%s----Now Playing | color=%s' % (prefix, color))
+        print ('%s------Toggle playback| refresh=true terminal=false shell="%s" param1=%s param2=media_toggle_playback color=%s' % (prefix, cmd_path, str(i), color))
+        print ('%s------Toggle playback| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=media_toggle_playback color=%s' % (prefix, cmd_path, str(i), color))
+        print ('%s-------' % prefix)
+        print ('%s----Station:\t%s | color=%s' % (prefix, vehicle_state['media_info']['now_playing_station'], info_color))
+        print ('%s----Title: \t%s | color=%s' % (prefix, vehicle_state['media_info']['now_playing_title'], info_color))
+        print ('%s----Atist: \t%s | color=%s' % (prefix, vehicle_state['media_info']['now_playing_artist'], info_color))
         print ('%s-------' % prefix)
         print ('%s----Track| color=%s' % (prefix,color))
         print ('%s------Previous| refresh=true terminal=false shell="%s" param1=%s param2=media_prev_track color=%s' % (prefix, cmd_path, str(i), color))
@@ -1951,10 +1957,11 @@ def main(argv):
         print ('%s------Next| refresh=true terminal=false shell="%s" param1=%s param2=media_next_track color=%s' % (prefix, cmd_path, str(i), color))
         print ('%s------Next| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=media_next_track color=%s' % (prefix, cmd_path, str(i), color))
         print ('%s----Volume| color=%s' % (prefix,color))
-        print ('%s------Up| refresh=true terminal=false shell="%s" param1=%s param2=media_volume_up color=%s' % (prefix, cmd_path, str(i), color))
-        print ('%s------Up| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=media_volume_up color=%s' % (prefix, cmd_path, str(i), color))
-        print ('%s------Down| refresh=true terminal=false shell="%s" param1=%s param2=media_volume_down color=%s' % (prefix, cmd_path, str(i), color))
-        print ('%s------Down| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=media_volume_down color=%s' % (prefix, cmd_path, str(i), color))
+        print ('%s------Current Volume: %s/%i | color=%s' % (prefix, int(vehicle_state['media_info']['audio_volume']), int(vehicle_state['media_info']['audio_volume_max']),color))
+        print ('%s--------Up| refresh=true terminal=false shell="%s" param1=%s param2=media_volume_up color=%s' % (prefix, cmd_path, str(i), color))
+        print ('%s--------Up| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=media_volume_up color=%s' % (prefix, cmd_path, str(i), color))
+        print ('%s--------Down| refresh=true terminal=false shell="%s" param1=%s param2=media_volume_down color=%s' % (prefix, cmd_path, str(i), color))
+        print ('%s--------Down| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=media_volume_down color=%s' % (prefix, cmd_path, str(i), color))
         print ('%s-----' % prefix)
         print ('%s--Navigate to address| refresh=true terminal=true shell="%s" param1=%s param2=navigation_request color=%s' % (prefix, cmd_path, str(i), color))
         
