@@ -1035,6 +1035,13 @@ def convert_distance(distance_unit,distance):
     else:
         return distance
 
+# Convertor for pressure
+def convert_pressure(tirepressure,value):
+    if tirepressure == 'Psi':
+        return int(value * 14.5038)
+    else:
+        return value
+
 # Pretty print door state
 def door_state(dooropen):
     if bool(dooropen):
@@ -1912,10 +1919,11 @@ def main(argv):
            pass 
         print ('%s--Color: 			%s | color=%s' % (prefix, vehicle_config['exterior_color'], info_color))
         print ('%s--Wheels: 			%s | color=%s' % (prefix, vehicle_config['wheel_type'], info_color))
-        print ('%s----Front Left:		%s bar | color=%s' % (prefix, vehicle_state['tpms_pressure_fl'], color))
-        print ('%s----Front Right: 		%s bar | color=%s' % (prefix, vehicle_state['tpms_pressure_fr'], color))
-        print ('%s----Rear Left: 		%s bar | color=%s' % (prefix, vehicle_state['tpms_pressure_rl'], color))
-        print ('%s----Rear Right: 		%s bar | color=%s' % (prefix, vehicle_state['tpms_pressure_rr'], color))
+        tirepressure = gui_settings['gui_tirepressure_units']
+        print ('%s----Front Left:		%i %s | color=%s' % (prefix, convert_pressure(tirepressure,vehicle_state['tpms_pressure_fl']), tirepressure, color))
+        print ('%s----Front Right: 		%i %s | color=%s' % (prefix, convert_pressure(tirepressure,vehicle_state['tpms_pressure_fr']), tirepressure, color))
+        print ('%s----Rear Left: 		%i %s | color=%s' % (prefix, convert_pressure(tirepressure,vehicle_state['tpms_pressure_rl']), tirepressure, color))
+        print ('%s----Rear Right: 		%i %s | color=%s' % (prefix, convert_pressure(tirepressure,vehicle_state['tpms_pressure_rr']), tirepressure, color))
         print ('%s-----' % prefix)
         print ('%s--Options | color=%s' % (prefix , color))
         print ('%s----Note:\t\tTesla API currently returning incorrect info| color=%s' % (prefix, color))
