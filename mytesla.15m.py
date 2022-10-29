@@ -1955,9 +1955,21 @@ def main(argv):
         print ('%s------Toggle playback| refresh=true terminal=false shell="%s" param1=%s param2=media_toggle_playback color=%s' % (prefix, cmd_path, str(i), color))
         print ('%s------Toggle playback| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=media_toggle_playback color=%s' % (prefix, cmd_path, str(i), color))
         print ('%s-------' % prefix)
-        print ('%s----Station:\t%s | color=%s' % (prefix, vehicle_state['media_info']['now_playing_station'], info_color))
-        print ('%s----Title: \t%s | color=%s' % (prefix, vehicle_state['media_info']['now_playing_title'], info_color))
-        print ('%s----Atist: \t%s | color=%s' % (prefix, vehicle_state['media_info']['now_playing_artist'], info_color))
+        try: 
+            print ('%s----Station:\t%s | color=%s' % (prefix, vehicle_state['media_info']['now_playing_station'], info_color))
+        except:
+            print ('%s----Station:\tUnavailable | color=%s' % (prefix, info_color))
+            pass
+        try:
+            print ('%s----Title: \t%s | color=%s' % (prefix, vehicle_state['media_info']['now_playing_title'], info_color))
+        except: 
+            print ('%s----Title: \tUnavailable | color=%s' % (prefix, info_color))
+            pass
+        try:
+            print ('%s----Artist:\t%s | color=%s' % (prefix, vehicle_state['media_info']['now_playing_artist'], info_color))
+        except: 
+            print ('%s----Artist:\tUnavailable | color=%s' % (prefix, info_color))
+            pass
         print ('%s-------' % prefix)
         print ('%s----Track| color=%s' % (prefix,color))
         print ('%s------Previous| refresh=true terminal=false shell="%s" param1=%s param2=media_prev_track color=%s' % (prefix, cmd_path, str(i), color))
