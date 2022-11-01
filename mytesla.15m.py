@@ -1179,7 +1179,7 @@ def convert_distance(distance_unit,distance):
     if distance_unit == 'km':
         return math.ceil(distance * 160.9344)/100
     else:
-        return distance
+        return int(distance)
 
 # Convertor for pressure
 def convert_pressure(tirepressure,value):
@@ -1623,15 +1623,16 @@ def main(argv):
 
         if 'debug' in argv:
             print (vehicle.option_codes())
-            print ('>>> vehicle:\n%s\n'        % vehicle)
-            print ('>>> vehicle_info:\n%s\n'   % vehicle_info)
-            print ('>>> gui_settings:\n%s\n'   % gui_settings)
-            print ('>>> charge_state:\n%s\n'   % charge_state)
-            print ('>>> climate_state:\n%s\n'  % climate_state)
-            print ('>>> drive_state:\n%s\n'    % drive_state)
-            print ('>>> vehicle_state:\n%s\n'  % vehicle_state)
-            print ('>>> vehicle_config:\n%s\n' % vehicle_config)
-            print ('>>> appointments:\n%s\n'   % appointments)
+            print ('>>> vehicle:\n%s\n'                 % vehicle)
+            print ('>>> vehicle_info:\n%s\n'            % vehicle_info)
+            print ('>>> gui_settings:\n%s\n'            % gui_settings)
+            print ('>>> charge_state:\n%s\n'            % charge_state)
+            print ('>>> climate_state:\n%s\n'           % climate_state)
+            print ('>>> drive_state:\n%s\n'             % drive_state)
+            print ('>>> vehicle_state:\n%s\n'           % vehicle_state)
+            print ('>>> vehicle_config:\n%s\n'          % vehicle_config)
+            print ('>>> appointments:\n%s\n'            % appointments)
+            print ('>>> nearby_charging_sites\n%s\n'    % nearby_charging_sites)
             continue
 
 
@@ -2138,12 +2139,14 @@ def main(argv):
            print ('%s----Tesla Superchargers | color=%s' % (prefix, color))
            for site, charger in enumerate(nearby_charging_sites['superchargers']): 
               if (charger == {}):
+                  print ("BOOOOH")
                   continue
               print ('%s------%.2f %s \t(%s/%s)\t%s | refresh=true terminal=false shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['available_stalls'],charger['total_stalls'], charger['name'], cmd_path, str(i), binascii.hexlify('Tesla Supercharger '+charger['name']), color))
               print ('%s------%.2f %s \t(%s/%s)\t%s | alternate=true refresh=true terminal=true shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['available_stalls'],charger['total_stalls'], charger['name'], cmd_path, str(i), binascii.hexlify('Tesla Supercharger '+charger['name']), color))
            print ('%s----Destination Chargers | color=%s' % (prefix, color))
            for site, charger in enumerate(nearby_charging_sites['destination_charging']): 
               if (charger == {}):
+                  print ("BOOOOH")
                   continue
               print ('%s------%.2f %s \t%s\t | refresh=true terminal=false shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['name'].encode('utf-8', 'ignore'), cmd_path, str(i), binascii.hexlify(charger['name'].encode('utf-8','ignore')), color))
               print ('%s------%.2f %s \t%s\t | alternate=true refresh=true terminal=true shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['name'].encode('utf-8', 'ignore'), cmd_path, str(i), binascii.hexlify(charger['name'].encode('utf-8','ignore')), color))
