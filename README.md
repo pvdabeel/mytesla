@@ -20,6 +20,14 @@ Want a Tesla with free supercharging Credits? Use my [referral code](http://ts.l
 
 ## Changelog: 
 
+**Update 2022.11.01:**
+- [X] Ready for Python3 and MacOS Ventura
+- [X] Improved Seat heating support: supports 7 seats
+- [X] Improved Steering heating support
+- [X] Displays current Station / Song / Title
+- [X] Displays current volume
+- [X] Updated composer images
+
 **Update 2022.05.21:**
 - [X] Automatically refreshes Tesla's new style 8-hr API tokens
 
@@ -130,9 +138,9 @@ Greg Glockner teslajson API [code](https://github.com/gglockner/teslajson/).
 
 ## Installation instructions: 
 
-0. Download [python](http://www.python.org) version 2.7
+0. Download [python](http://www.python.org) version 3
 1. Ensure you have [xbar](https://github.com/matryer/xbar/releases/latest) installed.
-2. Execute 'sudo easy_install tinydb==3.9 keyring==8.7 pathos googlemaps' in Terminal.app
+2. Execute 'sudo easy_install tinydb==3.9 keyring pathos googlemaps' in Terminal.app
 3. Copy [mytesla.15m.py](mytesla.15m.py) to your xbar plugins folder and chmod +x the file from your terminal in that folder
 4. For advanced users: check the configuration options in the mytesla.15m.py file
 5. Run xbar (version 2.1.7-beta or higher). 
