@@ -49,7 +49,8 @@ _WHITE_LOGO_ = True
 # in the 'key : value' list below. You can retrieve your vehicle_id by 
 # executing "mytesla.15m.py debug" on the Terminal.
 
-_OVERRIDE_OPTION_CODES_ = { 1669029050 : "BP00,AH00,AD15,GLTL,AU01,X042,APF2,APH2,APPF,X028,BTX6,BS00,CC02,BC0R,CH04,CF00,CW00,COBE,X039,IDCF,X026,DRLH,DU00,AF02,FMP6,FG02,FR01,X007,X011,INBPB,PI01,IX01,X001,LP01,LT3B,MI02,X037,MDLX,DV4W,X025,X003,PMBL,PK00,X031,PF00,X044,TM00,BR00,RCX0,REEU,RFPX,OSSB,X014,S02B,ME02,QLPB,SR04,SP01,X021,SC05,SU01,TP03,TRA1,TR01,TIG2,DSH7,TW01,MT10A,UTAB,WT22,WXP2,YFCC,CPF1", 1382791597 : "MDLX,MTX04,PBSB,WTUT,INBC3W,PI01,APF2,APBS,CC02,SC04,ACL1,CPF1,TW01" }
+_OVERRIDE_OPTION_CODES_ = { 1669029050 : "BP00,AH00,AD15,GLTL,AU01,X042,APF2,APH2,APPF,X028,BTX6,BS00,CC02,BC0R,CH04,CF00,CW00,COBE,X039,IDCF,X026,DRLH,DU00,AF02,FMP6,FG02,FR01,X007,X011,INBPB,PI01,IX01,X001,LP01,LT3B,MI02,X037,MDLX,DV4W,X025,X003,PMBL,PK00,X031,PF00,X044,TM00,BR00,RCX0,REEU,RFPX,OSSB,X014,S02B,ME02,QLPB,SR04,SP01,X021,SC05,SU01,TP03,TRA1,TR01,TIG2,DSH7,TW01,MT10A,UTAB,WT22,WXP2,YFCC,CPF1", 
+                            1382791597 : "MDLX,MTX04,PBSB,WTUT,INBC3W,PI01,APF2,APBS,CC02,SC04,ACL1,CPF1,TW01" }
 
 
 import base64
@@ -67,6 +68,7 @@ import requests
 import string
 import sys
 import time
+import platform
 
 from googlemaps import Client as googleclient
 from hashlib    import sha256
@@ -623,7 +625,7 @@ class TeslaAuthenticator(object):
 
     def dialog_username(self):
         print (CRED+'Enter your tesla.com username:'+CEND)
-        return raw_input()
+        return str_input()
  
     def dialog_password(self):
         print (CRED+'Enter your tesla.com password:'+CEND)
@@ -631,19 +633,19 @@ class TeslaAuthenticator(object):
  
     def dialog_mfa(self):
         print (CRED+'Enter multi-factor authentication code:'+CEND)
-        return raw_input()  
+        return str_input()  
 
     def dialog_captcha(self):
         print (CRED+'Enter captcha code (Run \'open /tmp/captcha.svg\' in Terminal.app):'+CEND)
-        return raw_input()
+        return str_input()
 
     def dialog_access_token(self):
         print (CRED+'Enter Tesla access code:'+CEND)
-        return raw_input()
+        return str_input()
 
     def dialog_refresh_token(self):
         print (CRED+'Enter Tesla refresh code:'+CEND)
-        return raw_input()
+        return str_input()
 
 
     def generate_challenge(self,verifier):
@@ -753,21 +755,21 @@ class TeslaAuthenticator(object):
             #print response.headers
             #raise Exception('Unable to log in at this time. Please try again later.')
 
-            print ""
-            print "Tesla is now requiring you to solve a reCaptcha puzzle. We are working on implementing support."
-            print "In the meanwhile, please generate a Tesla access token using:"
-            print ""
-            print "  https://github.com/adriankumpf/tesla_auth"
-            print ""
-            print "Input the Tesla access token below to continue." 
-            print ""
+            print ("")
+            print ("Tesla is now requiring you to solve a reCaptcha puzzle. We are working on implementing support.")
+            print ("In the meanwhile, please generate a Tesla access token using:")
+            print ("")
+            print ("  https://github.com/adriankumpf/tesla_auth")
+            print ("")
+            print ("Input the Tesla access token below to continue.")
+            print ("")
 
             access_token  = self.dialog_access_token()
             refresh_token = self.dialog_refresh_token()
             
-            print ""
-            print "Manually setting the access and refresh codes in MacOS Keychain." 
-            print ""
+            print ("")
+            print ("Manually setting the access and refresh codes in MacOS Keychain.")
+            print ("")
 
             self.override_credentials(access_token,refresh_token)
 
@@ -1004,7 +1006,9 @@ class TeslaVehicle(dict):
             return base64.b64encode(composed_img.content)
 
 
-        
+# Fix raw_input / input 
+str_input = vars(__builtins__).get('raw_input',input)
+
 # Create a random string
 def random_string(size):
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(size))
@@ -1366,7 +1370,7 @@ def main(argv):
             elif sys.argv[2] == 'navigation_request':
                 # ask for address
                 print ('Enter the address to set your navigation to:')
-                address = raw_input()
+                address = str_input()
                 current_timestamp = int(time.time())
                 json_data = json.dumps({"type":"share_ext_content_raw", "locale":"en-US","timestamp_ms":str(current_timestamp), "value" : {"android.intent.ACTION" : "android.intent.action.SEND", "android.intent.TYPE":"text\/plain", "android.intent.extra.SUBJECT":"MyTesla address","android.intent.extra.TEXT": str(address)}})
                 v.command('share',json_data)
@@ -1398,37 +1402,36 @@ def main(argv):
  
         if prefix:
             #app_print_logo(),
-            print vehicle['display_name']
+            print (vehicle['display_name'])
 
         # get the data 
-
-	try:
-           vehicle_access = vehicle.mobile_access()
-           if vehicle_access == False:
-                 print ('%sVehicle mobile access disabled. Click to try again. | refresh=true terminal=false shell="true" color=%s' % (prefix, color))
-                 continue
+        try:
+            vehicle_access = vehicle.mobile_access()
+            if vehicle_access == False:
+                print ('%sVehicle mobile access disabled. Click to try again. | refresh=true terminal=false shell="true" color=%s' % (prefix, color))
+                continue
          
-           if vehicle['in_service'] == True:
-                 print ('%sVehicle in service. Click to try again. | refresh=true terminal=false shell="true" color=%s' % (prefix, color))
-                 continue   
+            if vehicle['in_service'] == True:
+                print ('%sVehicle in service. Click to try again. | refresh=true terminal=false shell="true" color=%s' % (prefix, color))
+                continue   
  
-           # get the data for the vehicle       
-           vehicle_info = vehicle.vehicle_data() 
+            # get the data for the vehicle       
+            vehicle_info = vehicle.vehicle_data() 
  
-           if vehicle_info == None:
-               app_print_logo()
-               print ('%sError: Failed to get vehicle info from Tesla. Click to try again. | refresh=true terminal=false shell="true" color=%s' % (prefix, color))
-               return
+            if vehicle_info == None:
+                app_print_logo()
+                print ('%sError: Failed to get vehicle info from Tesla. Click to try again. | refresh=true terminal=false shell="true" color=%s' % (prefix, color))
+                return
 
         except Exception as e: 
-           print ('%sError: Failed to get info from Tesla. Click to try again. | refresh=true terminal=false shell="true" color=%s' % (prefix, color))
-           print e
-           return         
+            print ('%sError: Failed to get info from Tesla. Click to try again. | refresh=true terminal=false shell="true" color=%s' % (prefix, color))
+            print (e)
+            return         
 
         # parse the data
 
-	vehicle_name = vehicle['display_name']
-	vehicle_vin  = vehicle['vin'] 
+        vehicle_name = vehicle['display_name']
+        vehicle_vin  = vehicle['vin'] 
  
         gui_settings    = vehicle_info['gui_settings']
         charge_state    = vehicle_info['charge_state']
@@ -1476,7 +1479,7 @@ def main(argv):
         # --------------------------------------------------
 
         if 'debug' in argv:
-            print vehicle.option_codes()
+            print (vehicle.option_codes())
             print ('>>> vehicle:\n%s\n'        % vehicle)
             print ('>>> vehicle_info:\n%s\n'   % vehicle_info)
             print ('>>> gui_settings:\n%s\n'   % gui_settings)
@@ -1717,17 +1720,17 @@ def main(argv):
         # Sunroof overview
 
         try:
-           if bool(vehicle_config['sun_roof_installed']):
-              print ('%s-----' % prefix)
-              print ('%s--Sun roof open: %s%% | color=%s' % (prefix, vehicle_state['sun_roof_percent_open'], color))
-              print ('%s---- 0%% (Closed)| refresh=true terminal=false shell="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:0", color))
-              print ('%s---- 0%% (Closed)| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:0", color))
-              print ('%s---- 15%% (Vent)| refresh=true terminal=false shell="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:15", color))
-              print ('%s---- 15%% (Vent)| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:15", color))
-              print ('%s---- 80%% (Comfort)| refresh=true terminal=false shell="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:80", color))
-              print ('%s---- 80%% (Comfort)| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:80", color))
-              print ('%s---- 100%% (Open)| refresh=true terminal=false shell="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:100", color))
-              print ('%s---- 100%% (Open)| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:100", color))
+            if bool(vehicle_config['sun_roof_installed']):
+                print ('%s-----' % prefix)
+                print ('%s--Sun roof open: %s%% | color=%s' % (prefix, vehicle_state['sun_roof_percent_open'], color))
+                print ('%s---- 0%% (Closed)| refresh=true terminal=false shell="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:0", color))
+                print ('%s---- 0%% (Closed)| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:0", color))
+                print ('%s---- 15%% (Vent)| refresh=true terminal=false shell="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:15", color))
+                print ('%s---- 15%% (Vent)| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:15", color))
+                print ('%s---- 80%% (Comfort)| refresh=true terminal=false shell="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:80", color))
+                print ('%s---- 80%% (Comfort)| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:80", color))
+                print ('%s---- 100%% (Open)| refresh=true terminal=false shell="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:100", color))
+                print ('%s---- 100%% (Open)| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=sun_roof_control param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:100", color))
         except:
            # API change going to firmware 2018.4
            pass
@@ -1737,34 +1740,35 @@ def main(argv):
 
         print ('%s--Front trunk:\t\t\t\t\t%s| color=%s' % (prefix, door_state(vehicle_state['ft']),color))
         if (bool(vehicle_state['ft'])):
-        	print ('%s----Close | refresh=true terminal=false shell="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, cmd_path, str(i), "which_trunk:front", color))
-        	print ('%s----Close | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, cmd_path, str(i), "which_trunk:front", color))
+            print ('%s----Close | refresh=true terminal=false shell="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, cmd_path, str(i), "which_trunk:front", color))
+            print ('%s----Close | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, cmd_path, str(i), "which_trunk:front", color))
         else: 
-        	print ('%s----Open | refresh=true terminal=false shell="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, cmd_path, str(i), "which_trunk:front", color))
-        	print ('%s----Open | refresh=true alternate=true terminal=true  shell="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, cmd_path, str(i), "which_trunk:front", color))
+            print ('%s----Open | refresh=true terminal=false shell="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, cmd_path, str(i), "which_trunk:front", color))
+            print ('%s----Open | refresh=true alternate=true terminal=true  shell="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, cmd_path, str(i), "which_trunk:front", color))
 
         print ('%s--Rear trunk:\t\t\t\t\t%s| color=%s' % (prefix, door_state(vehicle_state['rt']),info_color))
         if (bool(vehicle_state['rt'])):
-        	print ('%s----Close | refresh=true terminal=false shell="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, cmd_path, str(i), "which_trunk:rear", color))
-        	print ('%s----Close | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, cmd_path, str(i), "which_trunk:rear", color))
+            print ('%s----Close | refresh=true terminal=false shell="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, cmd_path, str(i), "which_trunk:rear", color))
+            print ('%s----Close | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, cmd_path, str(i), "which_trunk:rear", color))
         else: 
-        	print ('%s----Open | refresh=true terminal=false shell="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, cmd_path, str(i), "which_trunk:rear", color))
-        	print ('%s----Open | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, cmd_path, str(i), "which_trunk:rear", color))
-
-       	charge_port_defrost = ""
+            print ('%s----Open | refresh=true terminal=false shell="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, cmd_path, str(i), "which_trunk:rear", color))
+            print ('%s----Open | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=actuate_trunk param3=%s color=%s' % (prefix, cmd_path, str(i), "which_trunk:rear", color))
+        
+        charge_port_defrost = ""
+        
         try:
-           if (charge_state['charge_port_cold_weather_mode']):
-              charge_port_defrost = CBLUE + '(defrosting)' + CEND
+            if (charge_state['charge_port_cold_weather_mode']):
+                charge_port_defrost = CBLUE + '(defrosting)' + CEND
         except:
-           pass
+            pass
  
         print ('%s--Charge port:\t\t\t\t\t%s %s| color=%s' % (prefix, port_state(charge_state['charge_port_door_open'],charge_state['charge_port_latch']), charge_port_defrost, color))
         if (bool(charge_state['charge_port_door_open'])) and (not(charge_state['charge_port_latch'] == 'Engaged')):
-                print ('%s----Close | refresh=true terminal=false shell="%s" param1=%s param2=charge_port_door_close color=%s' % (prefix, cmd_path, str(i), color))
-        	print ('%s----Close | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=charge_port_door_close color=%s' % (prefix, cmd_path, str(i), color))
+            print ('%s----Close | refresh=true terminal=false shell="%s" param1=%s param2=charge_port_door_close color=%s' % (prefix, cmd_path, str(i), color))
+            print ('%s----Close | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=charge_port_door_close color=%s' % (prefix, cmd_path, str(i), color))
         if (not(bool(charge_state['charge_port_door_open']))):
-        	print ('%s----Open | refresh=true terminal=false shell="%s" param1=%s param2=charge_port_door_open color=%s' % (prefix, cmd_path, str(i), color))
-        	print ('%s----Open | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=charge_port_door_open color=%s' % (prefix, cmd_path, str(i), color))
+            print ('%s----Open | refresh=true terminal=false shell="%s" param1=%s param2=charge_port_door_open color=%s' % (prefix, cmd_path, str(i), color))
+            print ('%s----Open | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=charge_port_door_open color=%s' % (prefix, cmd_path, str(i), color))
 
         if bool(drive_state['speed']):
             print ('%sVehicle speed:\t\t\t\t%s %s/h| color=%s' % (prefix, convert_distance(distance_unit,drive_state['speed']),distance_unit,color))
@@ -1877,23 +1881,23 @@ def main(argv):
               print ('%s----Turn on | refresh=true terminal=false shell="%s" param1=%s param2=remote_steering_wheel_heater_request param3="on:true" color=%s' % (prefix, cmd_path, str(i), color))
               print ('%s----Turn on | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=remote_steering_wheel_heater_request param3="on:true" color=%s' % (prefix, cmd_path, str(i), color))
         except:
-           pass
+            pass
 
         try:
-           if climate_state['is_front_defroster_on']:
-              print ('%s-- Front window defrosting | color=%s' % (prefix, color))
-	except:
-           pass
+            if climate_state['is_front_defroster_on']:
+                print ('%s-- Front window defrosting | color=%s' % (prefix, color))
+        except:
+            pass
         try:
-           if climate_state['is_rear_defroster_on']:
-              print ('%s-- Rear window defrosting | color=%s' % (prefix, color))
-	except:
-           pass
+            if climate_state['is_rear_defroster_on']:
+                print ('%s-- Rear window defrosting | color=%s' % (prefix, color))
+        except:
+            pass
         try:
-           if charge_state['battery_heater_on']:
-              print ('%s--Battery heating | color=%s' % (prefix, color))
-	except:
-           pass
+            if charge_state['battery_heater_on']:
+                print ('%s--Battery heating | color=%s' % (prefix, color))
+        except:
+            pass
  
         try:
             print ('%sOutside Temp:\t\t\t\t%.1f° %s| color=%s' % (prefix, convert_temp(temp_unit,climate_state['outside_temp']),temp_unit,color))
