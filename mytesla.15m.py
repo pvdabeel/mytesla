@@ -1,8 +1,8 @@
-#!/usr/bin/env PYTHONIOENCODING=UTF-8 /Library/Frameworks/Python.framework/Versions/2.7/bin/python 
+#!/usr/bin/env PYTHONIOENCODING=UTF-8 /usr/bin/python3 
 # -*- coding: utf-8 -*-
 #
 # <xbar.title>MyTesla</xbar.title>
-# <xbar.version>Tesla API v40.0</xbar.version>
+# <xbar.version>Tesla API v48</xbar.version>
 # <xbar.author>pvdabeel@mac.com</xbar.author>
 # <xbar.author.github>pvdabeel</xbar.author.github>
 # <xbar.desc>Control your Tesla vehicle from the MacOS menubar</xbar.desc>
@@ -70,12 +70,12 @@ import sys
 import time
 import platform
 
-from googlemaps import Client as googleclient
-from hashlib    import sha256
-from tinydb     import TinyDB, Query
-from urlparse   import parse_qs
-from datetime   import date
-from datetime   import datetime
+from googlemaps     import Client as googleclient
+from hashlib        import sha256
+from tinydb         import TinyDB, Query
+from urllib.parse   import parse_qs
+from datetime       import date
+from datetime       import datetime
 
 # Location where to store state files
 home         = os.path.expanduser("~")
@@ -1132,19 +1132,20 @@ class TeslaVehicle(dict):
     def compose_image(self, model, size=512, view='STUD_SIDE_V2', background='1'):
         """Returns composed image representing the car"""
         try:
-            with open(state_dir+'/mytesla-composed-'+str(self['vehicle_id'])+'-'+str(size)+'-'+str(view)+'-'+str(background)+'.png') as composed_img_cache:
+            with open(state_dir+'/mytesla-composed-'+str(self['vehicle_id'])+'-'+str(size)+'-'+str(view)+'-'+str(background)+'.png','rb') as composed_img_cache:
                 composed_img = composed_img_cache.read()
                 composed_img_cache.close()
-                return base64.b64encode(composed_img)
+                return base64.b64encode(composed_img).decode('utf-8')
         except:
             my_headers = {'Accept-Language': 'en-US,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'Upgrade-Insecure-Requests': '1', 'DNT': '1', 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.76 Safari/537.36'} 
             composed_url = self.compose_url(model,size,view,background)
             composed_img = requests.get(composed_url,headers=my_headers)
+        
             if (len(composed_img.content) > 0):
-                with open(state_dir+'/mytesla-composed-'+str(self['vehicle_id'])+'-'+str(size)+'-'+view+'-'+str(background)+'.png','w') as composed_img_cache:
-                   composed_img_cache.write(composed_img.content)
-                   composed_img_cache.close()
-            return base64.b64encode(composed_img.content)
+                with open(state_dir+'/mytesla-composed-'+str(self['vehicle_id'])+'-'+str(size)+'-'+view+'-'+str(background)+'.png','wb') as composed_img_cache:
+                    composed_img_cache.write(composed_img.content)
+                    composed_img_cache.close()
+            return base64.b64encode(composed_img.content).decode('utf-8')
 
 
 # Fix raw_input / input 
@@ -1365,14 +1366,14 @@ def retrieve_google_maps(latitude,longitude):
    todayDate = date.today()
     
    try:
-      with open(state_dir+'/mytesla-location-map-'+todayDate.strftime("%Y%m")+'-'+latitude+'-'+longitude+'.png') as location_map:
-         my_img1 = base64.b64encode(location_map.read())
+      with open(state_dir+'/mytesla-location-map-'+todayDate.strftime("%Y%m")+'-'+latitude+'-'+longitude+'.png','rb') as location_map:
+         my_img1 = base64.b64encode(location_map.read()).decode('utf-8')
          location_map.close()
-      with open(state_dir+'/mytesla-location-sat-'+todayDate.strftime("%Y%m")+'-'+latitude+'-'+longitude+'.png') as location_sat:
-         my_img2 = base64.b64encode(location_sat.read())
+      with open(state_dir+'/mytesla-location-sat-'+todayDate.strftime("%Y%m")+'-'+latitude+'-'+longitude+'.png','rb') as location_sat:
+         my_img2 = base64.b64encode(location_sat.read()).decode('utf-8')
          location_sat.close()
    except: 
-      with open(state_dir+'/mytesla-location-map-'+todayDate.strftime("%Y%m")+'-'+latitude+'-'+longitude+'.png','w') as location_map, open(state_dir+'/mytesla-location-sat-'+todayDate.strftime("%Y%m")+'-'+latitude+'-'+longitude+'.png','w') as location_sat:
+      with open(state_dir+'/mytesla-location-map-'+todayDate.strftime("%Y%m")+'-'+latitude+'-'+longitude+'.png','wb') as location_map, open(state_dir+'/mytesla-location-sat-'+todayDate.strftime("%Y%m")+'-'+latitude+'-'+longitude+'.png','wb') as location_sat:
          my_google_key = '&key=AIzaSyBrgHowqRH-ewRCNrhAgmK7EtFsuZCdXwk'
          my_google_dark_style = ''
                 
@@ -1386,8 +1387,8 @@ def retrieve_google_maps(latitude,longitude):
          s = requests.Session()
          my_cnt1 = s.get(my_url1).content
          my_cnt2 = s.get(my_url2).content
-         my_img1 = base64.b64encode(my_cnt1)
-         my_img2 = base64.b64encode(my_cnt2)
+         my_img1 = base64.b64encode(my_cnt1).decode('utf-8')
+         my_img2 = base64.b64encode(my_cnt2).decode('utf-8')
          location_map.write(my_cnt1)
          location_sat.write(my_cnt2)
          location_map.close()
@@ -1396,7 +1397,8 @@ def retrieve_google_maps(latitude,longitude):
 
 # Logo for both dark mode and regular mode
 def app_print_logo(extrainfo=""):
-    print(extrainfo),
+    if (extrainfo != ""): 
+        print(extrainfo)
     if bool(DARK_MODE) or bool(_WHITE_LOGO_):
         print ('|image=iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAAXNSR0IArs4c6QAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAFU2lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNS40LjAiPgogICA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAgICAgICB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iCiAgICAgICAgICAgIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIgogICAgICAgICAgICB4bWxuczpzdFJlZj0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlUmVmIyIKICAgICAgICAgICAgeG1sbnM6dGlmZj0iaHR0cDovL25zLmFkb2JlLmNvbS90aWZmLzEuMC8iCiAgICAgICAgICAgIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyI+CiAgICAgICAgIDxkYzp0aXRsZT4KICAgICAgICAgICAgPHJkZjpBbHQ+CiAgICAgICAgICAgICAgIDxyZGY6bGkgeG1sOmxhbmc9IngtZGVmYXVsdCI+dGVzbGFfVF9CVzwvcmRmOmxpPgogICAgICAgICAgICA8L3JkZjpBbHQ+CiAgICAgICAgIDwvZGM6dGl0bGU+CiAgICAgICAgIDx4bXBNTTpEZXJpdmVkRnJvbSByZGY6cGFyc2VUeXBlPSJSZXNvdXJjZSI+CiAgICAgICAgICAgIDxzdFJlZjppbnN0YW5jZUlEPnhtcC5paWQ6NjFlOGM3OTktZDk2Mi00Y2JlLWFiNDItY2FmYjlmOTYxY2VlPC9zdFJlZjppbnN0YW5jZUlEPgogICAgICAgICAgICA8c3RSZWY6ZG9jdW1lbnRJRD54bXAuZGlkOjYxZThjNzk5LWQ5NjItNGNiZS1hYjQyLWNhZmI5Zjk2MWNlZTwvc3RSZWY6ZG9jdW1lbnRJRD4KICAgICAgICAgPC94bXBNTTpEZXJpdmVkRnJvbT4KICAgICAgICAgPHhtcE1NOkRvY3VtZW50SUQ+eG1wLmRpZDpCNkM1NEUzNDlERTAxMUU3QTRFNEExMTMwMUY5QkJBNTwveG1wTU06RG9jdW1lbnRJRD4KICAgICAgICAgPHhtcE1NOkluc3RhbmNlSUQ+eG1wLmlpZDpCNkM1NEUzMzlERTAxMUU3QTRFNEExMTMwMUY5QkJBNTwveG1wTU06SW5zdGFuY2VJRD4KICAgICAgICAgPHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD51dWlkOjI3MzY3NDg0MTg2QkRGMTE5NjZBQjM5RDc2MkZFOTlGPC94bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ+CiAgICAgICAgIDx0aWZmOk9yaWVudGF0aW9uPjE8L3RpZmY6T3JpZW50YXRpb24+CiAgICAgICAgIDx4bXA6Q3JlYXRvclRvb2w+QWRvYmUgSWxsdXN0cmF0b3IgQ0MgMjAxNSAoTWFjaW50b3NoKTwveG1wOkNyZWF0b3JUb29sPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4KI5WHQwAAANVJREFUOBHtU8ENwjAMTBADdJRuACMwUjdgBEaAEcoEgQlSJmCEcJYS6VzlYVfiV0snn6/na5SqIez17xuIvReUUi7QT8AInIFezRBfwDPG+OgZlIbQL5BrT7Xf0YcK4eJpz7LMKqQ3wDSJEViXBArWJd6pl6U0mORkVyADchUBXVXVRogZuAGDCrEOWExAq2TZO1hM8CzkY06yptbgN60xJ1lTa/BMa8xJ1tQavNAac5I30vblrOtHqxG+2eENnmD5fc3lCf6YU2H0BLtO7DnE7t12Az8xb74dVbfynwAAAABJRU5ErkJggg==')
     else:
@@ -1583,7 +1585,7 @@ def main(argv):
 
         nearby_charging_sites = vehicle.nearby_charging_sites()
 
-        temp_unit = gui_settings['gui_temperature_units'].encode('utf-8')
+        temp_unit = gui_settings['gui_temperature_units']
         distance_unit='km'  
         if gui_settings['gui_distance_units'] == 'mi/hr':
             distance_unit = 'mi'
