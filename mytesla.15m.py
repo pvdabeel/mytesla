@@ -1319,11 +1319,11 @@ def offline_since(time=False):
         if second_diff < 120:
             return "Went offline a minute ago"
         if second_diff < 3600:
-            return "Offline since "+str(second_diff / 60) + " minutes ago"
+            return "Offline since "+str(int(second_diff / 60)) + " minutes ago"
         if second_diff < 7200:
             return "Offline since an hour ago"
         if second_diff < 86400:
-            return "Offline since "+ str(second_diff / 3600) + " hours ago"
+            return "Offline since "+ str(int(second_diff / 3600)) + " hours ago"
     if day_diff == 1:
         return "Offline since Yesterday"
     if day_diff < 7:
