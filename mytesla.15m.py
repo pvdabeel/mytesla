@@ -2139,14 +2139,14 @@ def main(argv):
            for site, charger in enumerate(nearby_charging_sites['superchargers']): 
               if (charger == {}):
                   continue
-              print ('%s------%.2f %s \t(%s/%s)\t%s | refresh=true terminal=false shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit, charger['distance_miles']), distance_unit, charger['available_stalls'], charger['total_stalls'], charger['name'], cmd_path, str(i), 'Tesla Supercharger '+charger['name'], color))
-              print ('%s------%.2f %s \t(%s/%s)\t%s | alternate=true refresh=true terminal=true shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['available_stalls'],charger['total_stalls'], charger['name'], cmd_path, str(i), 'Tesla Supercharger '+charger['name'], color))
+              print ('%s------%.2f %s \t(%s/%s)\t%s | refresh=true terminal=false shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit, charger['distance_miles']), distance_unit, charger['available_stalls'], charger['total_stalls'], charger['name'], cmd_path, str(i),'encode_location', color))
+              print ('%s------%.2f %s \t(%s/%s)\t%s | alternate=true refresh=true terminal=true shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['available_stalls'],charger['total_stalls'], charger['name'], cmd_path, str(i), 'encode_location', color))
            print ('%s----Destination Chargers | color=%s' % (prefix, color))
            for site, charger in enumerate(nearby_charging_sites['destination_charging']): 
               if (charger == {}):
                   continue
-              print ('%s------%.2f %s \t%s\t | refresh=true terminal=false shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['name'].encode('utf-8', 'ignore'), cmd_path, str(i), charger['name'], color))
-              print ('%s------%.2f %s \t%s\t | alternate=true refresh=true terminal=true shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['name'].encode('utf-8', 'ignore'), cmd_path, str(i), charger['name'], color))
+              print ('%s------%.2f %s \t%s\t | refresh=true terminal=false shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['name'].encode('utf-8', 'ignore'), cmd_path, str(i), 'encode_location', color))
+              print ('%s------%.2f %s \t%s\t | alternate=true refresh=true terminal=true shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['name'].encode('utf-8', 'ignore'), cmd_path, str(i), 'encode_location', color))
 
         print ('%s-----' % prefix)
         print ('%s--Trigger Homelink | refresh=true terminal=false shell="%s" param1=%s param2=trigger_homelink param3=%s param4=%s color=%s' % (prefix, cmd_path, str(i), 'lat:'+str(drive_state['latitude']),'lon:'+str(drive_state['longitude']), color))
