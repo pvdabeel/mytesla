@@ -1168,11 +1168,11 @@ def base64urldecode(arg):
 
 # Location Encoder function
 def location_encoder(arg):
-    return base64.b64encode(arg)
+    return base64.b64encode(arg.encode('utf-8','ignore'))
 
 # Location Decoder function
 def location_decoder(arg):
-    return base64.b64decode(arg)
+    return base64.b64decode(arg[1:]).decode('utf-8')
 
 # Convertor for temperature
 def convert_temp(temp_unit,temp):
@@ -2147,8 +2147,8 @@ def main(argv):
            for site, charger in enumerate(nearby_charging_sites['superchargers']): 
               if (charger == {}):
                   continue
-              print ('%s------%.2f %s \t(%s/%s)\t%s | refresh=true terminal=false shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit, charger['distance_miles']), distance_unit, charger['available_stalls'], charger['total_stalls'], charger['name'], cmd_path, i, location_encoder(charger['name']), color))
-              print ('%s------%.2f %s \t(%s/%s)\t%s | alternate=true refresh=true terminal=true shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']), distance_unit, charger['available_stalls'], charger['total_stalls'], charger['name'], cmd_path, i, location_encoder(charger['name']), color))
+              print ('%s------%.2f %s \t(%s/%s)\t%s | refresh=true terminal=false shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit, charger['distance_miles']), distance_unit, charger['available_stalls'], charger['total_stalls'], charger['name'], cmd_path, i, location_encoder('Tesla Supercharger '+charger['name']), color))
+              print ('%s------%.2f %s \t(%s/%s)\t%s | alternate=true refresh=true terminal=true shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']), distance_unit, charger['available_stalls'], charger['total_stalls'], charger['name'], cmd_path, i, location_encoder('Tesla Supercharger '+charger['name']), color))
            print ('%s----Destination Chargers | color=%s' % (prefix, color))
            for site, charger in enumerate(nearby_charging_sites['destination_charging']): 
               if (charger == {}):
