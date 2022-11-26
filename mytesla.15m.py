@@ -1166,6 +1166,14 @@ def base64urldecode(arg):
     padded = filtered + "=" * ((len(filtered) * -1) % 4)
     return padded
 
+# Location Encoder function
+def location_encoder(arg):
+    return base64.b64encode(arg)
+
+# Location Decoder function
+def location_decoder(arg):
+    return base64.b64decode(arg)
+
 # Convertor for temperature
 def convert_temp(temp_unit,temp):
     if temp_unit == 'F':
@@ -1517,7 +1525,7 @@ def main(argv):
                 json_data = json.dumps({"type":"share_ext_content_raw", "locale":"en-US","timestamp_ms":str(current_timestamp), "value" : {"android.intent.ACTION" : "android.intent.action.SEND", "android.intent.TYPE":"text\/plain", "android.intent.extra.SUBJECT":"MyTesla address","android.intent.extra.TEXT": str(address)}})
                 v.command('share',json_data)
             elif sys.argv[2] == 'navigation_set_charger':
-                address = sys.argv[3]
+                address = location_decoder(sys.argv[3])
                 current_timestamp = int(time.time())
                 json_data = json.dumps({"type":"share_ext_content_raw", "locale":"en-US","timestamp_ms":str(current_timestamp), "value" : {"android.intent.ACTION" : "android.intent.action.SEND", "android.intent.TYPE":"text\/plain", "android.intent.extra.SUBJECT":"MyTesla address","android.intent.extra.TEXT": str(address)}})
                 print ('Setting navigation to: %s' % address)
@@ -1656,7 +1664,7 @@ def main(argv):
 
         if (vehicle_state['software_update']['status'] == 'available'):
            print ('%sSoftware update:				%s available for installation | color=%s' % (prefix, vehicle_state['software_update']['version'], color))
-           print ('%s--Install | refresh=true terminal=false shell="%s" param1=%s param2=schedule_software_update param3=%s color=%s' % (prefix, cmd_path, str(i), "offset_sec:0", color))
+           print ('%s--Install | refresh=true terminal=true shell="%s" param1=%s param2=schedule_software_update param3=%s color=%s' % (prefix, cmd_path, str(i), "offset_sec:0", color))
            print ('%s---' % prefix)
         elif (vehicle_state['software_update']['status'] == 'downloading'):
            print ('%sSoftware update:				Downloading %s (%s%%) | color=%s' % (prefix, vehicle_state['software_update']['version'], vehicle_state['software_update']['download_perc'], color))
@@ -2139,14 +2147,14 @@ def main(argv):
            for site, charger in enumerate(nearby_charging_sites['superchargers']): 
               if (charger == {}):
                   continue
-              print ('%s------%.2f %s \t(%s/%s)\t%s | refresh=true terminal=false shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit, charger['distance_miles']), distance_unit, charger['available_stalls'], charger['total_stalls'], charger['name'], cmd_path, str(i),'encode_location', color))
-              print ('%s------%.2f %s \t(%s/%s)\t%s | alternate=true refresh=true terminal=true shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['available_stalls'],charger['total_stalls'], charger['name'], cmd_path, str(i), 'encode_location', color))
+              print ('%s------%.2f %s \t(%s/%s)\t%s | refresh=true terminal=false shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit, charger['distance_miles']), distance_unit, charger['available_stalls'], charger['total_stalls'], charger['name'], cmd_path, i, location_encoder(i), color))
+              print ('%s------%.2f %s \t(%s/%s)\t%s | alternate=true refresh=true terminal=true shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['available_stalls'],charger['total_stalls'], charger['name'], cmd_path, i, location_encoder(i), color))
            print ('%s----Destination Chargers | color=%s' % (prefix, color))
            for site, charger in enumerate(nearby_charging_sites['destination_charging']): 
               if (charger == {}):
                   continue
-              print ('%s------%.2f %s \t%s\t | refresh=true terminal=false shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['name'].encode('utf-8', 'ignore'), cmd_path, str(i), 'encode_location', color))
-              print ('%s------%.2f %s \t%s\t | alternate=true refresh=true terminal=true shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['name'].encode('utf-8', 'ignore'), cmd_path, str(i), 'encode_location', color))
+              print ('%s------%.2f %s \t%s\t | refresh=true terminal=false shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['name'].encode('utf-8', 'ignore'), cmd_path, i, location_encoder(i), color))
+              print ('%s------%.2f %s \t%s\t | alternate=true refresh=true terminal=true shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']),distance_unit,charger['name'].encode('utf-8', 'ignore'), cmd_path, i, location_encoder(i), color))
 
         print ('%s-----' % prefix)
         print ('%s--Trigger Homelink | refresh=true terminal=false shell="%s" param1=%s param2=trigger_homelink param3=%s param4=%s color=%s' % (prefix, cmd_path, str(i), 'lat:'+str(drive_state['latitude']),'lon:'+str(drive_state['longitude']), color))
