@@ -1562,6 +1562,7 @@ def main(argv):
                 continue
          
             if vehicle['in_service'] == True:
+                app_print_logo()
                 print ('%sVehicle in service. Click to try again. | refresh=true terminal=false shell="true" color=%s' % (prefix, color))
                 continue   
  
