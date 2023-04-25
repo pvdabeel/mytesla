@@ -1255,7 +1255,7 @@ def sentry_state(state):
         return CGREEN + '(Sentry On)'+ CEND
     else: 
         return CRED + '(Sentry Off)' + CEND
-
+    
 # Pretty print sleeping time 
 def sleeping_since(time=False):
     """
@@ -1681,10 +1681,9 @@ def main(argv):
         # --------------------------------------------------
         # SERVICE APPOINTMENT MENU 
         # --------------------------------------------------
-
         try: 
            if (appointments['enabled_vins'][0]['next_appt_timestamp'] != None):
-              next_appt = datetime.strptime(appointments['enabled_vins'][0]['next_appt_timestamp'],"%Y-%m-%dT%H:%M:%S")
+              next_appt = datetime.strptime(appointments['enabled_vins'][0]['next_appt_timestamp'],"%Y-%m-%dT%H:%M:%S%z")
               print ('%sService appoinment:\t\t\t%s | color=%s' % (prefix, next_appt.strftime("%b %d %Y, %H:%M"), color))
               print ('%s---' % prefix)
         except: 
