@@ -751,6 +751,7 @@ class TeslaAuthenticator(object):
     } 
 
     headers = {
+         "Accept"                 : "application/json"
          #"User-Agent"            : "github.com/pvdabeel/mytesla",
          #"x-tesla-user-agent"    : "github.com/pvdabeel/mytesla",
          #"X-Requested-With"      : "com.teslamotors.tesla" 
@@ -997,9 +998,9 @@ class TeslaAuthenticator(object):
 class TeslaConnection(object):
 
     headers = {
-        "User-Agent"            : "github.com/pvdabeel/mytesla",
-        "x-tesla-user-agent"    : "github.com/pvdabeel/mytesla",
-        "X-Requested-With"      : "com.teslamotors.tesla" 
+        #"User-Agent"            : "github.com/pvdabeel/mytesla",
+        #"x-tesla-user-agent"    : "github.com/pvdabeel/mytesla",
+        #"X-Requested-With"      : "com.teslamotors.tesla" 
     }
 
     
@@ -1532,7 +1533,8 @@ def main(argv):
                 v.command('share',json_data)
             else:
                 # argv is of the form: CMD + vehicleid + command + key:value pairs 
-                v.command(sys.argv[2],dict(map(lambda x: x.split(':'),sys.argv[3:])))
+                json_cmd = json.dumps(dict(map(lambda x: x.split(':'),sys.argv[3:])))
+                print(v.command(sys.argv[2],json_cmd))
         return
 
 
