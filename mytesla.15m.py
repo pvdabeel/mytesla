@@ -1015,9 +1015,8 @@ class TeslaConnection(object):
     def appointments(self):
         return self.get('users/service_scheduling_data')['response']
 
-     
-    def get(self, command):
-        return self.session.get("https://owner-api.teslamotors.com/api/1/"+command, headers=self.headers).json()
+    def get(self, command, params={}):
+        return self.session.get("https://owner-api.teslamotors.com/api/1/"+command, params=params, headers=self.headers).json()
 
     def post(self, command, data={}):
         return self.session.post("https://owner-api.teslamotors.com/api/1/"+command, data=data, headers=self.headers).json()
@@ -1055,7 +1054,7 @@ class TeslaVehicle(dict):
                 time.sleep(30)
                 pass
         # Retrieve the vehicle data from Tesla API
-        result = self.get('vehicle_data')
+        result = self.get('vehicle_data?endpoints=location_data;charge_state;climate_state;closures_state;drive_state;gui_settings;vehicle_config;vehicle_state;vehicle_data_combo',params={'endpoints':{'location_data'}})
         # Updating local cache
         if _LOCATION_TRACKING_:
             locationdb.insert({'vehicle':self['vehicle_id'],'date':str(datetime.now()),'vehicle_data':result})
@@ -1933,15 +1932,13 @@ def main(argv):
         # Vehicle location overview
 
         gmaps = googleclient('AIzaSyCtVR6-HQOVMYVGG6vOxWvPxjeggFz39mg')
-        car_location_address = gmaps.reverse_geocode((str(drive_state['latitude']),str(drive_state['longitude'])))[0]['formatted_address']
+        car_location_address = gmaps.reverse_geocode((str(drive_state['active_route_latitude']),str(drive_state['active_route_longitude'])))[0]['formatted_address']
 
         print ('%s-----' % prefix)
         print ('%s--Address:\t\t%s| color=%s' % (prefix, car_location_address, color))
         print ('%s-----' % prefix)
-        print ('%s--Lat:\t\t\t%s| color=%s' % (prefix, drive_state['latitude'], info_color))
-        print ('%s--Lon:\t\t\t%s| color=%s' % (prefix, drive_state['longitude'], info_color))
-        print ('%s--Heading:\t\t%s°| color=%s' % (prefix, drive_state['heading'], info_color))
-
+        print ('%s--Lat:\t\t\t%s| color=%s' % (prefix, drive_state['active_route_latitude'], info_color))
+        print ('%s--Lon:\t\t\t%s| color=%s' % (prefix, drive_state['active_route_longitude'], info_color))
         print ('%s---' % prefix)
         
         
@@ -1949,12 +1946,12 @@ def main(argv):
         # VEHICLE MAP MENU 
         # --------------------------------------------------
 
-        google_maps = retrieve_google_maps(str(drive_state['latitude']),str(drive_state['longitude']))
+        google_maps = retrieve_google_maps(str(drive_state['active_route_latitude']),str(drive_state['active_route_longitude']))
         vehicle_location_map = google_maps[0]
         vehicle_location_sat = google_maps[1]
 
-        print ('%s|image=%s href="https://maps.google.com?q=%s,%s" color=%s' % (prefix, vehicle_location_map, drive_state['latitude'],drive_state['longitude'],color))
-        print ('%s|image=%s alternate=true href="https://maps.google.com?q=%s,%s" color=%s' % (prefix, vehicle_location_sat, drive_state['latitude'],drive_state['longitude'],color))
+        print ('%s|image=%s href="https://maps.google.com?q=%s,%s" color=%s' % (prefix, vehicle_location_map, drive_state['active_route_latitude'],drive_state['active_route_longitude'],color))
+        print ('%s|image=%s alternate=true href="https://maps.google.com?q=%s,%s" color=%s' % (prefix, vehicle_location_sat, drive_state['active_route_latitude'],drive_state['active_route_longitude'],color))
 
         print ('%s---' % prefix)
 
@@ -2058,10 +2055,9 @@ def main(argv):
             print ('%sOutside Temp:\t\t\t\tUnavailable| color=%s' % (prefix, color))
 
         print ('%s---' % prefix)
-
         print ('%sVehicle info| color=%s' % (prefix,color))
-        print ('%s--|image=%s href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type']), vehicle.compose_url(vehicle_config['car_type']), color))
-        print ('%s--|image=%s alternate=true href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],view='STUD_WHEEL_V2'), vehicle.compose_url(vehicle_config['car_type']), color))
+        #print ('%s--|image=%s href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type']), vehicle.compose_url(vehicle_config['car_type']), color))
+        #print ('%s--|image=%s alternate=true href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],view='STUD_WHEEL_V2'), vehicle.compose_url(vehicle_config['car_type']), color))
         print ('%s-----' % prefix)
         print ('%s--Name: 			%s | color=%s' % (prefix, vehicle_name, color))
         print ('%s--VIN: 			%s | terminal=true shell="echo %s | pbcopy" color=%s' % (prefix, vehicle_vin, vehicle_vin, color))
@@ -2094,10 +2090,10 @@ def main(argv):
            except: 
               option_description = 'Unknown'
            print ('%s----%s:\t\t %s | color=%s' % (prefix, option, option_description,info_color))
-        print ('%s--Images| color=%s' % (prefix , color))
-        for view in ['STUD_3QTR_V2','STUD_SIDE_V2','STUD_REAR','STUD_WHEEL_V2','STUD_SEAT_V2']:
-           print ('%s----|image=%s href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='1'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='1'), color))
-           print ('%s----|image=%s alternate=true href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='2'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='2'), color))
+        #print ('%s--Images| color=%s' % (prefix , color))
+        #for view in ['STUD_3QTR_V2','STUD_SIDE_V2','STUD_REAR','STUD_WHEEL_V2','STUD_SEAT_V2']:
+        #   print ('%s----|image=%s href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='1'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='1'), color))
+        #   print ('%s----|image=%s alternate=true href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='2'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='2'), color))
 
         print ('%s-----' % prefix)
         print ('%s--Odometer: 		%s %s | color=%s' % (prefix, convert_distance(distance_unit,vehicle_state['odometer']), distance_unit, color))
@@ -2161,8 +2157,8 @@ def main(argv):
               print ('%s------%.2f %s \t%s\t | alternate=true refresh=true terminal=true shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']), distance_unit, charger['name'], cmd_path, i, location_encoder(charger['name']), color))
 
         print ('%s-----' % prefix)
-        print ('%s--Trigger Homelink | refresh=true terminal=false shell="%s" param1=%s param2=trigger_homelink param3=%s param4=%s color=%s' % (prefix, cmd_path, str(i), 'lat:'+str(drive_state['latitude']),'lon:'+str(drive_state['longitude']), color))
-        print ('%s--Trigger Homelink | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=trigger_homelink param3=%s param4=%s color=%s' % (prefix, cmd_path, str(i), 'lat:'+str(drive_state['latitude']),'lon:'+str(drive_state['longitude']), color))
+        print ('%s--Trigger Homelink | refresh=true terminal=false shell="%s" param1=%s param2=trigger_homelink param3=%s param4=%s color=%s' % (prefix, cmd_path, str(i), 'lat:'+str(drive_state['active_route_latitude']),'lon:'+str(drive_state['active_route_longitude']), color))
+        print ('%s--Trigger Homelink | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=trigger_homelink param3=%s param4=%s color=%s' % (prefix, cmd_path, str(i), 'lat:'+str(drive_state['active_route_latitude']),'lon:'+str(drive_state['active_route_longitude']), color))
         print ('%s-----' % prefix)
         print ('%s--Remote start | refresh=true terminal=true shell="%s" param1=%s param2=remote_start_drive color=%s' % (prefix, cmd_path, str(i), color))
  
