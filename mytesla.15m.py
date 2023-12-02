@@ -1301,20 +1301,20 @@ def sleeping_since(time=False):
         if second_diff < 120:
             return "Started sleeping a minute ago"
         if second_diff < 3600:
-            return "Sleeping since "+str(second_diff / 60) + " minutes ago"
+            return "Sleeping since "+str(int(second_diff / 60)) + " minutes ago"
         if second_diff < 7200:
             return "Sleeping since an hour ago"
         if second_diff < 86400:
-            return "Sleeping since "+ str(second_diff / 3600) + " hours ago"
+            return "Sleeping since "+ str(int(second_diff / 3600)) + " hours ago"
     if day_diff == 1:
         return "Sleeping since Yesterday"
     if day_diff < 7:
-        return "Sleeping since "+str(day_diff) + " days"
+        return "Sleeping since "+str(int(day_diff)) + " days"
     if day_diff < 31:
-        return "Sleeping since "+str(day_diff / 7) + " weeks"
+        return "Sleeping since "+str(int(day_diff / 7)) + " weeks"
     if day_diff < 365:
-        return "Sleeping since "+str(day_diff / 30) + " months"
-    return "Sleeping since "+str(day_diff / 365) + " year"
+        return "Sleeping since "+str(int(day_diff / 30)) + " months"
+    return "Sleeping since "+str(int(day_diff / 365)) + " year"
 
 # Pretty print sleeping time 
 def offline_since(time=False):
