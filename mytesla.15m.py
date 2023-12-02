@@ -53,6 +53,11 @@ _OVERRIDE_OPTION_CODES_ = { 1669029050 : "BP00,AH00,AD15,GLTL,AU01,X042,APF2,APH
                             1382791597 : "MDLX,MTX04,PBSB,WTUT,INBC3W,PI01,APF2,APBS,CC02,SC04,ACL1,CPF1,TW01" }
 
 
+_SHOW_CAR_PICTURES_   = [ 'STUD_SIDE_V2', 'STUD_3QTR','STUD_REAR','STUD_WHEEL_V2','STUD_SEAT_V2' ] # May work or not for your car: [ 'INTERIOR', 'FRONT34', 'INTERIOR', 'REAR', 'STUD_REAR34', 'STUD_SIDEVIEW' ]
+_CAR_DEFAULT_PICTURE_   = 'STUD_SIDE_V2'
+_CAR_DEFAULT_PICTURE_2_ = 'STUD_WHEEL_V2'
+
+
 import base64
 import calendar
 import datetime
@@ -1055,7 +1060,7 @@ class TeslaVehicle(dict):
                 pass
         # Retrieve the vehicle data from Tesla API
         result = self.get('vehicle_data?endpoints=charge_state%3Bclimate_state%3Bclosures_state%3Bdrive_state%3Bgui_settings%3Blocation_data%3Bvehicle_config%3Bvehicle_state%3Bvehicle_data_combo')
-        
+
         # Updating local cache
         if _LOCATION_TRACKING_:
             locationdb.insert({'vehicle':self['vehicle_id'],'date':str(datetime.now()),'vehicle_data':result})
@@ -1106,11 +1111,23 @@ class TeslaVehicle(dict):
     def option_codes(self): 
         """Tesla does not return the option codes correctly, so we read them from the override parameter in this file"""
         try: 
+            #return self.connection.get('dx/vehicles/options?vin=XXXX')['response']
             return _OVERRIDE_OPTION_CODES_[self['vehicle_id']]
         except: 
             return self['option_codes'] 
 
+    def recent_alerts(self):
+        """Return list of recent alerts"""
+        return self.connection.get('vehicles/%i/recent_alerts' % self['id'])['response']
 
+    def service_data(self):
+        """Return service data"""
+        return self.connection.get('vehicles/%i/service_data' % self['id'])['response']
+    
+    def release_notes(self):
+        """Return release notes"""
+        return self.connection.get('vehicles/%i/release_notes' % self['id'])['response']
+    
     def command(self, name, data={}):
         """Run the command for the vehicle"""
         return self.post('command/%s' % name, data)
@@ -1124,12 +1141,11 @@ class TeslaVehicle(dict):
         return self.connection.post('vehicles/%i/%s' % (self['id'], command), data)
 
  
-    def compose_url(self, model, size=2048, view='STUD_SIDE_V2', background='1'):
+    def compose_url(self, model, size=2048, view=_CAR_DEFAULT_PICTURE_, background='1'):
         """Returns composed image url representing the car"""
-        return 'https://static-assets.tesla.com/configurator/compositor?model='+self.model_short(model)+'&view='+view+'&size='+str(size)+'&options='+self.option_codes()+'&bkba_opt='+str(background)+'&context=design_studio_2'
+        return 'https://static-assets.tesla.com/configurator/compositor?model='+self.model_short(model)+'&view='+view+'&size='+str(size)+'&options='+self.option_codes()+'&bkba_opt='+str(background)
 
-
-    def compose_image(self, model, size=512, view='STUD_SIDE_V2', background='1'):
+    def compose_image(self, model, size=512, view=_CAR_DEFAULT_PICTURE_, background='1'):
         """Returns composed image representing the car"""
         try:
             with open(state_dir+'/mytesla-composed-'+str(self['vehicle_id'])+'-'+str(size)+'-'+str(view)+'-'+str(background)+'.png','rb') as composed_img_cache:
@@ -1141,7 +1157,7 @@ class TeslaVehicle(dict):
             composed_url = self.compose_url(model,size,view,background)
             composed_img = requests.get(composed_url,headers=my_headers)
         
-            if (len(composed_img.content) > 0):
+            if (len(composed_img.content) > 309):
                 with open(state_dir+'/mytesla-composed-'+str(self['vehicle_id'])+'-'+str(size)+'-'+view+'-'+str(background)+'.png','wb') as composed_img_cache:
                     composed_img_cache.write(composed_img.content)
                     composed_img_cache.close()
@@ -1602,7 +1618,8 @@ def main(argv):
 
 
         if _COMPOSER_CACHE_HIGH_:
-            for view in ['STUD_3QTR_V2','STUD_SIDE_V2','STUD_REAR','STUD_SEAT_V2','STUD_WHEEL_V2']:
+            # SIDE, INTERIOR, FRONT34, INTERIOR, REAR, STUD_REAR34, STUD_SIDEVIEW -> Options differ per car type
+            for view in _SHOW_CAR_PICTURES_:
                 for background in ['1','2']:
                     for size in ['512','1024','2048','4096']:
                         vehicle.compose_image(vehicle_config['car_type'],view=view,size=size,background=background)
@@ -1633,6 +1650,8 @@ def main(argv):
 
         if 'debug' in argv:
             print (vehicle.option_codes())
+            print (vehicle.recent_alerts())
+            print (vehicle.service_data())
             print ('>>> vehicle:\n%s\n'                 % vehicle)
             print ('>>> vehicle_info:\n%s\n'            % vehicle_info)
             print ('>>> gui_settings:\n%s\n'            % gui_settings)
@@ -2057,8 +2076,8 @@ def main(argv):
 
         print ('%s---' % prefix)
         print ('%sVehicle info| color=%s' % (prefix,color))
-        #print ('%s--|image=%s href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type']), vehicle.compose_url(vehicle_config['car_type']), color))
-        #print ('%s--|image=%s alternate=true href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],view='STUD_WHEEL_V2'), vehicle.compose_url(vehicle_config['car_type']), color))
+        print ('%s--|image=%s href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],view=_CAR_DEFAULT_PICTURE_), vehicle.compose_url(vehicle_config['car_type']), color))
+        print ('%s--|image=%s alternate=true href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],view=_CAR_DEFAULT_PICTURE_2_), vehicle.compose_url(vehicle_config['car_type']), color))
         print ('%s-----' % prefix)
         print ('%s--Name: 			%s | color=%s' % (prefix, vehicle_name, color))
         print ('%s--VIN: 			%s | terminal=true shell="echo %s | pbcopy" color=%s' % (prefix, vehicle_vin, vehicle_vin, color))
@@ -2091,10 +2110,10 @@ def main(argv):
            except: 
               option_description = 'Unknown'
            print ('%s----%s:\t\t %s | color=%s' % (prefix, option, option_description,info_color))
-        #print ('%s--Images| color=%s' % (prefix , color))
-        #for view in ['STUD_3QTR_V2','STUD_SIDE_V2','STUD_REAR','STUD_WHEEL_V2','STUD_SEAT_V2']:
-        #   print ('%s----|image=%s href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='1'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='1'), color))
-        #   print ('%s----|image=%s alternate=true href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='2'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='2'), color))
+        print ('%s--Images| color=%s' % (prefix , color))
+        for view in _SHOW_CAR_PICTURES_:
+           print ('%s----|image=%s href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='1'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='1'), color))
+           print ('%s----|image=%s alternate=true href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='2'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='2'), color))
 
         print ('%s-----' % prefix)
         print ('%s--Odometer: 		%s %s | color=%s' % (prefix, convert_distance(distance_unit,vehicle_state['odometer']), distance_unit, color))
