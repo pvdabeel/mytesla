@@ -20,6 +20,9 @@ Want a Tesla with free supercharging Credits? Use my [referral code](http://ts.l
 
 ## Changelog: 
 
+**Update 2023.12.03:**
+- [X] Testing new Tesla Fleet API (location tracking)
+
 **Update 2022.11.01:**
 - [X] Ready for Python3 and MacOS Ventura
 - [X] Improved Seat heating support: supports 7 seats
