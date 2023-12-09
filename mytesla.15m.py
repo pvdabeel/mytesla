@@ -73,6 +73,7 @@ import string
 import sys
 import time
 import platform
+import urllib
 
 from googlemaps     import Client as googleclient
 from hashlib        import sha256
@@ -1954,13 +1955,40 @@ def main(argv):
         gmaps = googleclient('AIzaSyCtVR6-HQOVMYVGG6vOxWvPxjeggFz39mg')
         car_location_address = gmaps.reverse_geocode((str(drive_state['latitude']),str(drive_state['longitude'])))[0]['formatted_address']
 
+
         print ('%s-----' % prefix)
-        print ('%s--Address:\t\t%s| color=%s' % (prefix, car_location_address, color))
+        print ('%s--Location:\t\t%s| color=%s' % (prefix, car_location_address, color))
         print ('%s-----' % prefix)
         print ('%s--Lat:\t\t\t%s| color=%s' % (prefix, drive_state['latitude'], info_color))
         print ('%s--Lon:\t\t\t%s| color=%s' % (prefix, drive_state['longitude'], info_color))
+    
+        try: 
+            active_route_destination = drive_state['active_route_destination']
+            # geocode_map = gmaps.geocode(urllib.parse.quote(str(active_route_destination)))
+            # geocode_map_lat = geocode_map[0]['geometry']['location']['lat']
+            # geocode_map_lng = geocode_map[0]['geometry']['location']['lng']
+            
+            # vehicle_destination = retrieve_google_maps(str(geocode_map_lat),str(geocode_map_lng))
+            # vehicle_destination_map = vehicle_destination[0]
+            # vehicle_destination_sat = vehicle_destination[1]
+
+            print ('%s-----' % prefix)
+            print ('%s--Destination:\t%s| color=%s' % (prefix, active_route_destination, color))
+            # print ('%s----|image=%s href="https://maps.google.com?q=%s,%s" color=%s' % (prefix, vehicle_destination_map, geocode_map_lat, geocode_map_lng, color))
+            # print ('%s----|image=%s alternate=true href="https://maps.google.com?q=%s,%s" color=%s' % (prefix, vehicle_destination_sat, geocode_map_lat, geocode_map_lng, color))
+
+            try: 
+                destination_minutes_left = str(int(drive_state['active_route_minutes_to_arrival']))
+                destination_miles_left = str(drive_state['acrive_route_miles_to_arrival'])
+                print ('%s-----' % prefix)
+                print ('%s--Time left:\t%s min| color=%s' % (prefix, destination_minutes_left, info_color))
+                print ('%s--Distance:\t%s km| color=%s' % (prefix, convert_distance(distance_unit, destination_miles_left), info_color))
+            except:
+                pass
+        except:
+            pass
+
         print ('%s---' % prefix)
-        
         
         # --------------------------------------------------
         # VEHICLE MAP MENU 
