@@ -1015,13 +1015,15 @@ class TeslaConnection(object):
 
 
     def vehicles(self):
-        return [TeslaVehicle(v, self) for v in self.get('vehicles')['response']]
+        return [TeslaVehicle(v, self) for v in self.get('products?orders=true')['response']]
 
     def appointments(self):
         return self.get('users/service_scheduling_data')['response']
 
     def get(self, command):
-        return self.session.get("https://owner-api.teslamotors.com/api/1/"+command, headers=self.headers).json()
+        e = self.session.get("https://owner-api.teslamotors.com/api/1/"+command, headers=self.headers).json()
+        #print(e)
+        return e
 
     def post(self, command, data={}):
         return self.session.post("https://owner-api.teslamotors.com/api/1/"+command, data=data, headers=self.headers).json()
@@ -1490,7 +1492,7 @@ def main(argv):
 
 
     ACCESS_TOKEN = keyring.get_password("mytesla-xbar","access_token")
-   
+
     if not ACCESS_TOKEN:   
        # restart in terminal calling init 
        app_print_logo()
@@ -1505,10 +1507,10 @@ def main(argv):
 
     # CASE 3: init was not called, keyring initialized, access code available and refreshed
     try:
-       # create connection to tesla account
-       c = TeslaConnection(access_token = ACCESS_TOKEN)
-       vehicles = c.vehicles()
-       appointments = c.appointments()
+        # create connection to tesla account
+        c = TeslaConnection(access_token = ACCESS_TOKEN)
+        vehicles = c.vehicles()
+        appointments = c.appointments()
     except: 
        app_print_logo()
        print ('Login to tesla.com | refresh=true terminal=true shell="%s" param1="%s" color=%s' % (cmd_path, 'init', color))
