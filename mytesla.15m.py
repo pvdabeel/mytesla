@@ -804,9 +804,9 @@ class TeslaAuthenticator(object):
         session         = requests.Session()
         
         state           = random_string(12)
-        code_verifier   = random_string(86)
+        code_verifier   = random_string(86).encode('utf-8')
         code_challenge  = self.generate_challenge(code_verifier) 
- 
+        
         #----------------------------#
         # STEP 1: Get the login page #
         #----------------------------#
@@ -824,7 +824,7 @@ class TeslaAuthenticator(object):
 
         if not response.status_code == requests.codes.ok:
             raise Exception('Loginpage not available. Please try again later.')
-       
+    
 
         #--------------------------------------#
         # STEP 2: Obtain an authorization code #
@@ -835,20 +835,19 @@ class TeslaAuthenticator(object):
 
         csrf            = re.search(r'name="_csrf".+value="([^"]+)"', response.text).group(1)
         transaction_id  = re.search(r'name="transaction_id".+value="([^"]+)"', response.text).group(1)
- 
         captchacode = ""
 
         #-------------------#
         # STEP 2a: Captcha  #
         #-------------------#
 
-        if (response.content.find('captcha') > 0):
+        if (response.content.find(b'captcha') > 0):
             img = session.get("https://auth.tesla.com/captcha", headers=self.headers)
             cap_file = open("/tmp/captcha.svg","wb")
             cap_file.write(img.content)
             cap_file.close()
             captchacode = self.dialog_captcha()
- 
+
         formdata = {
             "_csrf"                 : csrf,
             "_phase"                : "authenticate",
@@ -858,7 +857,7 @@ class TeslaAuthenticator(object):
             "identity"              : email,
             "credential"            : password,
             "captcha"               : captchacode } 
-      
+
         response        = session.post("https://auth.tesla.com/oauth2/v3/authorize", params=query, data=formdata, headers=self.headers, allow_redirects=False)
 
         password        = ''
