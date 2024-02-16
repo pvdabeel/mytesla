@@ -2105,9 +2105,9 @@ def main(argv):
 
         print ('%s---' % prefix)
         print ('%sVehicle info| color=%s' % (prefix,color))
-        #print ('%s--|image=%s href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],view=_CAR_DEFAULT_PICTURE_), vehicle.compose_url(vehicle_config['car_type']), color))
-        #print ('%s--|image=%s alternate=true href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],view=_CAR_DEFAULT_PICTURE_2_), vehicle.compose_url(vehicle_config['car_type']), color))
-        #print ('%s-----' % prefix)
+        print ('%s--|image=%s href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],view=_CAR_DEFAULT_PICTURE_), vehicle.compose_url(vehicle_config['car_type']), color))
+        print ('%s--|image=%s alternate=true href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],view=_CAR_DEFAULT_PICTURE_2_), vehicle.compose_url(vehicle_config['car_type']), color))
+        print ('%s-----' % prefix)
         print ('%s--Name: 			%s | color=%s' % (prefix, vehicle_name, color))
         print ('%s--VIN: 			%s | terminal=true shell="echo %s | pbcopy" color=%s' % (prefix, vehicle_vin, vehicle_vin, color))
         print ('%s--Firmware:		%s | terminal=true shell="echo %s | pbcopy" color=%s' % (prefix, vehicle_state['car_version'],vehicle_state['car_version'], color))
@@ -2139,10 +2139,10 @@ def main(argv):
            except: 
               option_description = 'Unknown'
            print ('%s----%s:\t\t %s | color=%s' % (prefix, option, option_description,info_color))
-        #print ('%s--Images| color=%s' % (prefix , color))
-        #for view in _SHOW_CAR_PICTURES_:
-        #   print ('%s----|image=%s href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='1'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='1'), color))
-        #   print ('%s----|image=%s alternate=true href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='2'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='2'), color))
+        print ('%s--Images| color=%s' % (prefix , color))
+        for view in _SHOW_CAR_PICTURES_:
+           print ('%s----|image=%s href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='1'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='1'), color))
+           print ('%s----|image=%s alternate=true href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='2'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='2'), color))
 
         print ('%s-----' % prefix)
         print ('%s--Odometer: 		%s %s | color=%s' % (prefix, convert_distance(distance_unit,vehicle_state['odometer']), distance_unit, color))
