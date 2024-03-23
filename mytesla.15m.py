@@ -1,4 +1,4 @@
-#!/usr/bin/env PYTHONIOENCODING=UTF-8 /usr/bin/python3 
+#!/usr/bin/env PYTHONIOENCODING=UTF-8 /opt/local/bin/python3 
 # -*- coding: utf-8 -*-
 #
 # <xbar.title>MyTesla</xbar.title>
@@ -996,7 +996,7 @@ class TeslaAuthenticator(object):
         response        = session.post("https://auth.tesla.com/oauth2/v3/token", json=payload, headers=self.headers)
 
         self.credentials = response.json()                                                 
-        self.save_credentials()
+        # self.save_credentials()
 
 
 
@@ -1540,12 +1540,12 @@ def main(argv):
                 print ('Enter the address to set your navigation to:')
                 address = str_input()
                 current_timestamp = int(time.time())
-                json_data = json.dumps({"type":"share_ext_content_raw", "locale":"en-US","timestamp_ms":str(current_timestamp), "value" : {"android.intent.ACTION" : "android.intent.action.SEND", "android.intent.TYPE":"text\/plain", "android.intent.extra.SUBJECT":"MyTesla address","android.intent.extra.TEXT": str(address)}})
+                json_data = json.dumps({"type":"share_ext_content_raw", "locale":"en-US","timestamp_ms":str(current_timestamp), "value" : {"android.intent.ACTION" : "android.intent.action.SEND", "android.intent.TYPE":"text/plain", "android.intent.extra.SUBJECT":"MyTesla address","android.intent.extra.TEXT": str(address)}})
                 v.command('share',json_data)
             elif sys.argv[2] == 'navigation_set_charger':
                 address = location_decoder(sys.argv[3])
                 current_timestamp = int(time.time())
-                json_data = json.dumps({"type":"share_ext_content_raw", "locale":"en-US","timestamp_ms":str(current_timestamp), "value" : {"android.intent.ACTION" : "android.intent.action.SEND", "android.intent.TYPE":"text\/plain", "android.intent.extra.SUBJECT":"MyTesla address","android.intent.extra.TEXT": str(address)}})
+                json_data = json.dumps({"type":"share_ext_content_raw", "locale":"en-US","timestamp_ms":str(current_timestamp), "value" : {"android.intent.ACTION" : "android.intent.action.SEND", "android.intent.TYPE":"text/plain", "android.intent.extra.SUBJECT":"MyTesla address","android.intent.extra.TEXT": str(address)}})
                 print ('Setting navigation to: %s' % address)
                 v.command('share',json_data)
             else:
