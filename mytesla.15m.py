@@ -963,25 +963,25 @@ class TeslaAuthenticator(object):
     def load_credentials(self):
         self.credentials    = { 
             "access_token"  : keyring.get_password("mytesla-xbar","access_token"),
-            "expires_in"    : keyring.get_password("mytesla-xbar","expires_in"),
+            #"expires_in"    : keyring.get_password("mytesla-xbar","expires_in"),
             "refresh_token" : keyring.get_password("mytesla-xbar","refresh_token"),
             "token_type"    : "bearer" }
 
     def save_credentials(self):
-        created_at = int(time.mktime(datetime.now().timetuple()))
+        #created_at = int(time.mktime(datetime.now().timetuple()))
         keyring.set_password("mytesla-xbar","access_token",self.credentials["access_token"])
-        keyring.set_password("mytesla-xbar","expires_in",self.credentials["expires_in"])
+        #keyring.set_password("mytesla-xbar","expires_in",self.credentials["expires_in"])
         keyring.set_password("mytesla-xbar","refresh_token",self.credentials["refresh_token"])
-        keyring.set_password("mytesla-xbar","created_at",created_at)
+        #keyring.set_password("mytesla-xbar","created_at",created_at)
 
 
     def override_credentials(self,access_token,refresh_token):
-        created_at = int(time.mktime(datetime.now().timetuple()))
-        expires_in = int(28800)
+        #created_at = int(time.mktime(datetime.now().timetuple()))
+        #expires_in = int(28800)
         keyring.set_password("mytesla-xbar","access_token",access_token)
-        keyring.set_password("mytesla-xbar","expires_in",expires_in)
+        #keyring.set_password("mytesla-xbar","expires_in",expires_in)
         keyring.set_password("mytesla-xbar","refresh_token",refresh_token)
-        keyring.set_password("mytesla-xbar","created_at",created_at)
+        #keyring.set_password("mytesla-xbar","created_at",created_at)
 
 
     def refresh_credentials(self):
@@ -996,7 +996,7 @@ class TeslaAuthenticator(object):
         response        = session.post("https://auth.tesla.com/oauth2/v3/token", json=payload, headers=self.headers)
 
         self.credentials = response.json()                                                 
-        # self.save_credentials()
+        self.save_credentials()
 
 
 
