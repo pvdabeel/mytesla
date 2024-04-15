@@ -1498,13 +1498,22 @@ def main(argv):
        print ('Login to tesla.com | refresh=true terminal=true shell="%s" param1="%s" color=%s' % (cmd_path, 'init', color))
        return
 
-    # refresh token
-    refresh() 
-
     ACCESS_TOKEN = keyring.get_password("mytesla-xbar","access_token")
 
 
-    # CASE 3: init was not called, keyring initialized, access code available and refreshed
+    # CASE 3a: check if we are online, else print nice message
+    try: 
+        requests.get("http://www.google.com",timeout=2)
+    except requests.ConnectionError:
+        app_print_logo()
+        print ('No internet connection | refresh=true terminal=false shell="%s" param1="%s" color=%s' % (cmd_path, 'true', color))
+        return
+
+    # refresh token
+    refresh() 
+       
+
+    # CASE 3b: init was not called, keyring initialized, access code available and refreshed
     try:
         # create connection to tesla account
         c = TeslaConnection(access_token = ACCESS_TOKEN)
@@ -1563,6 +1572,7 @@ def main(argv):
         prefix = '--'
 
     #app_print_logo()
+
 
     # loop through vehicles, get vehicle data and print menu with relevant info       
     for i, vehicle in enumerate(vehicles):
