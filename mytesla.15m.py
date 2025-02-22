@@ -1061,7 +1061,7 @@ class TeslaVehicle(dict):
                 time.sleep(30)
                 pass
         # Retrieve the vehicle data from Tesla API
-        result = self.get('vehicle_data?endpoints=charge_state%3Bclimate_state%3Bclosures_state%3Bdrive_state%3Bgui_settings%3Blocation_data%3Bvehicle_config%3Bvehicle_state%3Bvehicle_data_combo')
+        result = self.get('vehicle_data?endpoints=service_data%3Bcharge_state%3Bclimate_state%3Bclosures_state%3Bdrive_state%3Bgui_settings%3Blocation_data%3Bvehicle_config%3Bvehicle_state%3Bvehicle_data_combo')
 
         # Updating local cache
         if _LOCATION_TRACKING_:
@@ -1620,6 +1620,9 @@ def main(argv):
         vehicle_state   = vehicle_info['vehicle_state']
         vehicle_config  = vehicle_info['vehicle_config']
 
+
+        recent_alerts = vehicle.recent_alerts()['recent_alerts']
+
         nearby_charging_sites = vehicle.nearby_charging_sites()
 
         temp_unit = gui_settings['gui_temperature_units']
@@ -1662,7 +1665,6 @@ def main(argv):
 
         if 'debug' in argv:
             print (vehicle.option_codes())
-            print (vehicle.recent_alerts())
             print (vehicle.service_data())
             print ('>>> vehicle:\n%s\n'                 % vehicle)
             print ('>>> vehicle_info:\n%s\n'            % vehicle_info)
@@ -1674,6 +1676,7 @@ def main(argv):
             print ('>>> vehicle_config:\n%s\n'          % vehicle_config)
             print ('>>> appointments:\n%s\n'            % appointments)
             print ('>>> nearby_charging_sites\n%s\n'    % nearby_charging_sites)
+            print ('>>> recent alerts:\n%s\n'           % recent_alerts)
             continue
 
 
@@ -1686,7 +1689,7 @@ def main(argv):
             print ('%sVehicle state:\t\t\t\t\t%s. | color=%s' % (prefix, offline_since(vehicle_info['drive_state']['timestamp']), color))
             print ('%s--Connect | refresh=true terminal=true shell="%s" param1=%s param2=%s color=%s' % (prefix, cmd_path, str(i), "wake_up", color))
             print ('%s---' % prefix)
- 
+
         elif vehicle['state'] == 'online':
             print ('%sVehicle state:\t\t\t\t\tOnline | color=%s' % (prefix, color))
             print ('%s---' % prefix)
@@ -1812,9 +1815,9 @@ def main(argv):
 
         else:
             print ('%sCharger: \t\t\t\t\t%s | color=%s' % (prefix, charge_state['charging_state'],color))
-       
-        print ('%s---' % prefix)
+ 
 
+        print ('%s---' % prefix)
 
         # --------------------------------------------------
         # VEHICLE STATE MENU 
@@ -2121,7 +2124,7 @@ def main(argv):
         print ('%s--Name: 			%s | color=%s' % (prefix, vehicle_name, color))
         print ('%s--VIN: 			%s | terminal=true shell="echo %s | pbcopy" color=%s' % (prefix, vehicle_vin, vehicle_vin, color))
         print ('%s--Firmware:		%s | terminal=true shell="echo %s | pbcopy" color=%s' % (prefix, vehicle_state['car_version'],vehicle_state['car_version'], color))
-        print ('%s--Access Tokens:	%s | color=%s' % (prefix, len(vehicle_info['tokens']), color))
+        #print ('%s--Access Tokens:	%s | color=%s' % (prefix, len(vehicle_info['tokens']), color))
         
         print ('%s-----' % prefix)
         print ('%s--Model:			%s | color=%s' % (prefix, vehicle_config['car_type'], info_color))
@@ -2153,6 +2156,16 @@ def main(argv):
         for view in _SHOW_CAR_PICTURES_:
            print ('%s----|image=%s href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='1'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='1'), color))
            print ('%s----|image=%s alternate=true href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='2'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='2'), color))
+
+
+        # --------------------------------------------------
+        # RECENT ALERTS MENU 
+        # --------------------------------------------------
+
+        print ('%s--Alerts | color=%s' % (prefix,color))
+        for alert in recent_alerts: 
+            print ('%s----%s  -  \t%s | color=%s' % (prefix, datetime.strptime(alert['time'][:-10],"%Y-%m-%dT%H:%M:%S"),alert['user_text'],color))
+
 
         print ('%s-----' % prefix)
         print ('%s--Odometer: 		%s %s | color=%s' % (prefix, convert_distance(distance_unit,vehicle_state['odometer']), distance_unit, color))
