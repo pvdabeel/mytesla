@@ -95,6 +95,7 @@ cmd_path = os.path.realpath(__file__)
 
 # Location tracking database
 locationdb = TinyDB(state_dir+'/mytesla-locations.json')
+geolocdb   = TinyDB(state_dir+'/mytesla-geoloc.json')
 
 
 # Tesla option codes
@@ -1386,7 +1387,7 @@ def calculate_time_left(hours_to_full_charge):
 
     return time_left
 
-# Function to retrieve goole map & sat images for a given location
+# Function to retrieve google map & sat images for a given location
 def retrieve_google_maps(latitude,longitude):
    todayDate = date.today()
     
@@ -1419,6 +1420,24 @@ def retrieve_google_maps(latitude,longitude):
          location_map.close()
          location_sat.close()
    return [my_img1,my_img2]
+
+# Function to retrieve google geolocation name for a given location
+
+def retrieve_geo_loc(latitude,longitude):
+    try: 
+        # First try cache
+        result = geolocdb.search((Q.latitude==latitude) & (Q.longitude==longitude))[-1]['geoloc']
+        return result['response']
+    except: 
+        # Then try google 
+
+        gmaps = googleclient('AIzaSyCtVR6-HQOVMYVGG6vOxWvPxjeggFz39mg')
+        car_location_address = gmaps.reverse_geocode((str(latitude),str(longitude)))[0]['formatted_address']
+        
+        # Finally Update local cache
+        if _LOCATION_TRACKING_:
+            geolocdb.insert({'latitude':latitude,'longitude':longitude,'geoloc':car_location_address})
+        return car_location_address
 
 # Logo for both dark mode and regular mode
 def app_print_logo(extrainfo=""):
@@ -1966,9 +1985,7 @@ def main(argv):
 
         # Vehicle location overview
 
-        gmaps = googleclient('AIzaSyCtVR6-HQOVMYVGG6vOxWvPxjeggFz39mg')
-        car_location_address = gmaps.reverse_geocode((str(drive_state['latitude']),str(drive_state['longitude'])))[0]['formatted_address']
-
+        car_location_address = retrieve_geo_loc(drive_state['latitude'],drive_state['longitude'])
 
         print ('%s-----' % prefix)
         print ('%s--Location:\t\t%s| color=%s' % (prefix, car_location_address, color))
