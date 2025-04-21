@@ -1432,12 +1432,12 @@ def retrieve_geo_loc(latitude,longitude):
         # Then try google 
 
         gmaps = googleclient('AIzaSyCtVR6-HQOVMYVGG6vOxWvPxjeggFz39mg')
-        car_location_address = gmaps.reverse_geocode((str(latitude),str(longitude)))[0]['formatted_address']
+        location_address = gmaps.reverse_geocode((str(latitude),str(longitude)))[0]['formatted_address']
         
         # Finally Update local cache
         if _LOCATION_TRACKING_:
-            geolocdb.insert({'latitude':latitude,'longitude':longitude,'geoloc':car_location_address})
-        return car_location_address
+            geolocdb.insert({'latitude':latitude,'longitude':longitude,'geoloc':location_address})
+        return location_address
 
 # Logo for both dark mode and regular mode
 def app_print_logo(extrainfo=""):
