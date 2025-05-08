@@ -1426,6 +1426,7 @@ def retrieve_google_maps(latitude,longitude):
 def retrieve_geo_loc(latitude,longitude):
     try: 
         # First try cache
+        Q = Query()
         result = geolocdb.search((Q.latitude==latitude) & (Q.longitude==longitude))[-1]['geoloc']
         return result['response']
     except: 
