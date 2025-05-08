@@ -1428,7 +1428,7 @@ def retrieve_geo_loc(latitude,longitude):
         # First try cache
         Q = Query()
         result = geolocdb.search((Q.latitude==latitude) & (Q.longitude==longitude))[-1]['geoloc']
-        return result['response']
+        return result
     except: 
         # Then try google 
 
