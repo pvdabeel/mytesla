@@ -1,5 +1,5 @@
 #!/usr/bin/env PYTHONIOENCODING=UTF-8 /opt/local/bin/python3 
-# -*- coding: utf-8 -*-
+#/ -*- coding: utf-8 -*-
 #
 # <xbar.title>MyTesla</xbar.title>
 # <xbar.version>Tesla API v48</xbar.version>
@@ -50,10 +50,11 @@ _WHITE_LOGO_ = True
 # executing "mytesla.15m.py debug" on the Terminal.
 
 _OVERRIDE_OPTION_CODES_ = { 1669029050 : "BP00,AH00,AD15,GLTL,AU01,X042,APF2,APH2,APPF,X028,BTX6,BS00,CC02,BC0R,CH04,CF00,CW00,COBE,X039,IDCF,X026,DRLH,DU00,AF02,FMP6,FG02,FR01,X007,X011,INBPB,PI01,IX01,X001,LP01,LT3B,MI02,X037,MDLX,DV4W,X025,X003,PMBL,PK00,X031,PF00,X044,TM00,BR00,RCX0,REEU,RFPX,OSSB,X014,S02B,ME02,QLPB,SR04,SP01,X021,SC05,SU01,TP03,TRA1,TR01,TIG2,DSH7,TW01,MT10A,UTAB,WT22,WXP2,YFCC,CPF1", 
-                            1382791597 : "MDLX,MTX04,PBSB,WTUT,INBC3W,PI01,APF2,APBS,CC02,SC04,ACL1,CPF1,TW01" }
+                            1382791597 : "MDLX,MTX04,PBSB,WTUT,INBC3W,PI01,APF2,APBS,CC02,SC04,ACL1,CPF1,TW01", 
+                            929890737601148 : "MTY09,PPSW,WY20P,INPW0" }
 
 
-_SHOW_CAR_PICTURES_   = [ 'STUD_SIDE_V2', 'STUD_3QTR','STUD_REAR','STUD_WHEEL_V2','STUD_SEAT_V2' ] # May work or not for your car: [ 'INTERIOR', 'FRONT34', 'INTERIOR', 'REAR', 'STUD_REAR34', 'STUD_SIDEVIEW' ]
+_SHOW_CAR_PICTURES_   = [ 'STUD_SIDE_V2', 'STUD_3QTR','STUD_REAR','STUD_WHEEL_V2','STUD_SEAT_V2','INTERIOR'] #['FRONT34', 'INTERIOR', 'REAR', 'STUD_REAR34', 'STUD_SIDEVIEW' ]
 _CAR_DEFAULT_PICTURE_   = 'STUD_SIDE_V2'
 _CAR_DEFAULT_PICTURE_2_ = 'STUD_WHEEL_V2'
 
@@ -1115,9 +1116,9 @@ class TeslaVehicle(dict):
         """Tesla does not return the option codes correctly, so we read them from the override parameter in this file"""
         try: 
             #return self.connection.get('dx/vehicles/options?vin=XXXX')['response']
-            return _OVERRIDE_OPTION_CODES_[self['vehicle_id']]
+            return str(_OVERRIDE_OPTION_CODES_.get(self['vehicle_id']))
         except: 
-            return self['option_codes'] 
+            return str(self.get['option_codes'])
 
     def recent_alerts(self):
         """Return list of recent alerts"""
@@ -1151,11 +1152,16 @@ class TeslaVehicle(dict):
     def compose_image(self, model, size=512, view=_CAR_DEFAULT_PICTURE_, background='1'):
         """Returns composed image representing the car"""
         try:
+            # File exists
             with open(state_dir+'/mytesla-composed-'+str(self['vehicle_id'])+'-'+str(size)+'-'+str(view)+'-'+str(background)+'.png','rb') as composed_img_cache:
                 composed_img = composed_img_cache.read()
                 composed_img_cache.close()
-                return base64.b64encode(composed_img).decode('utf-8')
+                if composed_img.startswith(b'\x89PNG\r\n\x1a\n'):
+                    return base64.b64encode(composed_img).decode('utf-8')
+                else:
+                    return None
         except:
+            # File doesn't exist
             my_headers = {'Accept-Language': 'en-US,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'Upgrade-Insecure-Requests': '1', 'DNT': '1', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3.1 Safari/605.1.15'} 
             composed_url = self.compose_url(model,size,view,background)
             composed_img = requests.get(composed_url,headers=my_headers)
@@ -1163,11 +1169,25 @@ class TeslaVehicle(dict):
                 with open(state_dir+'/mytesla-composed-'+str(self['vehicle_id'])+'-'+str(size)+'-'+view+'-'+str(background)+'.png','wb') as composed_img_cache:
                     composed_img_cache.write(composed_img.content)
                     composed_img_cache.close()
-            return base64.b64encode(composed_img.content).decode('utf-8')
+            if composed_img.content.startswith(b'\x89PNG\r\n\x1a\n'):
+                return base64.b64encode(composed_img.content).decode('utf-8')
+            else:
+                return None
 
 
 # Fix raw_input / input 
 str_input = vars(__builtins__).get('raw_input',input)
+
+# Check for png format
+def is_png(filename):
+    try:
+        with open(filename, 'rb') as f:
+            # PNG files start with these 8 bytes: 89 50 4E 47 0D 0A 1A 0A
+            header = f.read(8)
+            return header == b'\x89PNG\r\n\x1a\n'
+    except (FileNotFoundError, IOError):
+        return False
+
 
 # Create a random string
 def random_string(size):
@@ -1518,7 +1538,7 @@ def main(argv):
        print ('Login to tesla.com | refresh=true terminal=true shell="%s" param1="%s" color=%s' % (cmd_path, 'init', color))
        return
 
-    ACCESS_TOKEN = keyring.get_password("mytesla-xbar","access_token")
+    #ACCESS_TOKEN = keyring.get_password("mytesla-xbar","access_token")
 
 
     # CASE 3a: check if we are online, else print nice message
@@ -1587,11 +1607,11 @@ def main(argv):
     # CASE 5: all ok, all other cases
     
     prefix = ''
+
     if len(vehicles) > 1:
         # Create a submenu for every vehicle
         prefix = '--'
-
-    #app_print_logo()
+        app_print_logo()
 
 
     # loop through vehicles, get vehicle data and print menu with relevant info       
@@ -1599,9 +1619,11 @@ def main(argv):
 
         # if there is more than one vehicle on the account, just display the logo in the menu bar
  
-        if prefix:
-            #app_print_logo(),
-            print (vehicle['display_name'])
+        if len(vehicles) > 1:
+            if vehicle['display_name'] == '':
+                print ('Tesla')
+            else: 
+                print ('%s' % (vehicle['display_name']))
 
         # get the data 
         try:
@@ -1672,7 +1694,7 @@ def main(argv):
         # if there is only one vehicle on the account, we can optionall display the logo with extra info in the menu bar
         
         if not prefix:
-            if _BATTERY_MENUBAR_:
+            if _BATTERY_MENUBAR_ and len(vehicles) == 1:
                  extrainfo = ('%s%% %s' % (charge_state['battery_level'], cold_state(battery_loss_cold)))
                  app_print_logo(extrainfo)
             else:
@@ -1767,7 +1789,6 @@ def main(argv):
         print ('%s---- 100%% (Trip only)| refresh=true terminal=false shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:100", color_setting(current_charge_setting,100,color,info_color)))
         print ('%s---- 100%% (Trip only)| refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_charge_limit param3=%s color=%s' % (prefix, cmd_path, str(i), "percent:100", color_setting(current_charge_setting,100,color,info_color)))
 
-
         print ('%s-----' % prefix)
         print ('%s--Rated battery range:\t\t\t%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['battery_range']),distance_unit,info_color))
         print ('%s--Ideal battery range:\t\t\t%s %s| color=%s' % (prefix, convert_distance(distance_unit,charge_state['ideal_battery_range']),distance_unit,info_color))
@@ -1836,7 +1857,6 @@ def main(argv):
         else:
             print ('%sCharger: \t\t\t\t\t%s | color=%s' % (prefix, charge_state['charging_state'],color))
  
-
         print ('%s---' % prefix)
 
         # --------------------------------------------------
@@ -2021,7 +2041,7 @@ def main(argv):
             pass
 
         print ('%s---' % prefix)
-        
+       
         # --------------------------------------------------
         # VEHICLE MAP MENU 
         # --------------------------------------------------
@@ -2136,8 +2156,15 @@ def main(argv):
 
         print ('%s---' % prefix)
         print ('%sVehicle info| color=%s' % (prefix,color))
-        print ('%s--|image=%s href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],view=_CAR_DEFAULT_PICTURE_), vehicle.compose_url(vehicle_config['car_type']), color))
-        print ('%s--|image=%s alternate=true href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],view=_CAR_DEFAULT_PICTURE_2_), vehicle.compose_url(vehicle_config['car_type']), color))
+
+        img_data = vehicle.compose_image(vehicle_config['car_type'],view=_CAR_DEFAULT_PICTURE_) 
+        if not img_data == None:
+            print ('%s--|image=%s href=%s color=%s' % (prefix, img_data, vehicle.compose_url(vehicle_config['car_type']), color))
+
+        img_data = vehicle.compose_image(vehicle_config['car_type'],view=_CAR_DEFAULT_PICTURE_2_) 
+        if not img_data == None:
+            print ('%s--|image=%s alternate=true href=%s color=%s' % (prefix, img_data, vehicle.compose_url(vehicle_config['car_type']), color))
+        
         print ('%s-----' % prefix)
         print ('%s--Name: 			%s | color=%s' % (prefix, vehicle_name, color))
         print ('%s--VIN: 			%s | terminal=true shell="echo %s | pbcopy" color=%s' % (prefix, vehicle_vin, vehicle_vin, color))
@@ -2163,7 +2190,6 @@ def main(argv):
         print ('%s--Options | color=%s' % (prefix , color))
         print ('%s----Note:\t\tTesla API currently returning incorrect info| color=%s' % (prefix, color))
         print ('%s-------' % (prefix))
-        
         for option in vehicle.option_codes().split(','):
            try:
               option_description = tesla_option_codes[option]
@@ -2171,9 +2197,15 @@ def main(argv):
               option_description = 'Unknown'
            print ('%s----%s:\t\t %s | color=%s' % (prefix, option, option_description,info_color))
         print ('%s--Images| color=%s' % (prefix , color))
+        
         for view in _SHOW_CAR_PICTURES_:
-           print ('%s----|image=%s href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='1'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='1'), color))
-           print ('%s----|image=%s alternate=true href=%s color=%s' % (prefix, vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='2'), vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='2'), color))
+            img_data = vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='1')
+            if not img_data == None:
+                print ('%s----|image=%s href=%s color=%s' % (prefix, img_data, vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='1'), color))
+
+            img_data = vehicle.compose_image(vehicle_config['car_type'],size=512,view=view,background='2')
+            if not img_data == None:
+                print ('%s----|image=%s alternate=true href=%s color=%s' % (prefix, img_data, vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='2'), color))
 
 
         # --------------------------------------------------
