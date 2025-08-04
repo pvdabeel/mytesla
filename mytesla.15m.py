@@ -1621,7 +1621,7 @@ def main(argv):
  
         if len(vehicles) > 1:
             if vehicle['display_name'] == '':
-                print ('Tesla')
+                print ('Unnamed Tesla')
             else: 
                 print ('%s' % (vehicle['display_name']))
 
@@ -1633,7 +1633,8 @@ def main(argv):
                 continue
          
             if vehicle['in_service'] == True:
-                app_print_logo()
+                if len(vehicles) == 1: 
+                    app_print_logo()
                 print ('%sVehicle in service. Click to try again. | refresh=true terminal=false shell="true" color=%s' % (prefix, color))
                 continue   
  
