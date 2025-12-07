@@ -1828,12 +1828,12 @@ def main(argv):
 
         elif (charge_state['charging_state']=="Charging"):
             time_left = calculate_time_left(charge_state['time_to_full_charge'])
-            charger_description = "Charger:\t"
+            charger_description = "Charger:\t\t"
 
             if (charge_state['fast_charger_present']):
                charger_description = "Supercharger:" 
 
-            print ('%s%s\t\t\t\t%s (%s %s/h) | color=%s' % (prefix, charger_description, time_left, convert_distance(distance_unit,charge_state['charge_rate']), distance_unit, color))
+            print ('%s%s\t\t\t%s (%s %s/h) | color=%s' % (prefix, charger_description, time_left, convert_distance(distance_unit,charge_state['charge_rate']), distance_unit, color))
             print ('%s--Stop charging | refresh=true terminal=false shell="%s" param1=%s param2=charge_stop color=%s' % (prefix, cmd_path, str(i), color))
             print ('%s--Stop charging | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=charge_stop color=%s' % (prefix, cmd_path, str(i), color))
  
@@ -2048,8 +2048,8 @@ def main(argv):
         # --------------------------------------------------
 
         google_maps = retrieve_google_maps(str(drive_state['latitude']),str(drive_state['longitude']))
-        vehicle_location_map = google_maps[0]
-        vehicle_location_sat = google_maps[1]
+        vehicle_location_map = google_maps[1]
+        vehicle_location_sat = google_maps[0]
 
         print ('%s|image=%s href="https://maps.google.com?q=%s,%s" color=%s' % (prefix, vehicle_location_map, drive_state['latitude'],drive_state['longitude'],color))
         print ('%s|image=%s alternate=true href="https://maps.google.com?q=%s,%s" color=%s' % (prefix, vehicle_location_sat, drive_state['latitude'],drive_state['longitude'],color))
@@ -2215,8 +2215,9 @@ def main(argv):
 
         print ('%s--Alerts | color=%s' % (prefix,color))
         for alert in recent_alerts: 
-            print ('%s----%s  -  \t%s | color=%s' % (prefix, datetime.strptime(alert['time'][:-10],"%Y-%m-%dT%H:%M:%S"),alert['user_text'],color))
-
+            #print ('%s----%s  -  \t%s | color=%s' % (prefix, datetime.strptime(alert['time'][:-10],"%D, %d %m %Y %H:%M"),alert['user_text'],color))
+            #print ('%s----%s  -  \t%s | color=%s' % (prefix, datetime.strptime(alert['time'], "%a, %d %b %Y %H:%M"), alert['user_text'], color))
+            print ('%s----%s  -  \t%s | color=%s' % (prefix, datetime.strptime(alert['time'], "%a, %d %b %Y %H:%M:%S %z"), alert['user_text'], color))
 
         print ('%s-----' % prefix)
         print ('%s--Odometer: 		%s %s | color=%s' % (prefix, convert_distance(distance_unit,vehicle_state['odometer']), distance_unit, color))
