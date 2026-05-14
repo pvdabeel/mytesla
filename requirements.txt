@@ -1,0 +1,23 @@
+# mytesla-xbar runtime dependencies.
+#
+# Install with:
+#     pip3 install --user -r requirements.txt
+#
+# Notes:
+#   * Versions are intentionally permissive — mytesla only uses small,
+#     stable subsets of these libraries. If a future major release
+#     breaks something, pin to the previous major here.
+#   * `keyring` shells out to the macOS Security framework on Darwin,
+#     so no extra system packages are required.
+#   * `pyobjc-framework-WebKit` is what powers the embedded Tesla
+#     sign-in window. Tesla's owner-API SSO only accepts the custom
+#     ``tesla://auth/callback`` redirect URI now, so the safest way to
+#     capture the auth code is to host the sign-in inside a WKWebView
+#     ourselves. Without this package we fall back to a copy/paste flow.
+
+requests>=2.28
+keyring>=23.0
+tinydb>=4.0
+googlemaps>=4.10
+pyobjc-framework-Cocoa>=9.0
+pyobjc-framework-WebKit>=9.0
