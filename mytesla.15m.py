@@ -2708,18 +2708,25 @@ def main(argv):
             print ('%s--|image=%s alternate=true href=%s color=%s' % (prefix, img_data, vehicle.compose_url(vehicle_config['car_type']), color))
         
         # Top vehicle-info group (Name / VIN / Firmware). All rows in
-        # the entire vehicle-info submenu — including Wheels and the
-        # Model/Type/Color set below — share *the same* target column
-        # so NSMenu's proportional-font tab stops line up the value
-        # column across all of them. ``column_tabs`` returns a dict
-        # mapping each prefixed-label to the right number of tabs.
+        # the entire vehicle-info submenu — including Wheels, the
+        # Model/Type/Color set below, and the trailing Odometer row —
+        # share *the same* target column so NSMenu's proportional-font
+        # tab stops line up the value column across all of them.
+        # ``column_tabs`` returns a dict mapping each label to the
+        # right number of tabs. The ``--`` nesting indicators that
+        # SwiftBar/xbar consume to build the submenu are *not* rendered
+        # as visible text, so we measure widths on the labels alone —
+        # otherwise short labels like ``VIN:`` get bucketed past the
+        # 28pt boundary they actually fall under, and end up one
+        # tab-stop short of the shared value column.
         _hdr_prefix = prefix + '--'
         _all_labels = ['Name:', 'VIN:', 'Firmware:',
                        'Model:', 'Type:', 'Ludicrous:', 'Uncorked:',
-                       'Color:', 'Roof:', 'Interior:', 'Wheels:']
-        _hdr_tabs = column_tabs([_hdr_prefix + l for l in _all_labels])
+                       'Color:', 'Roof:', 'Interior:', 'Wheels:',
+                       'Odometer:']
+        _hdr_tabs = column_tabs(_all_labels)
         def _hdr_row(lbl, val):
-            return '%s%s%s%s' % (_hdr_prefix, lbl, _hdr_tabs[_hdr_prefix + lbl], val)
+            return '%s%s%s%s' % (_hdr_prefix, lbl, _hdr_tabs[lbl], val)
         print ('%s-----' % prefix)
         print ('%s | color=%s' % (_hdr_row('Name:',     vehicle_name), color))
         print ('%s | terminal=true shell="echo %s | pbcopy" color=%s'
@@ -2756,7 +2763,7 @@ def main(argv):
         # lands its value in the same NSMenu pixel tab-stop.
         for lbl, val, col in info_rows:
             print ('%s%s%s%s | color=%s'
-                   % (_hdr_prefix, lbl, _hdr_tabs[_hdr_prefix + lbl], val, col))
+                   % (_hdr_prefix, lbl, _hdr_tabs[lbl], val, col))
 
         # Tire pressures: nested under "Wheels" submenu like before. We
         # also surface the recommended cold pressure (when present) so
@@ -2789,6 +2796,7 @@ def main(argv):
         # CamelCase / snake_case enum values such as ``PermanentMagnet``
         # or ``FuturisFoldFlat`` into ``Permanent Magnet`` / ``Futuris
         # Fold Flat`` so they read like prose, not API codes.
+        # Rendered further down, between Images and Alerts.
         cfg_rows = []
         def _add(key, label, formatter=None):
             v = vehicle_config.get(key)
@@ -2809,16 +2817,6 @@ def main(argv):
         _add('efficiency_package',    'Efficiency pkg:')
         _add('plg',                   'Power liftgate:',   lambda v: 'Yes' if v else 'No')
         _add('motorized_charge_port', 'Motorized port:',   lambda v: 'Yes' if v else 'No')
-        if cfg_rows:
-            # Per-row tab counts so every value lands on the same
-            # NSMenu pixel tab-stop regardless of label length.
-            cfg_prefix = prefix + '----'
-            cfg_tabs   = column_tabs([cfg_prefix + lbl for lbl, _ in cfg_rows])
-            print ('%s--Configuration | color=%s' % (prefix, color))
-            for label, value in cfg_rows:
-                print ('%s%s%s%s | color=%s'
-                       % (cfg_prefix, label, cfg_tabs[cfg_prefix + label],
-                          value, info_color))
 
         # Option codes: Tesla's owner-API stopped returning real per-VIN
         # codes in 2019, so this menu is mostly a curiosity. Only render
@@ -2848,6 +2846,21 @@ def main(argv):
             if not img_data == None:
                 print ('%s----|image=%s alternate=true href=%s color=%s' % (prefix, img_data, vehicle.compose_url(vehicle_config['car_type'],size=2048,view=view,background='2'), color))
 
+        # Configuration submenu sits between Images and Alerts — the
+        # rows themselves were collected earlier (see ``cfg_rows``) so
+        # that ``_add`` could stay close to the other vehicle-info
+        # plumbing while the visible ordering follows the menu layout
+        # the user actually sees.
+        if cfg_rows:
+            # Per-row tab counts so every value lands on the same
+            # NSMenu pixel tab-stop regardless of label length.
+            cfg_prefix = prefix + '----'
+            cfg_tabs   = column_tabs([cfg_prefix + lbl for lbl, _ in cfg_rows])
+            print ('%s--Configuration | color=%s' % (prefix, color))
+            for label, value in cfg_rows:
+                print ('%s%s%s%s | color=%s'
+                       % (cfg_prefix, label, cfg_tabs[cfg_prefix + label],
+                          value, info_color))
 
         # --------------------------------------------------
         # RECENT ALERTS MENU 
@@ -2882,7 +2895,12 @@ def main(argv):
             print ('%s----No recent alerts | color=%s' % (prefix, color))
 
         print ('%s-----' % prefix)
-        print ('%s--Odometer: 		%s %s | color=%s' % (prefix, convert_distance(distance_unit,vehicle_state['odometer']), distance_unit, color))
+        # Odometer reuses ``_hdr_row`` so its value column lands on the
+        # same NSMenu tab-stop as Name / VIN / Firmware / Model / etc.
+        # above (``Odometer:`` is included in ``_all_labels`` for that
+        # reason).
+        odometer_value = '%s %s' % (convert_distance(distance_unit, vehicle_state['odometer']), distance_unit)
+        print ('%s | color=%s' % (_hdr_row('Odometer:', odometer_value), color))
 
 
         print ('%sVehicle commands| color=%s' % (prefix,color))
