@@ -1198,6 +1198,7 @@ _SF_UI_PT = {
     ' ': 3.5, ':': 3.5, ';': 3.5, '.': 3.5, '-': 4.0, '_': 5.5,
     "'": 3.0, '"': 4.5, ',': 3.5, '/': 4.0, '(': 4.5, ')': 4.5,
     '!': 3.5, '?': 6.0, '°': 5.0,
+    '\u2007': 7.5,  # figure space — pad character for column alignment
     'i': 3.5, 'l': 3.5, 'I': 4.0, 'J': 4.5, 'j': 3.5,
     't': 4.5, 'f': 4.5,
     'M': 11.5, 'W': 11.5, 'm': 11.0, 'w': 10.5,
@@ -1221,40 +1222,136 @@ def _menu_pt(s):
             w += 7.0
     return w
 
-def column_tabs(prefix_and_labels, stop_pt=28.0):
+def column_tabs(labels, stop_pt=28.0):
     """Compute per-row tab strings that align value columns in NSMenu.
 
-    macOS's menu font is *proportional* San Francisco UI but
-    NSAttributedString's tab stops are *pixel-based* (every 28pt by
-    default). That breaks any character-based alignment scheme: two
-    labels of identical character count can land in different tab-stop
-    buckets, and the same number of ``\\t`` after them lands their
-    values in different pixel columns.
-
-    The fix is to compute, *for each row*, the smallest number of tabs
-    that lands its value at the same target pixel column. The target
-    is the first tab stop strictly past the *widest* label in the
-    group, measured with the proportional-width estimator above.
-
     Returns a dict mapping each input string to its tab string.
-    Pass *full* prefixed labels (``prefix + '--' + label``) so the
-    menu's nesting indentation is included — tab stops count from the
-    line's left edge.
+    Duplicate labels share the same tab count (they have equal width).
 
-    >>> tabs = column_tabs(['--Name:', '--Firmware:'])
-    >>> [len(tabs[k]) for k in ('--Name:', '--Firmware:')]
+    Pass *visible* label text only — SwiftBar/xbar ``--`` nesting
+    markers are consumed when building the menu and are not rendered.
+
+    >>> tabs = column_tabs(['Name:', 'Firmware:'])
+    >>> [len(tabs[k]) for k in ('Name:', 'Firmware:')]
     [2, 1]
     """
-    from math import ceil
-    def stop_after(label):
-        # +0.001 nudges floating-point widths that happen to land
-        # *exactly* on a tab stop into the next bucket — without this,
-        # a value of e.g. 56.0pt would round-trip to stop 2 rather than
-        # the stop the renderer would actually advance to (3).
-        return max(1, int(ceil((_menu_pt(label) + 0.001) / stop_pt)))
-    target = max(stop_after(p) for p in prefix_and_labels)
-    return {p: '\t' * max(1, target - stop_after(p) + 1)
-            for p in prefix_and_labels}
+    tabs_list = value_column_tabs(labels, stop_pt=stop_pt)
+    return {l: t for l, t in zip(labels, tabs_list)}
+
+
+def _advance_tab(pos, stop_pt=28.0):
+    return stop_pt * (int(pos / stop_pt) + 1)
+
+
+def _planning_width(s, stop_pt=28.0):
+    w = _menu_pt(s)
+    next_stop = stop_pt * (int(w / stop_pt) + 1)
+    if 0 < next_stop - w <= 1.5:
+        w = next_stop + 0.001
+    return w
+
+
+def _tab_start_width(label, stop_pt=28.0):
+    """Width to use as the start column when counting tabs for *label*."""
+    raw = _menu_pt(label)
+    plan = _planning_width(label, stop_pt)
+    return plan if plan > raw else raw
+
+
+def _tabs_to_target(from_pos, target, stop_pt=28.0):
+    """Return (tab_string, end_position) advancing *from_pos* to *target*."""
+    advance = lambda pos: _advance_tab(pos, stop_pt)
+    n = 1
+    while True:
+        pos = from_pos
+        for _ in range(n):
+            pos = advance(pos)
+        if pos >= target - 0.001:
+            return '\t' * n, pos
+        n += 1
+
+
+def value_column_tabs(labels, stop_pt=28.0):
+    """Tab strings after each label so every value starts on the same column.
+
+    Row positions use :func:`_menu_pt` (best estimate of rendered width);
+    the shared target uses :func:`_planning_width` (conservative, nudges
+    labels near a tab-stop boundary) so short rows still receive enough
+    tabs. Returns one tab string per row, in order.
+    """
+    target = _advance_tab(
+        max(_planning_width(l, stop_pt) for l in labels) - 0.001, stop_pt)
+    return [_tabs_to_target(_tab_start_width(l, stop_pt), target, stop_pt)[0]
+            for l in labels]
+
+
+def pad_column_pt(values):
+    """Pad each string with U+2007 figure spaces to the widest estimated width."""
+    if not values:
+        return []
+    max_w = max(_menu_pt(v) for v in values)
+    out = []
+    for v in values:
+        padded = v
+        while _menu_pt(padded) + 0.001 < max_w:
+            padded += '\u2007'
+        out.append(padded)
+    return out
+
+
+def alert_ts_field(ts_str, field_len=16):
+    """Pad *ts_str* to *field_len* with figure spaces (U+2007).
+
+    NSMenu tabs are unreliable for mixing rows whose prefix strings
+    render to slightly different pixel widths even when the character
+    count matches. A fixed field keeps the message column straight.
+    """
+    pad = max(0, field_len - len(ts_str))
+    return ts_str + ('\u2007' * pad)
+
+
+def column_tabs_list(labels, stop_pt=28.0):
+    """Like :func:`column_tabs` but returns one tab string per row,
+    preserving order and duplicates."""
+    return value_column_tabs(labels, stop_pt=stop_pt)
+
+
+def multi_column_tabs(columns, stop_pt=28.0):
+    """Align multiple columns on absolute NSMenu tab stops.
+
+    *columns* is a list of columns; each column is a list of strings,
+    one per row. Returns a list of tab-string lists — the outer list
+    is per column, the inner list is per row — to insert after each
+    cell so every row ends at the same pixel position after every
+    column. Chained :func:`column_tabs` calls do not work here because
+    tab stops are measured from the line start, not from the previous
+    column.
+    """
+    if not columns:
+        return []
+    nrows = len(columns[0])
+    if not all(len(c) == nrows for c in columns):
+        raise ValueError('all columns must have the same row count')
+
+    positions = [0.0] * nrows
+    result = []
+
+    for col in columns:
+        for i in range(nrows):
+            positions[i] += _menu_pt(col[i])
+        target = _advance_tab(
+            max(_planning_width(col[i], stop_pt) for i in range(nrows)) - 0.001,
+            stop_pt)
+        col_tabs = []
+        new_positions = []
+        for i in range(nrows):
+            t, pos = _tabs_to_target(positions[i], target, stop_pt)
+            col_tabs.append(t)
+            new_positions.append(pos)
+        positions = new_positions
+        result.append(col_tabs)
+
+    return result
 
 
 def humanize_car_type(value):
@@ -2192,15 +2289,6 @@ def main(argv):
             print ('%s--Stop charging | refresh=true terminal=false shell="%s" param1=%s param2=charge_stop color=%s' % (prefix, cmd_path, str(i), color))
             print ('%s--Stop charging | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=charge_stop color=%s' % (prefix, cmd_path, str(i), color))
 
-            # Connected cable type — useful when diagnosing slow charge
-            try:
-                cable = charge_state.get('conn_charge_cable')
-                if cable and cable != '<invalid>':
-                    print ('%s--Cable:\t\t\t%s| color=%s'
-                           % (prefix, cable, info_color))
-            except Exception:
-                pass
-
             # Trip planner / mid-trip charging hints
             try:
                 if charge_state.get('supercharger_session_trip_planner'):
@@ -2211,27 +2299,49 @@ def main(argv):
                            % (prefix, info_color))
             except Exception:
                 pass
- 
+
             print ('%s-----' % prefix)
 
+            _chg_prefix = prefix + '--'
+            _chg_rows = []
+            try:
+                cable = charge_state.get('conn_charge_cable')
+                if cable and cable != '<invalid>':
+                    _chg_rows.append(('Cable:', cable))
+            except Exception:
+                pass
             if bool(charge_state['charger_pilot_current']):
-               print ('%s--Maximum current:\t\t%s A| color=%s' % (prefix, charge_state['charger_pilot_current'],info_color))
-               
-               current_charger_amps = charge_state['charge_current_request_max']
-
-               # Tesla API: POST /command/set_charging_amps with body
-               # ``{"charging_amps": <int>}``. The previous version sent
-               # ``set_charge_limit`` (which expects ``percent`` 0-100)
-               # so this menu silently never worked.
-               for charger_amps in range(6,25):
-                   print ('%s---- %sA | refresh=true terminal=false shell="%s" param1=%s param2=set_charging_amps param3=%s color=%s' % (prefix, charger_amps, cmd_path, str(i), 'charging_amps:'+str(charger_amps), color_setting(current_charger_amps,charger_amps,color,info_color)))
-                   print ('%s---- %sA | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_charging_amps param3=%s color=%s' % (prefix, charger_amps, cmd_path, str(i), 'charging_amps:'+str(charger_amps), color_setting(current_charger_amps,charger_amps,color,info_color)))
+                _chg_rows.append(('Maximum current:',
+                                  '%s A' % charge_state['charger_pilot_current']))
             else:
-               print ('%s--Maximum current:\t\tNo information| color=%s' % (prefix,info_color))
-            print ('%s--Actual current:\t\t%s A| color=%s' % (prefix, charge_state['charger_actual_current'],info_color))
-            print ('%s--Power:\t\t\t\t%s Kw| color=%s' % (prefix, charge_state['charger_power'],info_color))
-            print ('%s--Voltage:\t\t\t\t%s V| color=%s' % (prefix, charge_state['charger_voltage'],info_color))
-            print ('%s--Phases:\t\t\t\t%s| color=%s' % (prefix, charge_state['charger_phases'],info_color))
+                _chg_rows.append(('Maximum current:', 'No information'))
+            _chg_rows.extend([
+                ('Actual current:', '%s A' % charge_state['charger_actual_current']),
+                ('Power:',          '%s Kw' % charge_state['charger_power']),
+                ('Voltage:',        '%s V' % charge_state['charger_voltage']),
+                ('Phases:',         str(charge_state['charger_phases'])),
+            ])
+            _chg_tabs = column_tabs([lbl for lbl, _ in _chg_rows])
+            _chg_amp_prefix = prefix + '----'
+            _has_pilot = bool(charge_state['charger_pilot_current'])
+            for label, value in _chg_rows:
+                print ('%s%s%s %s| color=%s'
+                       % (_chg_prefix, label, _chg_tabs[label], value, info_color))
+                # xbar attaches ``----`` items to the nearest preceding ``--``
+                # row — emit amp choices immediately after Maximum current.
+                if label == 'Maximum current:' and _has_pilot:
+                    current_charger_amps = charge_state['charge_current_request_max']
+                    for charger_amps in range(6, 25):
+                        print ('%s %sA | refresh=true terminal=false shell="%s" param1=%s param2=set_charging_amps param3=%s color=%s'
+                               % (_chg_amp_prefix, charger_amps, cmd_path, str(i),
+                                  'charging_amps:' + str(charger_amps),
+                                  color_setting(current_charger_amps, charger_amps,
+                                                color, info_color)))
+                        print ('%s %sA | refresh=true alternate=true terminal=true shell="%s" param1=%s param2=set_charging_amps param3=%s color=%s'
+                               % (_chg_amp_prefix, charger_amps, cmd_path, str(i),
+                                  'charging_amps:' + str(charger_amps),
+                                  color_setting(current_charger_amps, charger_amps,
+                                                color, info_color)))
 
 
         else:
@@ -2418,6 +2528,9 @@ def main(argv):
         ds_heading = drive_state.get('heading')
         ds_power   = drive_state.get('power')
 
+        _drive_labels = ('Gear:', 'Heading:', 'Power:', 'Location:', 'Lat:', 'Lon:')
+        _drive_tabs = column_tabs(list(_drive_labels))
+
         if bool(ds_speed):
             print ('%sVehicle speed:\t\t\t\t%s %s/h| color=%s'
                    % (prefix,
@@ -2429,8 +2542,9 @@ def main(argv):
 
         try:
             if ds_shift in ('R', 'N', 'D') or bool(ds_speed):
-                print ('%s--Gear:\t\t\t%s| color=%s'
-                       % (prefix, shift_state_label(ds_shift), info_color))
+                print ('%s--Gear:%s %s| color=%s'
+                       % (prefix, _drive_tabs['Gear:'],
+                          shift_state_label(ds_shift), info_color))
         except Exception:
             pass
 
@@ -2438,8 +2552,9 @@ def main(argv):
             if ds_heading is not None:
                 cardinal = heading_compass(ds_heading)
                 heading_label = ('%d°' % int(ds_heading)) + (' ' + cardinal if cardinal else '')
-                print ('%s--Heading:\t\t%s| color=%s'
-                       % (prefix, heading_label, info_color))
+                print ('%s--Heading:%s %s| color=%s'
+                       % (prefix, _drive_tabs['Heading:'],
+                          heading_label, info_color))
         except Exception:
             pass
 
@@ -2449,8 +2564,9 @@ def main(argv):
                 power_label = '%d kW' % int(ds_power)
                 if int(ds_power) < 0:
                     power_label += ' (regen)'
-                print ('%s--Power:\t\t\t%s| color=%s'
-                       % (prefix, power_label, power_color))
+                print ('%s--Power:%s %s| color=%s'
+                       % (prefix, _drive_tabs['Power:'],
+                          power_label, power_color))
         except Exception:
             pass
  
@@ -2461,10 +2577,16 @@ def main(argv):
         car_location_address = retrieve_geo_loc(drive_state['latitude'],drive_state['longitude'])
 
         print ('%s-----' % prefix)
-        print ('%s--Location:\t\t%s| color=%s' % (prefix, car_location_address, color))
+        print ('%s--Location:%s %s| color=%s'
+               % (prefix, _drive_tabs['Location:'],
+                  car_location_address, color))
         print ('%s-----' % prefix)
-        print ('%s--Lat:\t\t\t%s| color=%s' % (prefix, drive_state['latitude'], info_color))
-        print ('%s--Lon:\t\t\t%s| color=%s' % (prefix, drive_state['longitude'], info_color))
+        print ('%s--Lat:%s %s| color=%s'
+               % (prefix, _drive_tabs['Lat:'],
+                  drive_state['latitude'], info_color))
+        print ('%s--Lon:%s %s| color=%s'
+               % (prefix, _drive_tabs['Lon:'],
+                  drive_state['longitude'], info_color))
     
         try: 
             active_route_destination = drive_state['active_route_destination']
@@ -2535,14 +2657,13 @@ def main(argv):
         # pixel tab-stop regardless of label length. ``_ct`` is a small
         # local helper that picks the right number of tabs for each row
         # within the climate submenu group.
-        _clim_prefix = prefix + '--'
         _clim_labels = ['Airco set to:', 'Dog Mode:',
                         'Steering heating:', 'Overheat protect:',
                         'Bioweapon defense:', 'Mirror heaters:',
                         'Wiper heater:', 'Preconditioning:', 'Fan:']
-        _clim_tabs = column_tabs([_clim_prefix + l for l in _clim_labels])
+        _clim_tabs = column_tabs(_clim_labels)
         def _ct(lbl):
-            return _clim_tabs[_clim_prefix + lbl]
+            return _clim_tabs[lbl]
 
         current_temp_setting = convert_temp(temp_unit,climate_state['driver_temp_setting'])
 
@@ -2569,10 +2690,9 @@ def main(argv):
         print ('%s--Seat heating | color=%s' % (prefix, color))
           
 
-        # Seat heating: align all six seat labels in one column. Tab
-        # padding is computed dynamically using ``column_target`` so the
-        # values land in the same place regardless of how long the label
-        # is ("Driver:" vs "Third row right:").
+        # Seat heating: align all seat labels in one column. Tab
+        # padding is computed only for seats this vehicle actually
+        # exposes — including unavailable seats skews the target.
         seats = [(0, 'Driver:',           'seat_heater_left'),
                  (1, 'Passenger:',        'seat_heater_right'),
                  (2, 'Rear left:',        'seat_heater_rear_left'),
@@ -2581,13 +2701,16 @@ def main(argv):
                  (5, 'Third row left:',   'seat_heater_third_row_left'),
                  (6, 'Third row right:',  'seat_heater_third_row_right')]
         seat_prefix = prefix + '----'
-        seat_tabs   = column_tabs([seat_prefix + n for _, n, _ in seats])
-        for seat_nr, seat_name, seat_api in seats:
+        available_seats = [(nr, name, api) for nr, name, api in seats
+                           if api in climate_state]
+        seat_names = [name for _, name, _ in available_seats]
+        seat_tab_list = column_tabs_list(seat_names)
+        for idx, (seat_nr, seat_name, seat_api) in enumerate(available_seats):
             try:
                 current_seat_setting = climate_state[seat_api]
-                print ('%s%s%s%s | color=%s'
+                print ('%s%s%s %s | color=%s'
                        % (seat_prefix, seat_name,
-                          seat_tabs[seat_prefix + seat_name],
+                          seat_tab_list[idx],
                           seat_state(current_seat_setting), color))
                 for seat_setting in range(0,4):
                     print ('%s------ %s | refresh=true terminal=false shell="%s" param1=%s param2=remote_seat_heater_request param3=%s param4=%s color=%s' % (prefix, seat_state(seat_setting), cmd_path, str(i), "heater:"+str(seat_nr),"level:"+str(seat_setting), color_setting(current_seat_setting,seat_setting,color,info_color)))
@@ -2780,10 +2903,10 @@ def main(argv):
         # TPMS rows live one indent deeper (under the Wheels submenu).
         tpms_prefix = prefix + '----'
         tpms_labels = ('Front Left:', 'Front Right:', 'Rear Left:', 'Rear Right:')
-        tpms_tabs   = column_tabs([tpms_prefix + l for l in tpms_labels])
+        tpms_tabs   = column_tabs(list(tpms_labels))
         def _tpms_row(lbl, psi, rcp_label):
             value = '%i %s%s' % (convert_pressure(tirepressure, psi), tirepressure, rcp_label)
-            return '%s%s%s%s' % (tpms_prefix, lbl, tpms_tabs[tpms_prefix + lbl], value)
+            return '%s%s%s%s' % (tpms_prefix, lbl, tpms_tabs[lbl], value)
         print ('%s | color=%s' % (_tpms_row('Front Left:',  vehicle_state['tpms_pressure_fl'], rcp_front_lbl), color))
         print ('%s | color=%s' % (_tpms_row('Front Right:', vehicle_state['tpms_pressure_fr'], rcp_front_lbl), color))
         print ('%s | color=%s' % (_tpms_row('Rear Left:',   vehicle_state['tpms_pressure_rl'], rcp_rear_lbl),  color))
@@ -2855,11 +2978,11 @@ def main(argv):
             # Per-row tab counts so every value lands on the same
             # NSMenu pixel tab-stop regardless of label length.
             cfg_prefix = prefix + '----'
-            cfg_tabs   = column_tabs([cfg_prefix + lbl for lbl, _ in cfg_rows])
+            cfg_tabs   = column_tabs([lbl for lbl, _ in cfg_rows])
             print ('%s--Configuration | color=%s' % (prefix, color))
             for label, value in cfg_rows:
                 print ('%s%s%s%s | color=%s'
-                       % (cfg_prefix, label, cfg_tabs[cfg_prefix + label],
+                       % (cfg_prefix, label, cfg_tabs[label],
                           value, info_color))
 
         # --------------------------------------------------
@@ -2872,24 +2995,32 @@ def main(argv):
         #   * skip rows whose user_text is empty so we don't render naked dashes
         #   * format the timestamp as ``YYYY-MM-DD HH:MM`` (local-time look,
         #     UTC offset preserved by the source)
-        #   * use a single ``\t`` between timestamp and message so
-        #     NSMenu's tab-stop alignment lines the message column up
-        #     across rows. We deliberately *don't* try to split the
-        #     message on ``/`` — Tesla's text contains real slashes
-        #     ("I/O Error", "4MB/s+") and the heuristic picked the wrong
-        #     one too often.
+        #   * align the message column with ``column_tabs`` on the
+        #     timestamp strings (same approach as the vehicle-info
+        #     rows). We deliberately *don't* try to split the message
+        #     on ``/`` — Tesla's text contains real slashes ("I/O Error",
+        #     "4MB/s+") and the heuristic picked the wrong one too often.
         alerts_iter = recent_alerts or []
         non_empty   = [a for a in alerts_iter if (a.get('user_text') or '').strip()]
         if non_empty:
             print ('%s--Alerts (%d) | color=%s' % (prefix, len(non_empty), color))
+            alert_prefix = prefix + '----'
+            alert_rows = []
             for alert in non_empty:
                 try:
                     ts = datetime.strptime(alert['time'], "%a, %d %b %Y %H:%M:%S %z")
                     ts_str = ts.strftime('%Y-%m-%d %H:%M')
                 except Exception:
-                    ts_str = alert.get('time', '')
+                    # Keep a fixed-width placeholder — a raw RFC time
+                    # string is much wider and skews tab counts for
+                    # every other row in the group.
+                    ts_str = '????-??-?? ??:??'
                 user_text = alert['user_text'].strip().replace('\n', ' ')
-                print ('%s----%s\t%s | color=%s' % (prefix, ts_str, user_text, color))
+                alert_rows.append((ts_str, user_text))
+            for ts_str, user_text in alert_rows:
+                print ('%s%s %s | color=%s'
+                       % (alert_prefix, alert_ts_field(ts_str),
+                          user_text, color))
         else:
             print ('%s--Alerts | color=%s' % (prefix, color))
             print ('%s----No recent alerts | color=%s' % (prefix, color))
@@ -2984,17 +3115,56 @@ def main(argv):
         if nearby_charging_sites:
             print ('%s--Navigate to nearby charger | color=%s' % (prefix, color))
             print ('%s----Tesla Superchargers | color=%s' % (prefix, color))
-            for site, charger in enumerate(nearby_charging_sites['superchargers']): 
-                if (charger == {} or not 'available_stalls' in charger):
+            sc_rows = []
+            for site, charger in enumerate(nearby_charging_sites['superchargers']):
+                if not charger or not charger.get('name'):
                     continue
-                print ('%s------%.2f %s \t(%s/%s)\t%s | refresh=true terminal=false shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit, charger['distance_miles']), distance_unit, charger['available_stalls'], charger['total_stalls'], charger['name'], cmd_path, i, location_encoder('Tesla Supercharger '+charger['name']), color))
-                print ('%s------%.2f %s \t(%s/%s)\t%s | alternate=true refresh=true terminal=true shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']), distance_unit, charger['available_stalls'], charger['total_stalls'], charger['name'], cmd_path, i, location_encoder('Tesla Supercharger '+charger['name']), color))
+                dist = '%.2f %s' % (convert_distance(distance_unit,
+                                    charger.get('distance_miles', 0)),
+                                    distance_unit)
+                avail = charger.get('available_stalls')
+                total = charger.get('total_stalls')
+                if avail is not None and total is not None:
+                    stalls = '(%s/%s)' % (avail, total)
+                else:
+                    stalls = ''
+                sc_rows.append((dist, stalls, charger['name'], site, charger))
+            if sc_rows:
+                sc_dists  = pad_column_pt([d for d, _, _, _, _ in sc_rows])
+                sc_stalls = pad_column_pt([s for _, s, _, _, _ in sc_rows])
+                sc_prefix = prefix + '------'
+                for idx, (dist, stalls, name, site, charger) in enumerate(sc_rows):
+                    if stalls:
+                        row = '%s%s %s %s' % (sc_prefix, sc_dists[idx],
+                                              sc_stalls[idx], name)
+                    else:
+                        row = '%s%s %s' % (sc_prefix, sc_dists[idx], name)
+                    nav = location_encoder('Tesla Supercharger ' + charger['name'])
+                    print ('%s%s | refresh=true terminal=false shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s'
+                           % (row, name, cmd_path, i, nav, color))
+                    print ('%s%s | alternate=true refresh=true terminal=true shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s'
+                           % (row, name, cmd_path, i, nav, color))
+            else:
+                print ('%s------No superchargers nearby | color=%s'
+                       % (prefix, info_color))
             print ('%s----Destination Chargers | color=%s' % (prefix, color))
-            for site, charger in enumerate(nearby_charging_sites['destination_charging']): 
+            dc_rows = []
+            for site, charger in enumerate(nearby_charging_sites['destination_charging']):
                 if (charger == {}):
                     continue
-                print ('%s------%.2f %s \t%s\t | refresh=true terminal=false shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']), distance_unit, charger['name'], cmd_path, i, location_encoder(charger['name']), color))
-                print ('%s------%.2f %s \t%s\t | alternate=true refresh=true terminal=true shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s' % (prefix, convert_distance(distance_unit,charger['distance_miles']), distance_unit, charger['name'], cmd_path, i, location_encoder(charger['name']), color))
+                dist = '%.2f %s' % (convert_distance(distance_unit, charger['distance_miles']),
+                                    distance_unit)
+                dc_rows.append((dist, charger['name'], site, charger))
+            if dc_rows:
+                dc_dists = pad_column_pt([d for d, _, _, _ in dc_rows])
+                dc_prefix = prefix + '------'
+                for idx, (dist, name, site, charger) in enumerate(dc_rows):
+                    row = '%s%s %s' % (dc_prefix, dc_dists[idx], name)
+                    nav = location_encoder(charger['name'])
+                    print ('%s%s | refresh=true terminal=false shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s'
+                           % (row, name, cmd_path, i, nav, color))
+                    print ('%s%s | alternate=true refresh=true terminal=true shell="%s" param1=%s param2=navigation_set_charger param3=%s color=%s'
+                           % (row, name, cmd_path, i, nav, color))
         
         print ('%s-----' % prefix)
 
@@ -3019,16 +3189,15 @@ def main(argv):
 
         # Per-row tab counts so Dashcam / Valet mode / Speed limit
         # values all land in the same NSMenu pixel column.
-        _cmd_prefix = prefix + '--'
-        _cmd_tabs = column_tabs([_cmd_prefix + l for l in
-                                 ('Dashcam:', 'Valet mode:', 'Speed limit:')])
+        _cmd_labels = ('Dashcam:', 'Valet mode:', 'Speed limit:')
+        _cmd_tabs = column_tabs(list(_cmd_labels))
 
         # Dashcam: show current state + Save Clip when capable.
         try:
             dc_state = vehicle_state.get('dashcam_state')
             if dc_state is not None:
                 print ('%s--Dashcam:%s%s | color=%s'
-                       % (prefix, _cmd_tabs[_cmd_prefix + 'Dashcam:'],
+                       % (prefix, _cmd_tabs['Dashcam:'],
                           dashcam_label(dc_state), color))
                 if vehicle_state.get('dashcam_clip_save_available'):
                     print ('%s----Save clip | refresh=true terminal=false shell="%s" param1=%s param2=dashcam_save_clip color=%s'
@@ -3048,7 +3217,7 @@ def main(argv):
                 if vehicle_state.get('valet_pin_needed'):
                     pin_warn = ' ' + CRED + '(PIN required)' + CEND
                 print ('%s--Valet mode:%s%s%s | color=%s'
-                       % (prefix, _cmd_tabs[_cmd_prefix + 'Valet mode:'],
+                       % (prefix, _cmd_tabs['Valet mode:'],
                           yes_no(valet), pin_warn, color))
                 target = 'on:false' if valet else 'on:true'
                 label  = 'Turn off' if valet else 'Turn on'
@@ -3082,7 +3251,7 @@ def main(argv):
                 else:
                     limit_text = ''
                 print ('%s--Speed limit:%s%s%s | color=%s'
-                       % (prefix, _cmd_tabs[_cmd_prefix + 'Speed limit:'],
+                       % (prefix, _cmd_tabs['Speed limit:'],
                           yes_no(active), limit_text, color))
                 if pin_set:
                     target_cmd = 'speed_limit_deactivate' if active else 'speed_limit_activate'
