@@ -2531,7 +2531,7 @@ def main(argv):
         _drive_labels = ('Gear:', 'Heading:', 'Power:', 'Location:', 'Lat:', 'Lon:')
         _drive_tabs = column_tabs(list(_drive_labels))
 
-        if bool(ds_speed):
+        if ds_speed is not None:
             print ('%sVehicle speed:\t\t\t\t%s %s/h| color=%s'
                    % (prefix,
                       convert_distance(distance_unit, ds_speed),
