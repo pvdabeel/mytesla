@@ -26,6 +26,8 @@ Want a Tesla with free supercharging credits? Use my [referral code](http://ts.l
 * [xbar](https://github.com/matryer/xbar/releases/latest) 2.1.7-beta or newer.
 * Python 3.9+.
 * A Tesla account.
+* Your own Tesla **Fleet API** application (see below). Tesla retired the
+  legacy Owner API in 2026, so a developer app is now mandatory.
 
 ## Installation
 
@@ -49,41 +51,63 @@ Want a Tesla with free supercharging credits? Use my [referral code](http://ts.l
    the sign-in flow described below.
 
 
-## Sign-in flow (no captcha gymnastics)
+## Fleet API setup (one-time)
 
-The first time you run the plugin it kicks off a PKCE OAuth flow inside
-a captive sign-in window:
+Tesla retired the legacy Owner API in 2026 and migrated individual
+accounts onto the official [Fleet API](https://developer.tesla.com/docs/fleet-api).
+The Fleet API requires *your own* developer application, so there's a
+one-time setup before you can sign in:
+
+1. Go to [developer.tesla.com](https://developer.tesla.com) and create an
+   application (the app name must **not** contain the word "Tesla").
+2. Grant the scopes **`vehicle_device_data`**, **`vehicle_location`**,
+   **`vehicle_cmds`** and **`vehicle_charging_cmds`** (the last two enable
+   lock/unlock, climate, charging and other commands).
+3. Set an **Allowed Redirect URI** (e.g. `https://<your-domain>/success`).
+   It just needs to be a page that loads; the plugin captures the
+   `?code=...` from it.
+4. Host your application's public key on your partner domain and register
+   the domain with Tesla (per Tesla's Fleet API docs).
+5. In the menu bar, pick **Settings → Set up Tesla Fleet API credentials**
+   and enter your `client_id`, `client_secret`, region (`eu`/`na`/`cn`)
+   and the exact redirect URI from step 3. These are stored in the macOS
+   Keychain under the service name `mytesla-xbar`.
+
+> Fleet API usage is billed to your developer account (with a $10/month
+> free credit). `vehicle_data` polling and wake-ups consume it, so keep an
+> eye on the usage page on developer.tesla.com.
+
+
+## Sign-in flow
+
+Once the Fleet API credentials are configured, click **Login to tesla.com**
+(or **Settings → Sign in again**) to run the OAuth flow inside a captive
+sign-in window:
 
 1. The script pops a small `WKWebView` window titled "Sign in to Tesla"
-   pointed at Tesla's official SSO endpoint.
+   pointed at Tesla's official SSO endpoint, using your `client_id` and
+   the Fleet scopes.
 2. You sign in normally — captcha, MFA, passkey, whatever Tesla throws
    at you. It all happens inside the captive window like the Tesla iOS
    app.
-3. Once Tesla redirects to `tesla://auth/callback?code=...`, the
-   webview's navigation delegate intercepts the request before the OS
-   can hand it to the Tesla app, captures the auth code, and the window
-   closes itself.
-4. The script exchanges the code for tokens at
-   `https://auth.tesla.com/oauth2/v3/token` and stores `access_token` +
-   `refresh_token` in the macOS Keychain under the service name
-   `mytesla-xbar`.
+3. Once Tesla redirects to your `<redirect_uri>?code=...`, the webview's
+   navigation delegate intercepts the request, captures the auth code,
+   and the window closes itself.
+4. The script exchanges the code for tokens (sending your `client_secret`
+   and the regional `audience`) at the Fleet token endpoint
+   `https://fleet-auth.prd.vn.cloud.tesla.com/oauth2/v3/token`, stores
+   `access_token` + `refresh_token` in the Keychain, and confirms the
+   account's regional API base via `GET /api/1/users/region`.
 
 If PyObjC's WebKit bindings aren't available, the script falls back to
 opening the URL in your default browser and asking you to copy the
-`tesla://auth/callback?...` URL out of the address bar. To stay on the
-smooth path, install:
+redirect URL out of the address bar. To stay on the smooth path, install:
 
 ```bash
 pip3 install --user pyobjc-framework-WebKit pyobjc-framework-Cocoa
 ```
 
 (They're already in `requirements.txt`.)
-
-> Tesla retired the legacy `https://auth.tesla.com/void/callback`
-> redirect for the `ownerapi` client_id in April 2026 — only
-> `tesla://auth/callback` is registered now, which is why we host the
-> sign-in inside our own webview instead of routing the user through a
-> regular browser tab.
 
 
 ## Settings menu
@@ -92,6 +116,9 @@ Everything that used to be a hard-coded constant at the top of the
 source file now lives in a Settings submenu (and in the macOS Keychain).
 From the menubar pick **Settings → ...** to:
 
+* **Set up Tesla Fleet API credentials.** Enter your developer-app
+  `client_id`, `client_secret`, region and redirect URI (see the Fleet
+  API setup section above). Required before you can sign in.
 * **Set Google API keys.** Maps and reverse-geocoding are optional;
   paste your own [Static Maps](https://developers.google.com/maps/documentation/maps-static)
   and [Geocoding](https://developers.google.com/maps/documentation/geocoding)
@@ -111,15 +138,36 @@ From the menubar pick **Settings → ...** to:
 
 ## Notes on the underlying Tesla API
 
-This plugin currently uses Tesla's *Owner API* (the same endpoints the
-mobile app uses). Tesla has been slowly deprecating it in favour of the
-new *Fleet API* — when that finally happens, the auth flow above is
-already PKCE so the migration should mostly be a matter of swapping the
-client_id and base URL. Tokens are short-lived (8 hours) and refreshed
-automatically on every menu render.
+This plugin uses Tesla's official *Fleet API*. Tesla retired the legacy
+*Owner API* (`owner-api.teslamotors.com`) in 2026 — it now returns
+`403 forbidden` for migrated accounts — so a Fleet API developer app is
+required (see the Fleet API setup section). Data reads (battery, location,
+climate, charge, sentry status) work with a bearer token. **Vehicle
+commands** (lock/unlock, climate, charging, trunk, navigation, etc.) need
+the `vehicle_cmds` / `vehicle_charging_cmds` scopes.
+
+Modern vehicles (most cars built 2021+) additionally require
+cryptographically *signed* requests via the Tesla Vehicle Command Protocol,
+which means running Tesla's `tesla-http-proxy` and pairing a virtual key to
+the car. Older Intel-based Model S/X (which report
+`vehicle_command_protocol_required: false` on the `fleet_status` endpoint)
+accept **unsigned** REST commands directly, so this build sends them
+straight to the Fleet API with no proxy or key pairing. If your car reports
+that it *does* require the protocol, commands will be rejected with a 403
+until proxy-based signing is added.
+
+Tokens are short-lived and refreshed automatically on every menu render.
 
 
 ## Changelog
+
+**2026.06:**
+- [X] Migrated from the retired Owner API to the official Tesla Fleet API (data/display).
+- [X] New Fleet API credential setup wizard (`Settings → Set up Tesla Fleet API credentials`): client_id, client_secret, region and redirect URI, all stored in the Keychain.
+- [X] OAuth now uses your own developer app + `client_secret` + regional `audience`; regional API base auto-detected via `users/region`.
+- [X] Fixed the endless "Login to tesla" loop: the menu now distinguishes "not configured", "not signed in" and a valid-token API rejection (401/403) and shows an honest status instead of looping.
+- [X] Vehicle commands over the Fleet API: added the `vehicle_cmds` / `vehicle_charging_cmds` scopes, command bodies now sent as JSON, and friendly success/failure reporting. Works unsigned on pre-2021 Intel Model S/X (`vehicle_command_protocol_required: false`); signed-command support via `tesla-http-proxy` for newer cars is still pending.
+- [X] `remote_start_drive` updated for Fleet API (no longer prompts for a password — enables keyless driving).
 
 **2026.05:**
 - [X] Embedded `WKWebView` sign-in window (Tesla-iOS-app-style). No more captcha screen, no more copy/paste, no more "redirect_uri not registered" errors.

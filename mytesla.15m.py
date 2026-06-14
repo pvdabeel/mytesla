@@ -2,7 +2,7 @@
 #/ -*- coding: utf-8 -*-
 #
 # <xbar.title>MyTesla</xbar.title>
-# <xbar.version>Tesla API v48</xbar.version>
+# <xbar.version>Fleet API v50</xbar.version>
 # <xbar.author>pvdabeel@mac.com</xbar.author>
 # <xbar.author.github>pvdabeel</xbar.author.github>
 # <xbar.desc>Control your Tesla vehicle from the MacOS menubar</xbar.desc>
@@ -35,12 +35,48 @@ OPTION_CODES_REMOTE_URL = (
     "vehicle/optioncodes.md"
 )
 
+# Tesla Fleet API endpoints.
+#
+# Tesla retired the legacy Owner API (owner-api.teslamotors.com) in 2026 and
+# migrated individual accounts to the official Fleet API. The Fleet API needs
+# your own developer application (https://developer.tesla.com): a client_id +
+# client_secret, a hosted public key on a partner domain, and the
+# authorization-code OAuth flow below. These are configured per-user via
+# "Settings -> Set up Tesla Fleet API credentials" and stored in the Keychain.
+#
+# The user-facing sign-in page still lives on auth.tesla.com, but as of Tesla's
+# 2025 announcement, server-to-server token exchange/refresh should go through
+# the dedicated fleet-auth host (auth.tesla.com is kept as a fallback).
+FLEET_AUTHORIZE_URL        = "https://auth.tesla.com/oauth2/v3/authorize"
+FLEET_TOKEN_URL            = "https://fleet-auth.prd.vn.cloud.tesla.com/oauth2/v3/token"
+FLEET_TOKEN_URL_FALLBACK   = "https://auth.tesla.com/oauth2/v3/token"
+FLEET_DEFAULT_REDIRECT_URI = "https://pvdabeel.github.io/success"
+# Scopes: data + location (Phase 1) plus vehicle commands (Phase 2).
+# vehicle_cmds covers locks, climate, trunk, navigation, software updates, wake;
+# vehicle_charging_cmds covers charge start/stop, charge limit and charging amps.
+# Note: sending commands additionally requires request signing *only* for
+# vehicles that report vehicle_command_protocol_required=true (modern cars).
+# Pre-2021 Intel-based Model S/X accept unsigned REST commands directly.
+FLEET_SCOPES = ("openid offline_access vehicle_device_data vehicle_location "
+                "vehicle_cmds vehicle_charging_cmds")
+# Regional Fleet API audiences / base hosts. The OAuth `audience` parameter
+# and the API base URL are region-specific; after sign-in we confirm the exact
+# base via GET /api/1/users/region and cache it as `fleet_base_url`.
+FLEET_REGIONS = {
+    "eu": "https://fleet-api.prd.eu.vn.cloud.tesla.com",
+    "na": "https://fleet-api.prd.na.vn.cloud.tesla.com",
+    "cn": "https://fleet-api.prd.cn.vn.cloud.tesla.cn",
+}
+
 # Hard-coded layout / picture defaults. These don't need to live in the
 # keychain because they're not secrets and changing them is rare; users who
 # really want different views can edit this file. Everything else (keys,
 # overrides, toggles) is now configurable via the in-app Settings submenu.
+# NB: the interior shot is 'STUD_SEAT_V2'. The bare 'INTERIOR' view (and
+# 'STUD_REAR_V2') return a gzipped 3D model from the compositor, not a PNG,
+# so they're deliberately excluded.
 _SHOW_CAR_PICTURES_     = ['STUD_SIDE_V2', 'STUD_3QTR', 'STUD_REAR',
-                           'STUD_WHEEL_V2', 'STUD_SEAT_V2', 'INTERIOR']
+                           'STUD_WHEEL_V2', 'STUD_SEAT_V2']
 _CAR_DEFAULT_PICTURE_   = 'STUD_SIDE_V2'
 _CAR_DEFAULT_PICTURE_2_ = 'STUD_WHEEL_V2'
 
@@ -206,6 +242,38 @@ def get_google_geocode_key():
     return kr_get("google_geocode_key")
 
 
+# Tesla Fleet API credential accessors. All live in the Keychain and are set
+# via "Settings -> Set up Tesla Fleet API credentials" (setup_fleet()).
+
+def get_fleet_client_id():
+    return kr_get("fleet_client_id")
+
+
+def get_fleet_client_secret():
+    return kr_get("fleet_client_secret")
+
+
+def get_fleet_audience():
+    """Regional Fleet API host used as the OAuth `audience` (e.g. EU host)."""
+    return kr_get("fleet_audience") or FLEET_REGIONS.get(
+        kr_get("fleet_region", "eu"), FLEET_REGIONS["eu"])
+
+
+def get_fleet_redirect_uri():
+    return kr_get("fleet_redirect_uri", FLEET_DEFAULT_REDIRECT_URI)
+
+
+def get_fleet_base_url():
+    """Confirmed regional API base (from users/region), else the audience."""
+    return kr_get("fleet_base_url") or get_fleet_audience()
+
+
+def fleet_is_configured():
+    """True once the user has stored a client_id + secret + audience."""
+    return bool(get_fleet_client_id() and get_fleet_client_secret()
+                and get_fleet_audience())
+
+
 def get_override_option_codes():
     """Return ``{vehicle_id: "CODE1,CODE2,..."}`` from keyring as a dict.
 
@@ -269,6 +337,82 @@ def _load_option_codes():
 tesla_option_codes = _load_option_codes()
 
 
+# ------------------------------------------------------------------
+# Deriving compositor option codes from vehicle_config
+# ------------------------------------------------------------------
+#
+# Tesla's API has returned a null/empty ``option_codes`` field for years, so
+# the configurator-image URL (``...?options=<codes>``) historically had to be
+# filled in by hand via the per-vehicle override. The Fleet API still doesn't
+# populate ``option_codes``, but ``vehicle_data.vehicle_config`` *does* carry
+# the structured config (paint, wheels, model, ...). We map those structured
+# fields back to the handful of compositor codes that actually change the
+# rendered picture (paint + wheels), so the car image fills in from the API
+# without a manual override.
+#
+# This is best-effort: Tesla publishes no official config->code table and the
+# codes are model-specific. Unknown values are simply omitted (the compositor
+# then falls back to that model's default), and a manual override always wins.
+
+# vehicle_config.exterior_color (lower-cased) -> compositor PAINT code.
+_COMPOSITOR_PAINT = {
+    "black": "PBSB", "solidblack": "PBSB", "obsidianblack": "PMBL",
+    "obsidianblackmetallic": "PMBL",
+    "white": "PPSW", "pearl": "PPSW", "pearlwhite": "PPSW",
+    "pearlwhitemulticoat": "PPSW", "pearlwhitemultaicoat": "PPSW",
+    "midnightsilver": "PMNG", "midnightsilvermetallic": "PMNG",
+    "steelgrey": "PMNG", "midnightgray": "PMNG", "midnightgrey": "PMNG",
+    "deepblue": "PPSB", "deepbluemetallic": "PPSB", "metallicblue": "PPSB",
+    "blue": "PPSB",
+    "red": "PPMR", "redmulticoat": "PPMR",
+    "silver": "PMSS", "silvermetallic": "PMSS",
+    "titanium": "PMTG", "titaniummetallic": "PMTG",
+    "quicksilver": "PN01",
+    "stealthgrey": "PN00", "stealthgray": "PN00",
+    "ultrared": "PR01", "midnightcherryred": "PR00",
+    "glacierblue": "PPSB",
+}
+
+# vehicle_config.wheel_type (lower-cased) -> compositor WHEELS code. Best-effort
+# for the common factory wheels across S/3/X/Y; unknown wheels are omitted.
+_COMPOSITOR_WHEELS = {
+    # Model X (verified against the /v1 compositor: WX* codes render an
+    # empty wheel well; the 22" Turbine wheels are WTUT).
+    "turbine22dark": "WTUT", "turbine22": "WTUT", "turbine": "WTUT",
+    "arachnid21": "WTAS", "cyberstream22": "WTUT",
+    # Model S
+    "tempest20": "WS90", "tempestrefresh20": "WS90", "arachnid19": "WTSC",
+    "slipstream19": "WTBR", "slipstream19carbon": "WTBR",
+    # Model 3
+    "pinwheel18": "W38B", "stiletto19": "W39B", "stiletto20": "W40B",
+    "photonrefresh18": "W3PR", "nova20": "W40B",
+    # Model Y
+    "gemini19": "WY19B", "induction20": "WY20P", "apollo19": "WY19B",
+    "helix19": "WY19B", "uberturbine21": "WY21P",
+}
+
+
+def compositor_codes_from_config(vehicle_config):
+    """Derive a comma-separated compositor option string from vehicle_config.
+
+    Returns paint + wheel codes when we recognise them, else an empty string.
+    Manual overrides and any real Tesla-supplied codes take precedence over
+    this (see ``TeslaVehicle.option_codes``).
+    """
+    if not isinstance(vehicle_config, dict):
+        return ""
+    codes = []
+    color = str(vehicle_config.get("exterior_color", "")).strip().lower()
+    paint = _COMPOSITOR_PAINT.get(color)
+    if paint:
+        codes.append(paint)
+    wheel = str(vehicle_config.get("wheel_type", "")).strip().lower()
+    wheel_code = _COMPOSITOR_WHEELS.get(wheel)
+    if wheel_code:
+        codes.append(wheel_code)
+    return ",".join(codes)
+
+
 # Nice ANSI colors
 CEND    = '\33[0m'
 CRED    = '\33[31m'
@@ -288,44 +432,33 @@ class TeslaAuthenticator(object):
     """PKCE OAuth2 client for Tesla's owner API, with an embedded sign-in window.
 
     Tesla's owner-API SSO accepts only one ``redirect_uri`` for the
-    public ``ownerapi`` client: ``tesla://auth/callback`` (a custom URL
-    scheme that the Tesla iOS app normally claims). Driving this from a
-    regular desktop browser is awkward because the OS will try to hand
-    the ``tesla://`` URL to the iOS app the moment the browser navigates
-    to it.
+    own Fleet API application: the user registers an app on
+    developer.tesla.com, hosts a public key on their partner domain, and
+    configures a ``redirect_uri`` (e.g. ``https://<domain>/success``). The
+    sign-in page itself still lives on ``auth.tesla.com``.
 
-    The fix is to pop a captive sign-in window using ``WKWebView`` (via
-    PyObjC) and intercept the navigation to ``tesla://auth/callback?...``
-    inside the webview itself, before the OS protocol handler runs. This
-    is exactly what the Tesla iOS app does and what ``tesla_auth`` does
-    on desktop. Captcha / MFA / passkey prompts all work because we're
-    using a real ``WKWebView``.
+    We pop a captive sign-in window using ``WKWebView`` (via PyObjC) and
+    intercept the navigation to the configured ``redirect_uri?code=...``
+    inside the webview itself. Captcha / MFA / passkey prompts all work
+    because we're using a real ``WKWebView``.
 
     The flow:
 
     1. Generate a PKCE verifier/challenge pair and the OAuth ``authorize``
-       URL.
+       URL (with the Fleet scopes and the user's ``client_id``).
     2. Open that URL in an embedded ``WKWebView`` window.
-    3. When the webview tries to navigate to ``tesla://auth/callback?code=...``,
+    3. When the webview tries to navigate to ``<redirect_uri>?code=...``,
        intercept the request, capture ``code`` + ``state``, close the
        window.
-    4. Exchange the code for tokens at ``/oauth2/v3/token`` using the
-       PKCE verifier.
-    5. Store ``access_token`` + ``refresh_token`` in the macOS Keychain.
+    4. Exchange the code for tokens at the Fleet token endpoint using the
+       PKCE verifier, the ``client_secret`` and the regional ``audience``.
+    5. Store ``access_token`` + ``refresh_token`` in the macOS Keychain and
+       confirm the regional API base via ``GET /api/1/users/region``.
 
     If PyObjC's WebKit bindings aren't available we fall back to a manual
-    flow that opens the browser and asks the user to copy the
-    ``tesla://...`` URL out of the address bar.
+    flow that opens the browser and asks the user to copy the redirect
+    URL out of the address bar.
     """
-
-    AUTH_URL     = "https://auth.tesla.com/oauth2/v3/authorize"
-    TOKEN_URL    = "https://auth.tesla.com/oauth2/v3/token"
-    # NB: as of April 2026 this is the *only* redirect_uri registered
-    # for client_id=ownerapi. The legacy https://auth.tesla.com/void/callback
-    # now returns "redirect_uri not registered". See
-    # https://github.com/teslamate-org/teslamate/issues/5296 and the fix
-    # in https://github.com/GewoonJaap/tesla_auth.
-    REDIRECT_URI = "tesla://auth/callback"
 
     # Window size for the embedded sign-in webview. Big enough that the
     # Tesla SSO + captcha widgets don't overflow on a Retina display.
@@ -339,10 +472,14 @@ class TeslaAuthenticator(object):
         "User-Agent": "mytesla-xbar/1.0",
     }
 
-    credentials = {}
-
     def __init__(self):
-        return None
+        # Per-user Fleet API app configuration, read from the Keychain.
+        self.AUTH_URL      = FLEET_AUTHORIZE_URL
+        self.client_id     = get_fleet_client_id()
+        self.client_secret = get_fleet_client_secret()
+        self.audience      = get_fleet_audience()
+        self.REDIRECT_URI  = get_fleet_redirect_uri()
+        self.credentials   = {}
 
     # -- prompts -----------------------------------------------------------
 
@@ -483,23 +620,30 @@ class TeslaAuthenticator(object):
     # -- main login flow ---------------------------------------------------
 
     def perform_login(self):
-        """Run the PKCE flow in an embedded WebView and persist new credentials."""
+        """Run the Fleet PKCE flow in an embedded WebView and persist tokens."""
+        if not (self.client_id and self.client_secret and self.audience):
+            print(CRED + "Tesla Fleet API is not configured yet." + CEND)
+            print("")
+            print("Pick Settings -> Set up Tesla Fleet API credentials first,")
+            print("then run sign-in again.")
+            return
+
         verifier, challenge = self._pkce_pair()
         state = random_string(12)
 
         params = {
-            "client_id"             : "ownerapi",
+            "client_id"             : self.client_id,
             "code_challenge"        : challenge,
             "code_challenge_method" : "S256",
             "redirect_uri"          : self.REDIRECT_URI,
             "response_type"         : "code",
-            "scope"                 : "openid email offline_access",
+            "scope"                 : FLEET_SCOPES,
             "state"                 : state,
         }
         auth_url = self.AUTH_URL + "?" + urllib.parse.urlencode(params)
 
         # Preferred path: pop a captive WKWebView, intercept the
-        # tesla://auth/callback navigation in-process. Zero copy/paste.
+        # redirect_uri navigation in-process. Zero copy/paste.
         print("")
         print("Opening Tesla sign-in window...")
         print("Sign in normally — captcha, MFA and passkey prompts all work.")
@@ -509,7 +653,7 @@ class TeslaAuthenticator(object):
 
         # Fallback: PyObjC isn't installed, or the user closed the window
         # before signing in. Open the URL in their browser and ask them to
-        # copy the tesla:// URL out of the address bar.
+        # copy the redirect URL out of the address bar.
         if not redirect_url:
             print("")
             print(CRED + "Embedded sign-in window unavailable." + CEND)
@@ -518,10 +662,9 @@ class TeslaAuthenticator(object):
             print("")
             print("  1. Tesla's sign-in page will open in your default browser.")
             print("  2. Sign in normally.")
-            print("  3. Tesla will redirect to a 'tesla://auth/callback?code=...'")
-            print("     URL. Your browser will say it can't open the link —")
-            print("     that's fine. Copy the full URL from the address bar")
-            print("     (it begins with " + self.REDIRECT_URI + ").")
+            print("  3. Tesla will redirect to your '" + self.REDIRECT_URI + "?code=...'")
+            print("     URL (it may show a blank page — that's fine). Copy the")
+            print("     full URL from the address bar.")
             print("  4. Paste that URL back here.")
             print("")
             print("Tip: install PyObjC's WebKit bindings to skip this dance:")
@@ -566,17 +709,20 @@ class TeslaAuthenticator(object):
                          "Aborting." + CEND)
             return
 
-        # Exchange the authorization code for tokens.
+        # Exchange the authorization code for tokens. The Fleet token
+        # endpoint expects form-encoded params and a confidential client
+        # (client_secret), plus the mandatory regional `audience`.
         payload = {
             "grant_type"    : "authorization_code",
-            "client_id"     : "ownerapi",
+            "client_id"     : self.client_id,
+            "client_secret" : self.client_secret,
             "code"          : code,
             "code_verifier" : verifier,
             "redirect_uri"  : self.REDIRECT_URI,
+            "audience"      : self.audience,
         }
         try:
-            response = requests.post(self.TOKEN_URL, json=payload,
-                                     headers=self.headers, timeout=15)
+            response = self._post_token(payload)
         except requests.RequestException as exc:
             print(CRED + f"Token exchange failed: {exc}" + CEND)
             return
@@ -606,11 +752,59 @@ class TeslaAuthenticator(object):
             return
 
         self.save_credentials()
+        # Confirm the exact regional API base for this account.
+        self.detect_region()
         print("")
         print(CGREEN + "Login successful — tokens stored in macOS Keychain."
               + CEND)
         print("You can close this Terminal window. The MyTesla menu bar will")
         print("refresh on its own.")
+
+    # -- Fleet token helpers ----------------------------------------------
+
+    def _post_token(self, payload):
+        """POST form-encoded token request to the Fleet host, then fallback.
+
+        Returns the ``requests.Response``. Raises ``requests.RequestException``
+        only if every endpoint is unreachable.
+        """
+        last_exc = None
+        for url in (FLEET_TOKEN_URL, FLEET_TOKEN_URL_FALLBACK):
+            try:
+                return requests.post(url, data=payload,
+                                     headers=self.headers, timeout=15)
+            except requests.RequestException as exc:
+                last_exc = exc
+                continue
+        raise last_exc
+
+    def detect_region(self):
+        """Resolve and cache this account's regional Fleet API base URL.
+
+        Tesla exposes ``GET /api/1/users/region`` which returns the canonical
+        ``fleet_api_base_url`` for the signed-in user. We cache it under
+        ``fleet_base_url`` so every API call hits the right shard regardless
+        of which regional ``audience`` was used at token-exchange time.
+        """
+        token = (self.credentials or {}).get("access_token") or kr_get("access_token")
+        if not token or not self.audience:
+            return
+        try:
+            r = requests.get(
+                self.audience.rstrip("/") + "/api/1/users/region",
+                headers={
+                    "Accept": "application/json",
+                    "User-Agent": "mytesla-xbar/1.0",
+                    "Authorization": "Bearer " + token,
+                },
+                timeout=15,
+            )
+            data = r.json()
+        except (requests.RequestException, ValueError):
+            return
+        base = (data.get("response") or {}).get("fleet_api_base_url")
+        if base:
+            kr_set("fleet_base_url", base)
 
     # -- token persistence -------------------------------------------------
 
@@ -638,17 +832,16 @@ class TeslaAuthenticator(object):
 
     def refresh_credentials(self):
         refresh_token = (self.credentials or {}).get("refresh_token")
-        if not refresh_token:
+        if not refresh_token or not (self.client_id and self.client_secret):
             return
         payload = {
             "grant_type"    : "refresh_token",
-            "client_id"     : "ownerapi",
+            "client_id"     : self.client_id,
+            "client_secret" : self.client_secret,
             "refresh_token" : refresh_token,
-            "scope"         : "openid email offline_access",
         }
         try:
-            response = requests.post(self.TOKEN_URL, json=payload,
-                                     headers=self.headers, timeout=15)
+            response = self._post_token(payload)
             data = response.json()
         except (requests.RequestException, ValueError):
             return
@@ -663,7 +856,7 @@ class TeslaAuthenticator(object):
 
 
 class TeslaConnection(object):
-    """Thin wrapper around the Tesla owner API with timeouts + retries.
+    """Thin wrapper around the Tesla Fleet API with timeouts + retries.
 
     Every menu refresh used to be one slow synchronous request. Worse, none
     of them had timeouts — so a stalled Tesla edge could pin the entire
@@ -672,12 +865,19 @@ class TeslaConnection(object):
         * a per-request timeout (so we never block the menu indefinitely),
         * a retry adapter for transient 5xx / 502 / 504 / 429 responses,
         * a single shared ``requests.Session`` for connection pooling.
+
+    The base URL is the account's regional Fleet API host (resolved at
+    sign-in via ``users/region`` and cached as ``fleet_base_url``). The
+    status code of the most recent request is kept in ``last_status`` so the
+    menu can tell a genuine "no vehicles" apart from a 401/403 rejection.
     """
 
-    BASE_URL = "https://owner-api.teslamotors.com/api/1/"
     REQUEST_TIMEOUT_S = 12
 
-    def __init__(self, access_token):
+    def __init__(self, access_token, base_url=None):
+        host = base_url or get_fleet_base_url()
+        self.base_url = (host.rstrip("/") + "/api/1/") if host else None
+        self.last_status = None
         self.headers = {
             "Accept": "application/json",
             # Tesla's WAF blocks anything that looks too "browser-y", but it
@@ -717,17 +917,29 @@ class TeslaConnection(object):
         return s
 
     def vehicles(self):
-        return [TeslaVehicle(v, self) for v in
-                self.get('products?orders=true')['response']]
+        # Fleet API: /api/1/products returns vehicles (and energy products).
+        # Guard against a null/absent response so a 401/403 never crashes the
+        # menu by iterating over None (the old Owner-API failure mode).
+        data = self.get('products?orders=true').get('response')
+        if not isinstance(data, list):
+            return []
+        return [TeslaVehicle(v, self) for v in data if isinstance(v, dict)]
 
     def appointments(self):
-        return self.get('users/service_scheduling_data')['response']
+        try:
+            return self.get('users/service_scheduling_data').get('response')
+        except Exception:
+            return None
 
     def get(self, command):
+        self.last_status = None
+        if not self.base_url:
+            return {"response": None}
         try:
-            r = self.session.get(self.BASE_URL + command,
+            r = self.session.get(self.base_url + command,
                                  headers=self.headers,
                                  timeout=self.REQUEST_TIMEOUT_S)
+            self.last_status = r.status_code
         except requests.RequestException:
             return {"response": None}
         try:
@@ -735,12 +947,25 @@ class TeslaConnection(object):
         except ValueError:
             return {"response": None}
 
-    def post(self, command, data=None):
+    def post(self, command, data=None, json_body=None):
+        self.last_status = None
+        if not self.base_url:
+            return {"response": None}
         try:
-            r = self.session.post(self.BASE_URL + command,
-                                  data=data or {},
-                                  headers=self.headers,
-                                  timeout=self.REQUEST_TIMEOUT_S)
+            if json_body is not None:
+                # Fleet API command endpoints expect an application/json
+                # body; using `json=` makes requests serialize it and set
+                # the Content-Type header for us.
+                r = self.session.post(self.base_url + command,
+                                      json=json_body,
+                                      headers=self.headers,
+                                      timeout=self.REQUEST_TIMEOUT_S)
+            else:
+                r = self.session.post(self.base_url + command,
+                                      data=data or {},
+                                      headers=self.headers,
+                                      timeout=self.REQUEST_TIMEOUT_S)
+            self.last_status = r.status_code
         except requests.RequestException:
             return {"response": None}
         try:
@@ -836,19 +1061,22 @@ class TeslaVehicle(dict):
 
     def model_short(self,model):
         """Return the short name for the vehicle model"""
-        switcher = { 'modelx':'mx', 'models':'ms', 'model3':'m3'} 
+        switcher = { 'modelx':'mx', 'models':'ms', 'model3':'m3', 'modely':'my'}
         return switcher.get(model,model)
 
     def option_codes(self):
         """Return the comma-separated option-code string for this vehicle.
 
-        Tesla's owner-API still returns generic placeholder codes since 2019,
-        so users can store a per-vehicle override in the macOS Keychain via
-        ``Settings -> Override option codes``. Lookup order:
+        Tesla's API still returns a null/placeholder ``option_codes`` field, so
+        we fall back to deriving the codes that matter for the configurator
+        image from ``vehicle_config``. Lookup order:
 
-            1. Keyring override keyed by ``vehicle_id`` (preferred).
-            2. Whatever Tesla returned in the vehicle dict.
-            3. Empty string.
+            1. Keyring override keyed by ``vehicle_id`` (preferred — lets the
+               user correct anything we get wrong).
+            2. Whatever Tesla returned in the vehicle dict (still usually null).
+            3. Codes derived from ``vehicle_config`` (paint + wheels), if the
+               config has been stashed on this vehicle via ``_config``.
+            4. Empty string.
 
         NB: this class subclasses ``dict`` *and* defines ``get()`` as an HTTP
         method, so we use ``dict.get(self, ...)`` to read the raw fields
@@ -861,6 +1089,9 @@ class TeslaVehicle(dict):
         codes = dict.get(self, 'option_codes')
         if isinstance(codes, str) and codes:
             return codes
+        derived = compositor_codes_from_config(getattr(self, '_config', None))
+        if derived:
+            return derived
         return ""
 
     def recent_alerts(self):
@@ -875,22 +1106,49 @@ class TeslaVehicle(dict):
         """Return release notes"""
         return self.connection.get('vehicles/%i/release_notes' % self['id'])['response']
     
-    def command(self, name, data={}):
-        """Run the command for the vehicle"""
-        return self.post('command/%s' % name, data)
+    def command(self, name, data=None):
+        """Run a Fleet API command for the vehicle.
+
+        Fleet API command endpoints live at
+        ``/api/1/vehicles/{tag}/command/{name}`` and expect a JSON body
+        (the legacy Owner API tolerated form-encoded params; Fleet does
+        not). ``data`` may be a dict, a JSON string (how the menu wires
+        most commands), or ``None``/empty for body-less commands.
+
+        Signing is only required for vehicles that report
+        ``vehicle_command_protocol_required=true``. Pre-2021 Intel-based
+        Model S/X accept these unsigned, so we POST directly.
+        """
+        if isinstance(data, dict):
+            body = data
+        elif isinstance(data, str) and data.strip():
+            try:
+                body = json.loads(data)
+            except (ValueError, TypeError):
+                body = {}
+        else:
+            body = {}
+        return self.post('command/%s' % name, json_body=body)
 
     def get(self, command):
         """Utility command to get data from API"""
         return self.connection.get('vehicles/%i/%s' % (self['id'], command))
 
-    def post(self, command, data={}):
+    def post(self, command, data=None, json_body=None):
         """Utility command to post data to API"""
-        return self.connection.post('vehicles/%i/%s' % (self['id'], command), data)
+        return self.connection.post('vehicles/%i/%s' % (self['id'], command),
+                                    data=data, json_body=json_body)
 
  
     def compose_url(self, model, size=2048, view=_CAR_DEFAULT_PICTURE_, background='1'):
-        """Returns composed image url representing the car"""
-        return 'https://static-assets.tesla.com/configurator/compositor?model='+self.model_short(model)+'&view='+view+'&size='+str(size)+'&options='+self.option_codes()+'&bkba_opt='+str(background)
+        """Returns composed image url representing the car.
+
+        Uses Tesla's current ``/v1/compositor/`` endpoint (the older
+        ``/configurator/compositor`` host still answers but renders empty
+        wheel wells for several option codes). Option codes come from
+        ``option_codes()`` (user override > derived-from-config).
+        """
+        return 'https://static-assets.tesla.com/v1/compositor/?model='+self.model_short(model)+'&view='+view+'&size='+str(size)+'&options='+self.option_codes()+'&bkba_opt='+str(background)
 
     def compose_image(self, model, size=512, view=_CAR_DEFAULT_PICTURE_, background='1'):
         """Return the composed image (base64-encoded PNG) representing the car.
@@ -900,9 +1158,14 @@ class TeslaVehicle(dict):
         edge. Returns ``None`` if Tesla served us anything other than a
         real PNG (auth issues, throttling, malformed options, ...).
         """
+        # Include a short hash of the option codes in the cache key so that a
+        # change in derived/overridden codes (e.g. once vehicle_config is
+        # known) produces a fresh image instead of serving a stale render.
+        opt_hash = sha256((self.option_codes() or '').encode('utf-8')).hexdigest()[:8]
         cache_path = (state_dir + '/mytesla-composed-'
                       + str(self['vehicle_id']) + '-' + str(size) + '-'
-                      + str(view) + '-' + str(background) + '.png')
+                      + str(view) + '-' + str(background) + '-'
+                      + opt_hash + '.png')
         try:
             with open(cache_path, 'rb') as f:
                 composed_img = f.read()
@@ -912,13 +1175,14 @@ class TeslaVehicle(dict):
         except (OSError, IOError):
             pass
 
+        # Tesla's Akamai WAF now rejects requests whose User-Agent claims to
+        # be a browser: the TLS fingerprint doesn't match a real browser, so
+        # it's flagged as a bot and served a 403 "Access Denied" HTML page.
+        # A neutral, non-browser User-Agent passes cleanly.
         my_headers = {
-            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept': 'image/png,image/*,*/*',
             'Accept-Encoding': 'gzip, deflate',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Upgrade-Insecure-Requests': '1',
-            'DNT': '1',
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3.1 Safari/605.1.15',
+            'User-Agent': 'mytesla-xbar/1.0',
         }
         composed_url = self.compose_url(model, size, view, background)
         try:
@@ -926,15 +1190,19 @@ class TeslaVehicle(dict):
                                         timeout=8)
         except requests.RequestException:
             return None
-        if len(composed_img.content) > 309:
-            try:
-                with open(cache_path, 'wb') as f:
-                    f.write(composed_img.content)
-            except (OSError, IOError):
-                pass
-        if composed_img.content.startswith(b'\x89PNG\r\n\x1a\n'):
-            return base64.b64encode(composed_img.content).decode('utf-8')
-        return None
+        content = composed_img.content
+        # Only ever cache a *real* PNG. The old code cached anything over 309
+        # bytes, which meant a 413-byte "Access Denied" page got written to
+        # disk and then served forever (poisoning the cache so the image never
+        # recovered even once the request shape was fixed).
+        if not content.startswith(b'\x89PNG\r\n\x1a\n'):
+            return None
+        try:
+            with open(cache_path, 'wb') as f:
+                f.write(content)
+        except (OSError, IOError):
+            pass
+        return base64.b64encode(content).decode('utf-8')
 
 
 # Python 2/3 compat shim. The original code did `vars(__builtins__).get(...)`
@@ -1665,10 +1933,17 @@ def refresh():
 
 
 def signout():
-    """Wipe Tesla tokens (but not Google API keys) from the Keychain."""
+    """Wipe Tesla session tokens from the Keychain.
+
+    Clears the access/refresh tokens and the cached regional base URL so the
+    next sign-in starts clean. The Fleet API *app* credentials (client_id /
+    client_secret / region) are intentionally kept so the user can sign back
+    in without re-entering them; use the Fleet API setup to change those.
+    """
     print("Signing out — removing Tesla tokens from the macOS Keychain.")
     kr_delete("access_token")
     kr_delete("refresh_token")
+    kr_delete("fleet_base_url")
     print(CGREEN + "Done. Click 'Login to tesla.com' to sign back in." + CEND)
     time.sleep(0.5)
 
@@ -1706,6 +1981,85 @@ def setup_keys():
     if geocode_key:
         kr_set("google_geocode_key", geocode_key)
     print(CGREEN + "\nDone. You can close this window." + CEND)
+    time.sleep(0.5)
+
+
+def setup_fleet():
+    """Configure the Tesla Fleet API application credentials in the Keychain.
+
+    Tesla retired the legacy Owner API in 2026. To use mytesla you now need
+    your own Fleet API application from https://developer.tesla.com. This
+    wizard stores the client_id, client_secret, region and redirect URI in
+    the macOS Keychain; sign-in then uses them.
+    """
+    print("Set up Tesla Fleet API credentials (stored in macOS Keychain).")
+    print("")
+    print("The Tesla Owner API was retired in 2026. mytesla now uses Tesla's")
+    print("official Fleet API, which needs your own developer application:")
+    print("")
+    print("  1. Go to https://developer.tesla.com and create an application")
+    print("     (the app name must NOT contain the word 'Tesla').")
+    print("  2. Grant the scopes 'vehicle_device_data' and 'vehicle_location'.")
+    print("  3. Set the Allowed Redirect URI to the value below (must match")
+    print("     character-for-character).")
+    print("  4. Host your public key and register your partner domain per")
+    print("     Tesla's docs.")
+    print("")
+
+    # client_id (not secret — show a preview of the current value).
+    current_id = kr_get("fleet_client_id", "") or ""
+    id_suffix = (f" (current ends in ...{current_id[-6:]})"
+                 if current_id else " (none set)")
+    print(f"Fleet API client_id{id_suffix}")
+    print("Enter a new value, or press Return to keep the current one:")
+    new_id = str_input().strip()
+    if new_id:
+        kr_set("fleet_client_id", new_id)
+
+    # client_secret (hidden input).
+    current_secret = kr_get("fleet_client_secret", "") or ""
+    secret_suffix = (f" (current ends in ...{current_secret[-4:]})"
+                     if current_secret else " (none set)")
+    print("")
+    print(f"Fleet API client_secret{secret_suffix}")
+    print("Enter a new value (hidden), or press Return to keep the current one:")
+    new_secret = getpass.getpass("> ").strip()
+    if new_secret:
+        kr_set("fleet_client_secret", new_secret)
+
+    # Region -> audience.
+    current_region = kr_get("fleet_region", "eu")
+    print("")
+    print(f"Region [eu/na/cn] (current: {current_region}):")
+    print("  eu = Europe, Middle East, Africa")
+    print("  na = North America, Asia-Pacific (excluding China)")
+    print("  cn = China")
+    print("Enter a region, or press Return to keep the current one:")
+    region = (str_input().strip().lower() or current_region)
+    if region not in FLEET_REGIONS:
+        print(CRED + f"Unknown region '{region}'. Keeping '{current_region}'."
+              + CEND)
+        region = current_region if current_region in FLEET_REGIONS else "eu"
+    kr_set("fleet_region", region)
+    kr_set("fleet_audience", FLEET_REGIONS[region])
+    # A new region invalidates any previously cached base URL.
+    kr_delete("fleet_base_url")
+
+    # Redirect URI.
+    current_redirect = get_fleet_redirect_uri()
+    print("")
+    print(f"Allowed Redirect URI (current: {current_redirect})")
+    print("Press Return to keep, or enter the exact URI from your app config:")
+    redirect = str_input().strip() or current_redirect
+    kr_set("fleet_redirect_uri", redirect)
+
+    print("")
+    if fleet_is_configured():
+        print(CGREEN + "Fleet API credentials saved." + CEND)
+        print("Now pick Settings -> Sign in again to log in.")
+    else:
+        print(CRED + "Fleet API is still incomplete — a client_id and "
+                     "client_secret are both required." + CEND)
     time.sleep(0.5)
 
 
@@ -1862,6 +2216,48 @@ def update_option_codes():
 
 
 # --------------------------
+# Command result reporting
+# --------------------------
+
+def report_command_result(result, status=None):
+    """Print a friendly outcome for a Fleet API command.
+
+    Fleet API command endpoints reply with
+    ``{"response": {"result": true, "reason": ""}}`` on success, or a
+    ``reason`` string explaining a rejection. Some failures surface only
+    as an HTTP status (e.g. 401 expired token, 403 missing scope /
+    signing required, 408 vehicle asleep/offline), so we fold ``status``
+    in too. This runs in a terminal (alternate-click menu items), so the
+    user actually sees it.
+    """
+    resp = (result or {}).get('response') if isinstance(result, dict) else None
+
+    if isinstance(resp, dict) and resp.get('result') is True:
+        print('Done.')
+        return
+
+    reason = ''
+    if isinstance(resp, dict):
+        reason = (resp.get('reason') or '').strip()
+
+    # Distinguish the common HTTP-level failures so the fix is obvious.
+    if status == 401:
+        print('Command rejected: session expired. Sign in again from the menu.')
+    elif status == 403:
+        print('Command rejected (403). Your token may lack the vehicle '
+              'command scopes. Sign out and sign back in to grant them.')
+    elif status == 408:
+        print('Vehicle is asleep or offline. Wake it first, then retry.')
+    elif reason:
+        print('Command not completed: %s' % reason)
+    elif status and status >= 400:
+        print('Command failed (HTTP %s).' % status)
+    else:
+        print('Command sent.')
+    time.sleep(2)
+
+
+# --------------------------
 # The main function
 # --------------------------
 
@@ -1875,6 +2271,8 @@ def main(argv):
         refresh(); return
     if 'keys' in argv:
         setup_keys(); return
+    if 'fleet' in argv:
+        setup_fleet(); return
     if 'overrides' in argv:
         setup_overrides(); return
     if 'settings' in argv:
@@ -1893,8 +2291,20 @@ def main(argv):
         info_color = '#616161'
 
 
+    # CASE 2a: Fleet API not configured yet (no client_id / secret). The
+    # Owner API is gone, so there's nothing to log in to until the user sets
+    # up their own developer app.
+    if not fleet_is_configured():
+        app_print_logo()
+        print ('Set up Tesla Fleet API | refresh=true terminal=true shell="%s" param1="%s" color=%s' % (cmd_path, 'fleet', color))
+        print('---')
+        print('The Tesla Owner API was retired. | color=%s' % info_color)
+        print('Configure your developer.tesla.com app to sign in. | color=%s' % info_color)
+        return
+
     ACCESS_TOKEN = kr_get("access_token")
 
+    # CASE 2b: configured, but not signed in yet.
     if not ACCESS_TOKEN:
        # restart in terminal calling init
        app_print_logo()
@@ -1917,16 +2327,40 @@ def main(argv):
     ACCESS_TOKEN = kr_get("access_token") or ACCESS_TOKEN
 
 
-    # CASE 3b: init was not called, keyring initialized, access code available and refreshed
+    # CASE 3b: signed in — fetch vehicles. Unlike the old code, we don't
+    # treat every failure as "please log in again" (that produced an endless
+    # loop once Tesla retired the Owner API: the token was valid, the data
+    # call 403'd, we told the user to re-login, repeat). Instead we inspect
+    # the HTTP status the connection saw and show an honest message.
+    c = None
+    vehicles = None
+    appointments = None
     try:
-        # create connection to tesla account
         c = TeslaConnection(access_token = ACCESS_TOKEN)
         vehicles = c.vehicles()
         appointments = c.appointments()
     except Exception:
-       app_print_logo()
-       print ('Login to tesla.com | refresh=true terminal=true shell="%s" param1="%s" color=%s' % (cmd_path, 'init', color))
-       return
+        vehicles = None
+
+    if not vehicles:
+        status = getattr(c, 'last_status', None) if c else None
+        app_print_logo()
+        if status == 401:
+            # Token genuinely rejected — re-auth is the right call.
+            print ('Login to tesla.com | refresh=true terminal=true shell="%s" param1="%s" color=%s' % (cmd_path, 'init', color))
+        elif status == 403:
+            print ('Tesla API access denied (403) | color=%s' % color)
+            print('---')
+            print('Your token is valid but the Fleet API rejected the call. | color=%s' % info_color)
+            print('Check your app scopes and partner registration. | color=%s' % info_color)
+            print('Re-authorize | refresh=true terminal=true shell="%s" param1="%s" color=%s' % (cmd_path, 'init', color))
+            print('Set up Tesla Fleet API | refresh=true terminal=true shell="%s" param1="%s" color=%s' % (cmd_path, 'fleet', color))
+        elif status is None:
+            print ('Could not reach Tesla API | refresh=true terminal=false shell="%s" param1="%s" color=%s' % (cmd_path, 'true', color))
+        else:
+            print ('No vehicles found (HTTP %s) | color=%s' % (status, color))
+            print('Sign in again | refresh=true terminal=true shell="%s" param1="%s" color=%s' % (cmd_path, 'init', color))
+        return
 
 
     # CASE 4: all ok, specific command for a specific vehicle received.
@@ -1952,11 +2386,14 @@ def main(argv):
                 # argv is of the form: CMD + vehicleid + command 
                 v.command(sys.argv[2])
             elif sys.argv[2] == 'remote_start_drive':
-                # ask for password
-                print ('Enter your tesla.com password:')
-                password = getpass.getpass()
-                v.command(sys.argv[2],password)
-                password = ''
+                # Fleet API: remote_start_drive no longer takes a password.
+                # The legacy password-based keyless start was removed; the
+                # command now just enables keyless driving for a short window
+                # (and requires "Allow Mobile Access" / keyless driving on the
+                # car). Send it with an empty body and report the outcome.
+                print ('Enabling keyless driving...')
+                report_command_result(v.command(sys.argv[2]),
+                                       status=getattr(c, 'last_status', None))
             elif sys.argv[2] == 'navigation_request':
                 # ask for address
                 print ('Enter the address to set your navigation to:')
@@ -1971,9 +2408,10 @@ def main(argv):
                 print ('Setting navigation to: %s' % address)
                 v.command('share',json_data)
             else:
-                # argv is of the form: CMD + vehicleid + command + key:value pairs 
+                # argv is of the form: CMD + vehicleid + command + key:value pairs
                 json_cmd = json.dumps(dict(map(lambda x: x.split(':'),sys.argv[3:])))
-                print(v.command(sys.argv[2],json_cmd))
+                report_command_result(v.command(sys.argv[2],json_cmd),
+                                       status=getattr(c, 'last_status', None))
         return
 
 
@@ -2035,6 +2473,14 @@ def main(argv):
         drive_state     = vehicle_info['drive_state']
         vehicle_state   = vehicle_info['vehicle_state']
         vehicle_config  = vehicle_info['vehicle_config']
+
+        # Stash the structured config on the vehicle so option_codes() can
+        # derive the configurator-image codes from it (paint/wheels) when
+        # Tesla returns no real option_codes and the user has no override.
+        try:
+            vehicle._config = vehicle_config
+        except Exception:
+            pass
 
 
         recent_alerts = vehicle.recent_alerts()['recent_alerts']
@@ -3270,6 +3716,8 @@ def main(argv):
     # --------------------------------------------------
     print('---')
     print('Settings | color=%s' % color)
+    print('--Set up Tesla Fleet API credentials | refresh=true terminal=true shell="%s" param1="fleet" color=%s'
+          % (cmd_path, color))
     print('--Update Google API keys | refresh=true terminal=true shell="%s" param1="keys" color=%s'
           % (cmd_path, color))
     print('--Override option codes | refresh=true terminal=true shell="%s" param1="overrides" color=%s'
