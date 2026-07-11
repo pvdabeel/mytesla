@@ -337,6 +337,11 @@ def _load_option_codes():
 tesla_option_codes = _load_option_codes()
 
 
+def _option_code_description(code):
+    """Look up a human-readable option-code title, tolerating Tesla's ``$`` prefix."""
+    return tesla_option_codes.get(code.lstrip('$'), 'Unknown')
+
+
 # ------------------------------------------------------------------
 # Deriving compositor option codes from vehicle_config
 # ------------------------------------------------------------------
@@ -1725,10 +1730,10 @@ def offline_since(time=False):
     if day_diff < 7:
         return "Offline since "+str(day_diff) + " days"
     if day_diff < 31:
-        return "Offline since "+str(day_diff / 7) + " weeks"
+        return "Offline since "+str(int(day_diff / 7)) + " weeks"
     if day_diff < 365:
-        return "Offline since "+str(day_diff / 30) + " months"
-    return "Offline since "+str(day_diff / 365) + " year"
+        return "Offline since "+str(int(day_diff / 30)) + " months"
+    return "Offline since "+str(int(day_diff / 365)) + " year"
 
 
 # Pretty print charge time left in hours & minutes
@@ -2975,7 +2980,7 @@ def main(argv):
         ds_power   = drive_state.get('power')
 
         _drive_labels = ('Gear:', 'Heading:', 'Power:', 'Location:', 'Lat:', 'Lon:')
-        _drive_tabs = column_tabs(list(_drive_labels))
+        _drive_padded = dict(zip(_drive_labels, pad_column_pt(list(_drive_labels))))
 
         if ds_speed is not None:
             print ('%sVehicle speed:\t\t\t\t%s %s/h| color=%s'
@@ -2988,8 +2993,8 @@ def main(argv):
 
         try:
             if ds_shift in ('R', 'N', 'D') or bool(ds_speed):
-                print ('%s--Gear:%s %s| color=%s'
-                       % (prefix, _drive_tabs['Gear:'],
+                print ('%s--%s%s | color=%s'
+                       % (prefix, _drive_padded['Gear:'],
                           shift_state_label(ds_shift), info_color))
         except Exception:
             pass
@@ -2998,8 +3003,8 @@ def main(argv):
             if ds_heading is not None:
                 cardinal = heading_compass(ds_heading)
                 heading_label = ('%d°' % int(ds_heading)) + (' ' + cardinal if cardinal else '')
-                print ('%s--Heading:%s %s| color=%s'
-                       % (prefix, _drive_tabs['Heading:'],
+                print ('%s--%s%s | color=%s'
+                       % (prefix, _drive_padded['Heading:'],
                           heading_label, info_color))
         except Exception:
             pass
@@ -3010,8 +3015,8 @@ def main(argv):
                 power_label = '%d kW' % int(ds_power)
                 if int(ds_power) < 0:
                     power_label += ' (regen)'
-                print ('%s--Power:%s %s| color=%s'
-                       % (prefix, _drive_tabs['Power:'],
+                print ('%s--%s%s | color=%s'
+                       % (prefix, _drive_padded['Power:'],
                           power_label, power_color))
         except Exception:
             pass
@@ -3022,16 +3027,14 @@ def main(argv):
 
         car_location_address = retrieve_geo_loc(drive_state['latitude'],drive_state['longitude'])
 
-        print ('%s-----' % prefix)
-        print ('%s--Location:%s %s| color=%s'
-               % (prefix, _drive_tabs['Location:'],
-                  car_location_address, color))
-        print ('%s-----' % prefix)
-        print ('%s--Lat:%s %s| color=%s'
-               % (prefix, _drive_tabs['Lat:'],
+        print ('%s--%s%s | color=%s'
+               % (prefix, _drive_padded['Location:'],
+                  car_location_address, info_color))
+        print ('%s--%s%s | color=%s'
+               % (prefix, _drive_padded['Lat:'],
                   drive_state['latitude'], info_color))
-        print ('%s--Lon:%s %s| color=%s'
-               % (prefix, _drive_tabs['Lon:'],
+        print ('%s--%s%s | color=%s'
+               % (prefix, _drive_padded['Lon:'],
                   drive_state['longitude'], info_color))
     
         try: 
@@ -3399,9 +3402,15 @@ def main(argv):
             print ('%s--Options (%d) | color=%s' % (prefix, len(codes), color))
             print ('%s----Note: Tesla API may return incorrect codes | color=%s' % (prefix, color))
             print ('%s-------' % prefix)
+            opt_prefix = prefix + '----'
+            opt_labels = [option + ':' for option in codes]
+            opt_padded = dict(zip(opt_labels, pad_column_pt(opt_labels)))
             for option in codes:
-                option_description = tesla_option_codes.get(option, 'Unknown')
-                print ('%s----%s:\t\t%s | color=%s' % (prefix, option, option_description, info_color))
+                label = option + ':'
+                option_description = _option_code_description(option)
+                print ('%s%s%s | color=%s'
+                       % (opt_prefix, opt_padded[label],
+                          option_description, info_color))
 
         print ('%s-----' % prefix)
         print ('%s--Images| color=%s' % (prefix , color))
