@@ -342,6 +342,11 @@ def _option_code_description(code):
     return tesla_option_codes.get(code.lstrip('$'), 'Unknown')
 
 
+def _option_code_label(code):
+    """Return the menu label for an option code (no ``$`` prefix)."""
+    return code.lstrip('$') + ':'
+
+
 # ------------------------------------------------------------------
 # Deriving compositor option codes from vehicle_config
 # ------------------------------------------------------------------
@@ -1570,6 +1575,26 @@ def pad_column_pt(values):
             padded += '\u2007'
         out.append(padded)
     return out
+
+
+def menu_label_fields(labels, stop_pt=28.0):
+    """Return label strings that align a value column in NSMenu.
+
+    Figure spaces alone cannot land every label on the same pixel width
+    (the step size is too coarse), and tabs alone drift when our width
+    estimates miss. Floor-pad each label to the widest raw width, then
+    tab from that position so every value starts on the same stop.
+    """
+    if not labels:
+        return {}
+    fig = _SF_UI_PT['\u2007']
+    max_w = max(_menu_pt(l) for l in labels)
+    padded = []
+    for l in labels:
+        n = int((max_w - _menu_pt(l)) / fig)
+        padded.append(l + '\u2007' * max(0, n))
+    tabs = value_column_tabs(padded, stop_pt=stop_pt)
+    return {l: p + t for l, p, t in zip(labels, padded, tabs)}
 
 
 def alert_ts_field(ts_str, field_len=16):
@@ -2980,7 +3005,7 @@ def main(argv):
         ds_power   = drive_state.get('power')
 
         _drive_labels = ('Gear:', 'Heading:', 'Power:', 'Location:', 'Lat:', 'Lon:')
-        _drive_padded = dict(zip(_drive_labels, pad_column_pt(list(_drive_labels))))
+        _drive_fields = menu_label_fields(list(_drive_labels))
 
         if ds_speed is not None:
             print ('%sVehicle speed:\t\t\t\t%s %s/h| color=%s'
@@ -2994,7 +3019,7 @@ def main(argv):
         try:
             if ds_shift in ('R', 'N', 'D') or bool(ds_speed):
                 print ('%s--%s%s | color=%s'
-                       % (prefix, _drive_padded['Gear:'],
+                       % (prefix, _drive_fields['Gear:'],
                           shift_state_label(ds_shift), info_color))
         except Exception:
             pass
@@ -3004,7 +3029,7 @@ def main(argv):
                 cardinal = heading_compass(ds_heading)
                 heading_label = ('%d°' % int(ds_heading)) + (' ' + cardinal if cardinal else '')
                 print ('%s--%s%s | color=%s'
-                       % (prefix, _drive_padded['Heading:'],
+                       % (prefix, _drive_fields['Heading:'],
                           heading_label, info_color))
         except Exception:
             pass
@@ -3016,7 +3041,7 @@ def main(argv):
                 if int(ds_power) < 0:
                     power_label += ' (regen)'
                 print ('%s--%s%s | color=%s'
-                       % (prefix, _drive_padded['Power:'],
+                       % (prefix, _drive_fields['Power:'],
                           power_label, power_color))
         except Exception:
             pass
@@ -3028,13 +3053,13 @@ def main(argv):
         car_location_address = retrieve_geo_loc(drive_state['latitude'],drive_state['longitude'])
 
         print ('%s--%s%s | color=%s'
-               % (prefix, _drive_padded['Location:'],
+               % (prefix, _drive_fields['Location:'],
                   car_location_address, info_color))
         print ('%s--%s%s | color=%s'
-               % (prefix, _drive_padded['Lat:'],
+               % (prefix, _drive_fields['Lat:'],
                   drive_state['latitude'], info_color))
         print ('%s--%s%s | color=%s'
-               % (prefix, _drive_padded['Lon:'],
+               % (prefix, _drive_fields['Lon:'],
                   drive_state['longitude'], info_color))
     
         try: 
@@ -3403,13 +3428,13 @@ def main(argv):
             print ('%s----Note: Tesla API may return incorrect codes | color=%s' % (prefix, color))
             print ('%s-------' % prefix)
             opt_prefix = prefix + '----'
-            opt_labels = [option + ':' for option in codes]
-            opt_padded = dict(zip(opt_labels, pad_column_pt(opt_labels)))
+            opt_labels = [_option_code_label(option) for option in codes]
+            opt_tabs = column_tabs(opt_labels)
             for option in codes:
-                label = option + ':'
+                label = _option_code_label(option)
                 option_description = _option_code_description(option)
-                print ('%s%s%s | color=%s'
-                       % (opt_prefix, opt_padded[label],
+                print ('%s%s%s%s | color=%s'
+                       % (opt_prefix, label, opt_tabs[label],
                           option_description, info_color))
 
         print ('%s-----' % prefix)
